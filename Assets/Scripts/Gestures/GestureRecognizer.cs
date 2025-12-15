@@ -37,7 +37,8 @@ namespace ASL_LearnVR.Gestures
         public UnityEvent<SignData> onGestureEnded;
 
         [Header("Debug")]
-        [SerializeField] private bool showDebugLogs = false;
+        [Tooltip("Mostrar logs de debug en la consola")]
+        [SerializeField] private bool showDebugLogs = true;
 
         private XRHandShape handShape;
         private XRHandPose handPose;
@@ -124,10 +125,23 @@ namespace ASL_LearnVR.Gestures
                 return;
             }
 
+            if (handShape == null && handPose == null)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"GestureRecognizer: El signo '{targetSign.signName}' no tiene Hand Shape ni Hand Pose configurado.");
+                return;
+            }
+
             // Verifica si el gesto cumple las condiciones
-            bool detected = handTrackingEvents.handIsTracked &&
-                            ((handShape != null && handShape.CheckConditions(eventArgs)) ||
-                             (handPose != null && handPose.CheckConditions(eventArgs)));
+            bool handTracked = handTrackingEvents.handIsTracked;
+            bool shapeMatches = handShape != null && handShape.CheckConditions(eventArgs);
+            bool poseMatches = handPose != null && handPose.CheckConditions(eventArgs);
+            bool detected = handTracked && (shapeMatches || poseMatches);
+
+            if (showDebugLogs && Time.timeSinceLevelLoad % 2f < detectionInterval)
+            {
+                Debug.Log($"GestureRecognizer [{targetSign.signName}]: Tracked={handTracked}, Shape={shapeMatches}, Pose={poseMatches}, Detected={detected}");
+            }
 
             // Inicio de detección
             if (!wasDetected && detected)

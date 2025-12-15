@@ -51,15 +51,10 @@ namespace ASL_LearnVR.Data
         /// </summary>
         public bool IsValid()
         {
-            if (string.IsNullOrEmpty(levelName))
-            {
-                Debug.LogError($"LevelData '{name}' tiene un levelName vacío.");
-                return false;
-            }
-
+            // Ya NO requiere que levelName esté lleno - usa el nombre del asset como fallback
             if (categories == null || categories.Count == 0)
             {
-                Debug.LogError($"LevelData '{levelName}' no tiene categorías asignadas.");
+                Debug.LogError($"LevelData '{name}' no tiene categorías asignadas.");
                 return false;
             }
 
@@ -68,7 +63,7 @@ namespace ASL_LearnVR.Data
             {
                 if (category == null)
                 {
-                    Debug.LogError($"LevelData '{levelName}' tiene una CategoryData null en la lista.");
+                    Debug.LogError($"LevelData '{name}' tiene una CategoryData null en la lista.");
                     allValid = false;
                 }
                 else if (!category.IsValid())

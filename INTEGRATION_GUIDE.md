@@ -344,7 +344,7 @@ Recognition Accuracy: 0.8
     └── BackButton (Button)
 ```
 
-**Crear prefab SignTile:**
+**Crear prefab:**
 
 1. Crea un panel: `GameObject > UI > Panel`
 2. Añade:

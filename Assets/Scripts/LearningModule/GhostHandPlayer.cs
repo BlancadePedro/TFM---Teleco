@@ -8,6 +8,8 @@ namespace ASL_LearnVR.LearningModule
     /// Controla las "ghost hands" que muestran visualmente cómo hacer un signo ASL.
     /// Para gestos estáticos: muestra la pose directamente.
     /// Para gestos dinámicos (J, Z): reproduce una animación o grabación.
+    /// IMPORTANTE: Las ghost hands están DESACOPLADAS del tracking real del usuario.
+    /// Se posicionan en un punto fijo del espacio y solo reproducen la pose/animación del signo.
     /// </summary>
     public class GhostHandPlayer : MonoBehaviour
     {
@@ -17,6 +19,16 @@ namespace ASL_LearnVR.LearningModule
 
         [Tooltip("Referencia al GameObject de la mano derecha fantasma")]
         [SerializeField] private GameObject rightGhostHand;
+
+        [Header("Positioning")]
+        [Tooltip("Posición fija donde aparecen las ghost hands (relativa al XR Origin)")]
+        [SerializeField] private Vector3 ghostHandsPosition = new Vector3(0f, 1.2f, 0.5f);
+
+        [Tooltip("Rotación fija de las ghost hands")]
+        [SerializeField] private Vector3 ghostHandsRotation = new Vector3(0f, 180f, 0f);
+
+        [Tooltip("Escala de las ghost hands")]
+        [SerializeField] private float ghostHandsScale = 1.0f;
 
         [Header("Visual Settings")]
         [Tooltip("Material para las ghost hands (semi-transparente)")]
@@ -39,6 +51,10 @@ namespace ASL_LearnVR.LearningModule
         private bool isPlaying = false;
         private SkinnedMeshRenderer[] leftHandRenderers;
         private SkinnedMeshRenderer[] rightHandRenderers;
+        private Vector3 originalLeftPosition;
+        private Quaternion originalLeftRotation;
+        private Vector3 originalRightPosition;
+        private Quaternion originalRightRotation;
 
         /// <summary>
         /// True si las ghost hands están reproduciendo actualmente.
@@ -47,18 +63,132 @@ namespace ASL_LearnVR.LearningModule
 
         void Awake()
         {
-            // Obtiene los renderers de las ghost hands
+            // CRÍTICO: Desacopla las ghost hands del tracking XR
+            // Elimina cualquier componente XRHandSkeletonDriver que pudiera seguir el tracking
+            DisableHandTracking();
+
+            // CRÍTICO: DESPARENTA las ghost hands del XR Origin para que NO sigan el tracking
+            DetachFromXROrigin();
+
+            // Guarda las posiciones originales
             if (leftGhostHand != null)
+            {
+                originalLeftPosition = leftGhostHand.transform.position;
+                originalLeftRotation = leftGhostHand.transform.rotation;
                 leftHandRenderers = leftGhostHand.GetComponentsInChildren<SkinnedMeshRenderer>();
+            }
 
             if (rightGhostHand != null)
+            {
+                originalRightPosition = rightGhostHand.transform.position;
+                originalRightRotation = rightGhostHand.transform.rotation;
                 rightHandRenderers = rightGhostHand.GetComponentsInChildren<SkinnedMeshRenderer>();
+            }
+
+            // Posiciona las ghost hands en su ubicación fija en WORLD SPACE
+            PositionGhostHands();
 
             // Aplica el material fantasma
             ApplyGhostMaterial();
 
             // Oculta las ghost hands al inicio
             SetGhostHandsVisible(false);
+        }
+
+        /// <summary>
+        /// CRÍTICO: Desparenta las ghost hands del XR Origin.
+        /// Esto evita que sigan el movimiento del headset/tracking.
+        /// </summary>
+        private void DetachFromXROrigin()
+        {
+            if (leftGhostHand != null)
+            {
+                // Desparenta del XR Origin, convirtiéndola en un objeto independiente en la escena
+                leftGhostHand.transform.SetParent(null, true);
+                if (showDebugLogs)
+                    Debug.Log("GhostHandPlayer: LeftGhostHand desparentada del XR Origin.");
+            }
+
+            if (rightGhostHand != null)
+            {
+                // Desparenta del XR Origin, convirtiéndola en un objeto independiente en la escena
+                rightGhostHand.transform.SetParent(null, true);
+                if (showDebugLogs)
+                    Debug.Log("GhostHandPlayer: RightGhostHand desparentada del XR Origin.");
+            }
+        }
+
+        /// <summary>
+        /// CRÍTICO: Desactiva cualquier componente que haga seguir el tracking de manos reales.
+        /// </summary>
+        private void DisableHandTracking()
+        {
+            if (leftGhostHand != null)
+            {
+                // Desactiva XRHandSkeletonDriver si existe
+                var leftDriver = leftGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandSkeletonDriver>();
+                if (leftDriver != null)
+                {
+                    leftDriver.enabled = false;
+                    if (showDebugLogs)
+                        Debug.Log("GhostHandPlayer: XRHandSkeletonDriver desactivado en LeftGhostHand.");
+                }
+
+                // Desactiva XRHandTrackingEvents si existe
+                var leftTracking = leftGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandTrackingEvents>();
+                if (leftTracking != null)
+                {
+                    leftTracking.enabled = false;
+                    if (showDebugLogs)
+                        Debug.Log("GhostHandPlayer: XRHandTrackingEvents desactivado en LeftGhostHand.");
+                }
+            }
+
+            if (rightGhostHand != null)
+            {
+                // Desactiva XRHandSkeletonDriver si existe
+                var rightDriver = rightGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandSkeletonDriver>();
+                if (rightDriver != null)
+                {
+                    rightDriver.enabled = false;
+                    if (showDebugLogs)
+                        Debug.Log("GhostHandPlayer: XRHandSkeletonDriver desactivado en RightGhostHand.");
+                }
+
+                // Desactiva XRHandTrackingEvents si existe
+                var rightTracking = rightGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandTrackingEvents>();
+                if (rightTracking != null)
+                {
+                    rightTracking.enabled = false;
+                    if (showDebugLogs)
+                        Debug.Log("GhostHandPlayer: XRHandTrackingEvents desactivado en RightGhostHand.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Posiciona las ghost hands en su ubicación fija en el espacio.
+        /// </summary>
+        private void PositionGhostHands()
+        {
+            Quaternion targetRotation = Quaternion.Euler(ghostHandsRotation);
+
+            if (leftGhostHand != null)
+            {
+                leftGhostHand.transform.position = ghostHandsPosition + new Vector3(-0.1f, 0f, 0f);
+                leftGhostHand.transform.rotation = targetRotation;
+                leftGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
+            }
+
+            if (rightGhostHand != null)
+            {
+                rightGhostHand.transform.position = ghostHandsPosition + new Vector3(0.1f, 0f, 0f);
+                rightGhostHand.transform.rotation = targetRotation;
+                rightGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
+            }
+
+            if (showDebugLogs)
+                Debug.Log($"GhostHandPlayer: Posicionadas en {ghostHandsPosition} con rotación {ghostHandsRotation}.");
         }
 
         /// <summary>
@@ -120,11 +250,15 @@ namespace ASL_LearnVR.LearningModule
 
             isPlaying = true;
 
+            // Asegura que las ghost hands estén en su posición fija
+            PositionGhostHands();
+
             // TODO: Aquí aplicarías la pose del Hand Shape/Pose al skeleton de las ghost hands
             // Por ahora, simplemente muestra las manos en su pose por defecto
             // En una implementación completa, necesitarías:
             // 1. Obtener los datos de joint positions del Hand Shape
-            // 2. Aplicarlos al XRHandSkeletonDriver de las ghost hands
+            // 2. Aplicar las rotaciones de los joints manualmente (sin XRHandSkeletonDriver)
+            // 3. Usar Animator o manipulación directa de transforms de los joints
 
             SetGhostHandsVisible(true);
 
@@ -142,11 +276,15 @@ namespace ASL_LearnVR.LearningModule
 
             isPlaying = true;
 
+            // Asegura que las ghost hands estén en su posición fija
+            PositionGhostHands();
+
             // TODO: Implementar reproducción de grabación de manos
             // Si tienes un handRecordingData en el SignData:
             // 1. Parsear los datos de la grabación
             // 2. Reproducir frame por frame las posiciones de los joints
-            // 3. Aplicarlas al XRHandSkeletonDriver
+            // 3. Aplicar las transformaciones manualmente (sin XRHandSkeletonDriver)
+            // 4. Mantener las ghost hands en su posición fija, solo animar los joints
 
             if (currentSign.handRecordingData != null)
             {

@@ -28,15 +28,15 @@ namespace ASL_LearnVR.SelfAssessment
         [SerializeField] private Button backButton;
 
         [Header("Components")]
-        [Tooltip("Componente GestureRecognizer para la mano derecha")]
-        [SerializeField] private GestureRecognizer rightHandRecognizer;
-
-        [Tooltip("Componente GestureRecognizer para la mano izquierda")]
-        [SerializeField] private GestureRecognizer leftHandRecognizer;
+        [Tooltip("Componente MultiGestureRecognizer que detecta todos los signos")]
+        [SerializeField] private MultiGestureRecognizer multiGestureRecognizer;
 
         [Header("Progress")]
         [Tooltip("Texto que muestra el progreso")]
         [SerializeField] private TextMeshProUGUI progressText;
+
+        [Header("Debug")]
+        [SerializeField] private bool showDebugLogs = false;
 
         private CategoryData currentCategory;
         private Dictionary<SignData, SignTileController> signTiles = new Dictionary<SignData, SignTileController>();
@@ -105,20 +105,20 @@ namespace ASL_LearnVR.SelfAssessment
         /// </summary>
         private void StartRecognition()
         {
-            // Nota: Para detectar múltiples gestos simultáneamente,
-            // necesitarías múltiples GestureRecognizers o un sistema más avanzado.
-            // Aquí usamos un enfoque simple: detectamos un gesto a la vez.
-
-            if (rightHandRecognizer != null)
+            if (multiGestureRecognizer != null)
             {
-                rightHandRecognizer.onGestureDetected.AddListener(OnGestureDetected);
-                rightHandRecognizer.SetDetectionEnabled(true);
+                // Configura el MultiGestureRecognizer con todos los signos de la categoría
+                multiGestureRecognizer.SetTargetSigns(currentCategory.signs);
+
+                // Suscribe al evento de detección
+                multiGestureRecognizer.onGestureDetected.AddListener(OnGestureDetected);
+
+                if (showDebugLogs)
+                    Debug.Log($"SelfAssessmentController: MultiGestureRecognizer configurado con {currentCategory.signs.Count} signos.");
             }
-
-            if (leftHandRecognizer != null)
+            else
             {
-                leftHandRecognizer.onGestureDetected.AddListener(OnGestureDetected);
-                leftHandRecognizer.SetDetectionEnabled(true);
+                Debug.LogError("SelfAssessmentController: MultiGestureRecognizer no está asignado.");
             }
         }
 
@@ -181,16 +181,9 @@ namespace ASL_LearnVR.SelfAssessment
             if (backButton != null)
                 backButton.onClick.RemoveListener(OnBackButtonClicked);
 
-            if (rightHandRecognizer != null)
+            if (multiGestureRecognizer != null)
             {
-                rightHandRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
-                rightHandRecognizer.SetDetectionEnabled(false);
-            }
-
-            if (leftHandRecognizer != null)
-            {
-                leftHandRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
-                leftHandRecognizer.SetDetectionEnabled(false);
+                multiGestureRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
             }
         }
     }
