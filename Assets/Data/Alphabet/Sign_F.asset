@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
+  m_Name: Sign_F
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
+  signName: F
+  description: Thumb and index finger forming a circle, other three fingers extended
+  handShapeOrPose: {fileID: 11400000, guid: a67a5e7896386b546ad96ed65ceb1d71, type: 2}
+  requiresMovement: 0
+  minimumHoldTime: 0.3
+  icon: {fileID: 21300000, guid: fa4c787bd642f2d40bcdaf380521b692, type: 3}
+  ghostHandsPrefab: {fileID: 0}
+  handRecordingData: {fileID: 0}

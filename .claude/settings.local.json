@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Select-Object FullName)",
+      "Bash(grep:*)",
+      "Bash(git init:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(Get-ChildItem -Path \"d:\\bdepedro\\Unity\\UnityGaussianSplatting\\projects\\ASL_Learn_VR\\Assets\" -Recurse -Filter \"*.cs\")",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
