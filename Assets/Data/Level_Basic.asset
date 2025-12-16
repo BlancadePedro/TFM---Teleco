@@ -16,7 +16,9 @@ MonoBehaviour:
   description: Start learning ASL with fundamental signs
   categories:
   - {fileID: 11400000, guid: a6366ff5ca5718b47a30cb4747b55cf7, type: 2}
-  icon: {fileID: 0}
+  - {fileID: 11400000, guid: b13adadf99ec67c4da82691c3163a010, type: 2}
+  - {fileID: 11400000, guid: 843652bd8c4e9f6438cb60633ba23a21, type: 2}
+  icon: {fileID: 21300000, guid: cbf18519a6baa6d4f95e92773c26f4db, type: 3}
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   minimumHoldTime: 0.3
   recognitionAccuracy: 0.8
