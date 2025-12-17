@@ -254,7 +254,7 @@ namespace ASL_LearnVR.LevelSelection
 
         /// <summary>
         /// Busca el contenedor de categorías dentro de un panel.
-        /// Si no existe, crea uno automáticamente.
+        /// Si no existe, crea uno automáticamente DENTRO del panel de contenido.
         /// </summary>
         private Transform FindCategoryContainer(Transform panelTransform)
         {
@@ -263,7 +263,17 @@ namespace ASL_LearnVR.LevelSelection
             if (container == null)
                 container = panelTransform.Find("Categories");
             if (container == null)
-                container = panelTransform.Find("Content");
+                container = panelTransform.Find("Content/CategoryContainer");
+
+            // Busca dentro de Background/Title/Top/Body si existe esa estructura
+            if (container == null)
+            {
+                Transform bodyTransform = panelTransform.Find("Background/Title/Top/Body");
+                if (bodyTransform != null)
+                {
+                    container = bodyTransform.Find("CategoryContainer");
+                }
+            }
 
             // Si no existe ninguno, busca el primer VerticalLayoutGroup o HorizontalLayoutGroup
             if (container == null)
@@ -278,38 +288,55 @@ namespace ASL_LearnVR.LevelSelection
                 }
             }
 
-            // Si TODAVÍA no existe, CRÉALO
+            // Si TODAVÍA no existe, CRÉALO dentro del Body si existe, o directamente en el panel
             if (container == null)
             {
                 Debug.Log($"LevelSelectionController: Creando contenedor de categorías en panel '{panelTransform.name}'.");
+
+                // Buscar el parent ideal: Background/Title/Top/Body
+                Transform parentForContainer = panelTransform;
+                Transform bodyTransform = panelTransform.Find("Background/Title/Top/Body");
+
+                if (bodyTransform != null)
+                {
+                    parentForContainer = bodyTransform;
+                    Debug.Log($"LevelSelectionController: Usando Body como parent para CategoryContainer.");
+                }
+                else
+                {
+                    Debug.LogWarning($"LevelSelectionController: No se encontró Body en '{panelTransform.name}', usando el panel directamente.");
+                }
+
                 GameObject containerObj = new GameObject("CategoryContainer");
-                containerObj.transform.SetParent(panelTransform, false);
+                containerObj.transform.SetParent(parentForContainer, false);
 
                 // Añade un VerticalLayoutGroup para organizar los botones
                 var layoutGroup = containerObj.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
-                layoutGroup.spacing = 15f; // Aumentado de 10 a 15
-                layoutGroup.padding = new RectOffset(20, 20, 20, 20); // Padding interno
-                layoutGroup.childAlignment = TextAnchor.UpperCenter; // Cambiado de MiddleCenter
+                layoutGroup.spacing = 10f;
+                layoutGroup.padding = new RectOffset(15, 15, 15, 15); // Padding interno
+                layoutGroup.childAlignment = TextAnchor.UpperCenter;
                 layoutGroup.childControlWidth = true;
                 layoutGroup.childControlHeight = false;
-                layoutGroup.childForceExpandWidth = true;
+                layoutGroup.childForceExpandWidth = true; // FUERZA que los botones se expandan al ancho
                 layoutGroup.childForceExpandHeight = false;
 
                 // Añade ContentSizeFitter para ajustar el tamaño automáticamente
                 var sizeFitter = containerObj.AddComponent<UnityEngine.UI.ContentSizeFitter>();
                 sizeFitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
-                sizeFitter.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
+                sizeFitter.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained; // NO restringe el ancho, usa el del parent
 
-                // Posiciona el contenedor debajo del botón del panel
+                // Configurar el RectTransform
                 RectTransform rectTransform = containerObj.GetComponent<RectTransform>();
                 if (rectTransform == null)
                     rectTransform = containerObj.AddComponent<RectTransform>();
 
-                rectTransform.anchorMin = new Vector2(0.5f, 0f);
-                rectTransform.anchorMax = new Vector2(0.5f, 0f);
-                rectTransform.pivot = new Vector2(0.5f, 1f); // Pivote arriba
-                rectTransform.anchoredPosition = new Vector2(0f, -80f); // Más espacio debajo del panel
-                rectTransform.sizeDelta = new Vector2(350f, 100f); // Ancho aumentado
+                // Posicionar usando anchors que se expandan con el parent
+                // Esto hará que el contenedor se ajuste al espacio disponible en el Body
+                rectTransform.anchorMin = new Vector2(0f, 0f);
+                rectTransform.anchorMax = new Vector2(1f, 0f);
+                rectTransform.pivot = new Vector2(0.5f, 0f); // Pivote abajo para crecer hacia arriba
+                rectTransform.anchoredPosition = new Vector2(0f, 20f); // 20 píxeles desde el bottom
+                rectTransform.sizeDelta = new Vector2(0f, 150f); // Alto para los botones, ancho ajustado automáticamente
 
                 container = containerObj.transform;
             }
@@ -364,6 +391,18 @@ namespace ASL_LearnVR.LevelSelection
 
                 GameObject buttonObj = Instantiate(categoryButtonPrefab, container);
                 Button button = buttonObj.GetComponent<Button>();
+
+                // Asegura que el botón tenga un LayoutElement con ancho mínimo
+                var layoutElement = buttonObj.GetComponent<UnityEngine.UI.LayoutElement>();
+                if (layoutElement == null)
+                    layoutElement = buttonObj.AddComponent<UnityEngine.UI.LayoutElement>();
+
+                // Configura el tamaño mínimo del botón
+                layoutElement.minWidth = 250f; // Ancho mínimo
+                layoutElement.preferredWidth = 350f; // Ancho preferido
+                layoutElement.minHeight = 60f; // Alto mínimo
+                layoutElement.preferredHeight = 70f; // Alto preferido
+                layoutElement.flexibleWidth = 1f; // Permite que se expanda si hay espacio
 
                 // Busca TODOS los TextMeshProUGUI en el botón
                 TextMeshProUGUI[] textComponents = buttonObj.GetComponentsInChildren<TextMeshProUGUI>();
