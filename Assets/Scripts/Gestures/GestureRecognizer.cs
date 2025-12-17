@@ -75,6 +75,11 @@ namespace ASL_LearnVR.Gestures
             if (handTrackingEvents != null)
             {
                 handTrackingEvents.jointsUpdated.AddListener(OnJointsUpdated);
+                Debug.Log($"[GestureRecognizer] ACTIVADO con handTrackingEvents para '{(targetSign != null ? targetSign.signName : "sin signo")}'");
+            }
+            else
+            {
+                Debug.LogError("[GestureRecognizer] FALTA ASIGNAR 'handTrackingEvents'! Ve al Inspector y arrastra el GameObject 'Right Hand' al campo 'Hand Tracking Events'");
             }
 
             InitializeGestureReferences();
@@ -119,15 +124,25 @@ namespace ASL_LearnVR.Gestures
         /// </summary>
         private void OnJointsUpdated(XRHandJointsUpdatedEventArgs eventArgs)
         {
-            if (!isActiveAndEnabled || Time.timeSinceLevelLoad < timeOfLastCheck + detectionInterval)
+            if (!isActiveAndEnabled)
+            {
+                if (showDebugLogs && Time.timeSinceLevelLoad % 5f < detectionInterval)
+                    Debug.LogWarning("[GestureRecognizer] COMPONENTE DESACTIVADO!");
+                return;
+            }
+
+            if (Time.timeSinceLevelLoad < timeOfLastCheck + detectionInterval)
                 return;
 
             if (targetSign == null)
             {
-                if (showDebugLogs)
-                    Debug.LogWarning("GestureRecognizer: No hay SignData asignado.");
+                if (showDebugLogs && Time.timeSinceLevelLoad % 5f < detectionInterval)
+                    Debug.LogWarning("[GestureRecognizer] NO HAY SignData asignado!");
                 return;
             }
+
+            if (showDebugLogs && Time.timeSinceLevelLoad % 3f < detectionInterval)
+                Debug.Log($"[GestureRecognizer] Recibiendo datos de mano para '{targetSign.signName}'");
 
             if (handShape == null && handPose == null)
             {
@@ -201,6 +216,7 @@ namespace ASL_LearnVR.Gestures
         /// </summary>
         public void SetDetectionEnabled(bool enabled)
         {
+            Debug.Log($"[GestureRecognizer] SetDetectionEnabled({enabled}) llamado para '{(targetSign != null ? targetSign.signName : "sin signo")}'");
             this.enabled = enabled;
             if (!enabled)
                 ResetState();

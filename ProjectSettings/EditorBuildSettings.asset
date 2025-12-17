@@ -29,6 +29,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Samples/XR Interaction Toolkit/3.2.2/Starter Assets/DemoScene.unity
     guid: 319dafa5c80f29f428dc1e0d03f04177
+  - enabled: 0
+    path: Assets/Samples/XR Hands/1.7.2/Hand Capture/HandCapture.unity
+    guid: 1ebe1fe45ff8e46c9ac6fdd6bfd9ec73
   m_configObjects:
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: defb769b98a16264dac8ddb7de1bee2b, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 9297785919926f04c88ca199a6ae6673, type: 2}

@@ -38,7 +38,13 @@ namespace ASL_LearnVR.Data
 
         [Header("Recording (for dynamic gestures)")]
         [Tooltip("Archivo de grabación de manos para gestos dinámicos (J, Z, etc.)")]
-        public TextAsset handRecordingData;
+        public ScriptableObject handRecordingData;
+
+        [Tooltip("Frame inicial de la grabación (para trimming)")]
+        public int recordingStartFrame = 0;
+
+        [Tooltip("Frame final de la grabación (para trimming). Si es 0, usa toda la grabación.")]
+        public int recordingEndFrame = 0;
 
         /// <summary>
         /// Obtiene el XRHandShape si existe.
