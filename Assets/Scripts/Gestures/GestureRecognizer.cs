@@ -105,8 +105,12 @@ namespace ASL_LearnVR.Gestures
 
             if (handPose != null && handPose.relativeOrientation != null)
             {
-                // Si necesitas un target transform para la orientación, puedes configurarlo aquí
-                // handPose.relativeOrientation.targetTransform = someTransform;
+                // Asigna automáticamente la cámara principal como target
+                if (handPose.relativeOrientation.targetTransform == null)
+                {
+                    handPose.relativeOrientation.targetTransform = Camera.main.transform;
+                    Debug.Log($"GestureRecognizer: Asignada cámara principal como targetTransform para '{targetSign.signName}'");
+                }
             }
         }
 

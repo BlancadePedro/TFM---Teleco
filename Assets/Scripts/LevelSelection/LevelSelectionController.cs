@@ -38,6 +38,9 @@ namespace ASL_LearnVR.LevelSelection
         [Tooltip("Texto que muestra el título del nivel seleccionado")]
         [SerializeField] private TextMeshProUGUI selectedLevelText;
 
+        [Tooltip("Texto de encabezado que aparece en el contenedor de categorías (opcional, se crea automáticamente si no existe)")]
+        [SerializeField] private TextMeshProUGUI categoryHeaderText;
+
         [Header("Back Button")]
         [Tooltip("Botón para volver al menú principal")]
         [SerializeField] private Button backButton;
@@ -284,8 +287,9 @@ namespace ASL_LearnVR.LevelSelection
 
                 // Añade un VerticalLayoutGroup para organizar los botones
                 var layoutGroup = containerObj.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
-                layoutGroup.spacing = 10f;
-                layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+                layoutGroup.spacing = 15f; // Aumentado de 10 a 15
+                layoutGroup.padding = new RectOffset(20, 20, 20, 20); // Padding interno
+                layoutGroup.childAlignment = TextAnchor.UpperCenter; // Cambiado de MiddleCenter
                 layoutGroup.childControlWidth = true;
                 layoutGroup.childControlHeight = false;
                 layoutGroup.childForceExpandWidth = true;
@@ -294,6 +298,7 @@ namespace ASL_LearnVR.LevelSelection
                 // Añade ContentSizeFitter para ajustar el tamaño automáticamente
                 var sizeFitter = containerObj.AddComponent<UnityEngine.UI.ContentSizeFitter>();
                 sizeFitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+                sizeFitter.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
 
                 // Posiciona el contenedor debajo del botón del panel
                 RectTransform rectTransform = containerObj.GetComponent<RectTransform>();
@@ -302,9 +307,9 @@ namespace ASL_LearnVR.LevelSelection
 
                 rectTransform.anchorMin = new Vector2(0.5f, 0f);
                 rectTransform.anchorMax = new Vector2(0.5f, 0f);
-                rectTransform.pivot = new Vector2(0.5f, 0f);
-                rectTransform.anchoredPosition = new Vector2(0f, -50f); // Debajo del panel
-                rectTransform.sizeDelta = new Vector2(300f, 100f);
+                rectTransform.pivot = new Vector2(0.5f, 1f); // Pivote arriba
+                rectTransform.anchoredPosition = new Vector2(0f, -80f); // Más espacio debajo del panel
+                rectTransform.sizeDelta = new Vector2(350f, 100f); // Ancho aumentado
 
                 container = containerObj.transform;
             }
@@ -338,11 +343,15 @@ namespace ASL_LearnVR.LevelSelection
             // Activa el contenedor de este panel
             container.gameObject.SetActive(true);
 
-            // Limpia los botones anteriores
+            // Limpia los botones anteriores (excepto el header si existe)
             foreach (Transform child in container)
             {
-                Destroy(child.gameObject);
+                if (child.name != "CategoryHeader")
+                    Destroy(child.gameObject);
             }
+
+            // Crea o actualiza el texto de encabezado
+            CreateOrUpdateCategoryHeader(container, level);
 
             // Genera nuevos botones
             foreach (var category in level.categories)
@@ -355,10 +364,20 @@ namespace ASL_LearnVR.LevelSelection
 
                 GameObject buttonObj = Instantiate(categoryButtonPrefab, container);
                 Button button = buttonObj.GetComponent<Button>();
-                TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
 
-                if (buttonText != null)
-                    buttonText.text = category.categoryName;
+                // Busca TODOS los TextMeshProUGUI en el botón
+                TextMeshProUGUI[] textComponents = buttonObj.GetComponentsInChildren<TextMeshProUGUI>();
+
+                // El primer texto es el nombre de la categoría
+                if (textComponents.Length > 0)
+                    textComponents[0].text = category.categoryName;
+
+                // El segundo texto (si existe) es el contador de signos
+                if (textComponents.Length > 1)
+                {
+                    int signCount = category.signs != null ? category.signs.Count : 0;
+                    textComponents[1].text = $"{signCount} signos";
+                }
 
                 if (button != null)
                 {
@@ -366,6 +385,56 @@ namespace ASL_LearnVR.LevelSelection
                     button.onClick.AddListener(() => OnCategoryButtonClicked(categoryCopy));
                 }
             }
+        }
+
+        /// <summary>
+        /// Crea o actualiza el texto de encabezado del contenedor de categorías.
+        /// </summary>
+        private void CreateOrUpdateCategoryHeader(Transform container, LevelData level)
+        {
+            // Busca si ya existe un header
+            Transform headerTransform = container.Find("CategoryHeader");
+            TextMeshProUGUI headerText = null;
+
+            if (headerTransform == null)
+            {
+                // Crea el header
+                GameObject headerObj = new GameObject("CategoryHeader");
+                headerObj.transform.SetParent(container, false);
+                headerObj.transform.SetAsFirstSibling(); // Colócalo al principio
+
+                headerText = headerObj.AddComponent<TextMeshProUGUI>();
+
+                // Configuración del texto
+                headerText.fontSize = 24;
+                headerText.alignment = TextAlignmentOptions.Center;
+                headerText.color = Color.white;
+                headerText.fontStyle = FontStyles.Bold;
+
+                // Configuración del RectTransform
+                RectTransform headerRect = headerObj.GetComponent<RectTransform>();
+                headerRect.sizeDelta = new Vector2(300f, 60f);
+
+                // Añade un LayoutElement para controlar el tamaño
+                var layoutElement = headerObj.AddComponent<UnityEngine.UI.LayoutElement>();
+                layoutElement.minHeight = 60f;
+                layoutElement.preferredHeight = 60f;
+            }
+            else
+            {
+                headerText = headerTransform.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Actualiza el texto
+            if (headerText != null)
+            {
+                string levelName = string.IsNullOrEmpty(level.levelName) ? level.name : level.levelName;
+                headerText.text = $"Has seleccionado: {levelName.ToUpper()}\n\nElige una categoría para comenzar:";
+            }
+
+            // Guarda la referencia si el campo está disponible
+            if (categoryHeaderText == null)
+                categoryHeaderText = headerText;
         }
 
         /// <summary>

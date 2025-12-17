@@ -30,8 +30,14 @@ namespace ASL_LearnVR.Gestures
         [SerializeField] private float minimumHoldTime = 0.5f;
 
         [Header("Events")]
-        [Tooltip("Se invoca cuando un gesto es detectado")]
+        [Tooltip("Se invoca cuando un gesto es detectado y confirmado (después del hold time)")]
         public UnityEvent<SignData> onGestureDetected;
+
+        [Tooltip("Se invoca cuando un gesto es reconocido instantáneamente (sin hold time). Útil para feedback visual.")]
+        public UnityEvent<SignData> onGestureRecognized;
+
+        [Tooltip("Se invoca cuando un gesto deja de ser reconocido")]
+        public UnityEvent<SignData> onGestureLost;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = false;
@@ -40,7 +46,14 @@ namespace ASL_LearnVR.Gestures
         private Dictionary<SignData, bool> wasDetected = new Dictionary<SignData, bool>();
         private Dictionary<SignData, bool> performedTriggered = new Dictionary<SignData, bool>();
         private Dictionary<SignData, float> holdStartTimes = new Dictionary<SignData, float>();
-        private float timeOfLastCheck = 0f;
+        private Dictionary<SignData, float> confidenceScores = new Dictionary<SignData, float>();
+        private float timeOfLastCheckLeft = 0f;
+        private float timeOfLastCheckRight = 0f;
+
+        /// <summary>
+        /// Obtiene el signo activo actual (null si ninguno).
+        /// </summary>
+        public SignData CurrentActiveSign { get; private set; }
 
         void OnEnable()
         {
@@ -89,6 +102,30 @@ namespace ASL_LearnVR.Gestures
         {
             targetSigns = signs;
             InitializeDetectionState();
+
+            // Configura el targetTransform para todas las poses
+            Transform cameraTransform = Camera.main?.transform;
+            if (cameraTransform != null)
+            {
+                foreach (var sign in targetSigns)
+                {
+                    if (sign == null) continue;
+
+                    var handPose = sign.GetHandPose();
+                    if (handPose != null && handPose.relativeOrientation != null)
+                    {
+                        if (handPose.relativeOrientation.targetTransform == null)
+                        {
+                            handPose.relativeOrientation.targetTransform = cameraTransform;
+                            Debug.Log($"MultiGestureRecognizer: Asignada cámara como targetTransform para '{sign.signName}'");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("MultiGestureRecognizer: No se encontró Camera.main para asignar targetTransform");
+            }
         }
 
         /// <summary>
@@ -96,7 +133,7 @@ namespace ASL_LearnVR.Gestures
         /// </summary>
         private void OnLeftHandJointsUpdated(XRHandJointsUpdatedEventArgs eventArgs)
         {
-            CheckGestures(eventArgs, leftHandTrackingEvents);
+            CheckGestures(eventArgs, leftHandTrackingEvents, ref timeOfLastCheckLeft);
         }
 
         /// <summary>
@@ -104,24 +141,24 @@ namespace ASL_LearnVR.Gestures
         /// </summary>
         private void OnRightHandJointsUpdated(XRHandJointsUpdatedEventArgs eventArgs)
         {
-            CheckGestures(eventArgs, rightHandTrackingEvents);
+            CheckGestures(eventArgs, rightHandTrackingEvents, ref timeOfLastCheckRight);
         }
 
         /// <summary>
         /// Verifica todos los gestos contra el estado actual de la mano.
         /// </summary>
-        private void CheckGestures(XRHandJointsUpdatedEventArgs eventArgs, XRHandTrackingEvents handTrackingEvents)
+        private void CheckGestures(XRHandJointsUpdatedEventArgs eventArgs, XRHandTrackingEvents handTrackingEvents, ref float timeOfLastCheck)
         {
             if (!isActiveAndEnabled || Time.timeSinceLevelLoad < timeOfLastCheck + detectionInterval)
                 return;
 
+            // Determina el signo activo actual (el que tiene mejor match)
+            SignData bestMatchSign = null;
+            float bestConfidence = 0f;
+
             foreach (var sign in targetSigns)
             {
                 if (sign == null || sign.handShapeOrPose == null)
-                    continue;
-
-                // Si el gesto ya fue confirmado, no lo vuelvas a detectar
-                if (performedTriggered.ContainsKey(sign) && performedTriggered[sign])
                     continue;
 
                 // Obtiene el Hand Shape o Hand Pose
@@ -133,44 +170,88 @@ namespace ASL_LearnVR.Gestures
                                 ((handShape != null && handShape.CheckConditions(eventArgs)) ||
                                  (handPose != null && handPose.CheckConditions(eventArgs)));
 
-                bool wasDetectedBefore = wasDetected.ContainsKey(sign) && wasDetected[sign];
-
-                // Inicio de detección
-                if (!wasDetectedBefore && detected)
+                if (detected)
                 {
-                    holdStartTimes[sign] = Time.timeSinceLevelLoad;
-                    wasDetected[sign] = true;
+                    // Por ahora usamos 1.0 para todos los detectados
+                    // En el futuro se puede calcular confianza basada en thresholds
+                    float confidence = 1.0f;
+                    confidenceScores[sign] = confidence;
 
-                    if (showDebugLogs)
-                        Debug.Log($"MultiGestureRecognizer: Gesto '{sign.signName}' detectado, esperando hold time.");
-                }
-                // Fin de detección
-                else if (wasDetectedBefore && !detected)
-                {
-                    wasDetected[sign] = false;
-
-                    if (showDebugLogs)
-                        Debug.Log($"MultiGestureRecognizer: Gesto '{sign.signName}' perdido.");
-                }
-
-                // Verifica si el hold time ha sido cumplido
-                if (detected && wasDetected[sign])
-                {
-                    float requiredHoldTime = sign.minimumHoldTime > 0 ? sign.minimumHoldTime : minimumHoldTime;
-                    float holdTimer = Time.timeSinceLevelLoad - holdStartTimes[sign];
-
-                    if (holdTimer >= requiredHoldTime && !performedTriggered[sign])
+                    if (confidence > bestConfidence)
                     {
-                        performedTriggered[sign] = true;
-                        onGestureDetected?.Invoke(sign);
-
-                        if (showDebugLogs)
-                            Debug.Log($"MultiGestureRecognizer: Gesto '{sign.signName}' confirmado!");
+                        bestConfidence = confidence;
+                        bestMatchSign = sign;
                     }
+                }
+                else
+                {
+                    confidenceScores[sign] = 0f;
                 }
             }
 
+            // Actualiza el signo activo y procesa eventos
+            UpdateActiveSign(bestMatchSign);
+
             timeOfLastCheck = Time.timeSinceLevelLoad;
+        }
+
+        /// <summary>
+        /// Actualiza el signo activo actual y dispara los eventos correspondientes.
+        /// </summary>
+        private void UpdateActiveSign(SignData newActiveSign)
+        {
+            // Si cambió el signo activo
+            if (CurrentActiveSign != newActiveSign)
+            {
+                // Procesa el fin del signo anterior
+                if (CurrentActiveSign != null)
+                {
+                    wasDetected[CurrentActiveSign] = false;
+                    onGestureLost?.Invoke(CurrentActiveSign);
+
+                    if (showDebugLogs)
+                        Debug.Log($"MultiGestureRecognizer: Gesto '{CurrentActiveSign.signName}' perdido.");
+                }
+
+                // Procesa el inicio del nuevo signo
+                if (newActiveSign != null)
+                {
+                    // SIEMPRE inicializa el nuevo signo activo, sin importar si ya fue detectado antes
+                    holdStartTimes[newActiveSign] = Time.timeSinceLevelLoad;
+                    wasDetected[newActiveSign] = true;
+
+                    // Emite evento de reconocimiento instantáneo
+                    onGestureRecognized?.Invoke(newActiveSign);
+
+                    if (showDebugLogs)
+                        Debug.Log($"MultiGestureRecognizer: Gesto '{newActiveSign.signName}' detectado.");
+                }
+
+                // Actualiza el signo activo (ahora es una propiedad pública)
+                CurrentActiveSign = newActiveSign;
+            }
+
+            // Si hay un signo activo, verifica si cumplió el hold time
+            if (CurrentActiveSign != null && wasDetected[CurrentActiveSign])
+            {
+                // Solo dispara el evento de confirmación si NO se disparó antes
+                if (!performedTriggered.ContainsKey(CurrentActiveSign) || !performedTriggered[CurrentActiveSign])
+                {
+                    float requiredHoldTime = CurrentActiveSign.minimumHoldTime > 0
+                        ? CurrentActiveSign.minimumHoldTime
+                        : minimumHoldTime;
+                    float holdTimer = Time.timeSinceLevelLoad - holdStartTimes[CurrentActiveSign];
+
+                    if (holdTimer >= requiredHoldTime)
+                    {
+                        performedTriggered[CurrentActiveSign] = true;
+                        onGestureDetected?.Invoke(CurrentActiveSign);
+
+                        if (showDebugLogs)
+                            Debug.Log($"MultiGestureRecognizer: Gesto '{CurrentActiveSign.signName}' confirmado!");
+                    }
+                }
+            }
         }
 
         /// <summary>

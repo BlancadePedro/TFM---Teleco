@@ -28,11 +28,12 @@ namespace ASL_LearnVR.SelfAssessment
         [Tooltip("Color cuando el signo está completado")]
         [SerializeField] private Color completedColor = new Color(0f, 0.627451f, 1f, 1f);
 
-        [Tooltip("Duración de la animación de cambio de color")]
-        [SerializeField] private float colorTransitionDuration = 0.3f;
+        [Tooltip("Color cuando el signo está siendo reconocido (feedback temporal)")]
+        [SerializeField] private Color recognizedColor = new Color(1f, 0.843f, 0f, 1f); // Dorado
 
         private SignData sign;
         private bool isCompleted = false;
+        private bool isCurrentlyRecognized = false;
 
         /// <summary>
         /// El SignData asociado a esta casilla.
@@ -51,6 +52,16 @@ namespace ASL_LearnVR.SelfAssessment
         {
             sign = signData;
 
+            // BUSCA el backgroundImage si no está asignado
+            if (backgroundImage == null)
+            {
+                backgroundImage = GetComponent<Image>();
+                if (backgroundImage == null)
+                {
+                    Debug.LogError($"SignTileController: NO se encontró Image component en '{gameObject.name}'");
+                }
+            }
+
             // Actualiza el texto
             if (signNameText != null)
                 signNameText.text = sign.signName;
@@ -68,7 +79,10 @@ namespace ASL_LearnVR.SelfAssessment
 
             // Aplica el color por defecto
             if (backgroundImage != null)
+            {
                 backgroundImage.color = defaultColor;
+                Debug.Log($"[INIT] Tile '{sign.signName}' inicializado con color: {backgroundImage.color}");
+            }
         }
 
         /// <summary>
@@ -80,29 +94,62 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (backgroundImage != null)
             {
-                // Animación de cambio de color
-                StopAllCoroutines();
-                StartCoroutine(AnimateColorChange(completed ? completedColor : defaultColor));
+                // Cambio directo de color sin animación
+                backgroundImage.color = completed ? completedColor : defaultColor;
             }
         }
 
         /// <summary>
-        /// Corrutina que anima el cambio de color.
+        /// Muestra feedback visual cuando el signo es reconocido (sin marcarlo como completado).
+        /// Feedback puramente cromático, sin animaciones de escala ni pulso.
         /// </summary>
-        private System.Collections.IEnumerator AnimateColorChange(Color targetColor)
+        public void ShowRecognitionFeedback()
         {
-            Color startColor = backgroundImage.color;
-            float elapsed = 0f;
+            Debug.Log($">>> ShowRecognitionFeedback() para '{sign?.signName}' | isCompleted={isCompleted} | backgroundImage={backgroundImage != null}");
 
-            while (elapsed < colorTransitionDuration)
+            // No mostrar feedback si ya está completado
+            if (isCompleted)
             {
-                elapsed += Time.deltaTime;
-                float t = elapsed / colorTransitionDuration;
-                backgroundImage.color = Color.Lerp(startColor, targetColor, t);
-                yield return null;
+                Debug.Log($"    -> Tile '{sign?.signName}' YA COMPLETADO, no cambia color");
+                return;
             }
 
-            backgroundImage.color = targetColor;
+            isCurrentlyRecognized = true;
+
+            // Cambio directo de color sin animación
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = recognizedColor;
+                Debug.Log($"    -> TILE '{sign?.signName}' CAMBIADO A DORADO: {recognizedColor}");
+            }
+            else
+            {
+                Debug.LogError($"    -> ERROR: backgroundImage es NULL para '{sign?.signName}'");
+            }
+        }
+
+        /// <summary>
+        /// Oculta el feedback de reconocimiento y vuelve al color por defecto.
+        /// </summary>
+        public void HideRecognitionFeedback()
+        {
+            Debug.Log($"<<< HideRecognitionFeedback() para '{sign?.signName}' | isCompleted={isCompleted}");
+
+            // No hacer nada si ya está completado
+            if (isCompleted)
+            {
+                Debug.Log($"    -> Tile '{sign?.signName}' YA COMPLETADO, no cambia color");
+                return;
+            }
+
+            isCurrentlyRecognized = false;
+
+            // Cambio directo de color sin animación
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = defaultColor;
+                Debug.Log($"    -> TILE '{sign?.signName}' CAMBIADO A GRIS: {defaultColor}");
+            }
         }
     }
 }
