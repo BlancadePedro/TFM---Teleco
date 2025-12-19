@@ -1380,7 +1380,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Realiza cada signo de la cuadr\xEDcula para marcarlo como completado. 
-    \n - Verde: Completado\n - Gris: Pendiente\nPuedes hacerlos en cualquier orden.     "
+    \n - Amarillo: Reconocido\n - Verde: Completado\nPuedes hacerlos en cualquier
+    orden.     "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2183,6 +2184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureListener
   gestureRecognizer: {fileID: 1608912722}
+  poseAdapter: {fileID: 0}
   gestureNameText: {fileID: 513263632}
   gestureProgressSlider: {fileID: 0}
   statusText: {fileID: 0}
@@ -2372,7 +2374,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1745650902
 RectTransform:
   m_ObjectHideFlags: 0

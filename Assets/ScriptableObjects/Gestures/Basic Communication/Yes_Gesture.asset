@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46c830ca965dc0c40b6000e52466824f, type: 3}
+  m_Name: Yes_Gesture
+  m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
+  gestureName: Yes
+  gestureDescription: Fist moving up and down (nodding)
+  poseSequence:
+  - poseName: S
+    timing: 1
+    isOptional: 0
+  requiresMovement: 1
+  primaryDirection: {x: 0, y: -1, z: 0}
+  directionTolerance: 60
+  minSpeed: 0.1
+  minDistance: 0.06
+  minDuration: 0.4
+  maxDuration: 2
+  requiresDirectionChange: 1
+  requiredDirectionChanges: 1
+  requiresRotation: 0
+  rotationAxis: {x: 0, y: 1, z: 0}
+  minRotationAngle: 30
+  requiresCircularMotion: 0
+  minCircularityScore: 0.6
+  requiresSpatialZone: 0
+  zoneCenter: {x: 0, y: 0, z: 0.2}
+  zoneRadius: 0.14999999
+  zoneValidationTiming: 0
