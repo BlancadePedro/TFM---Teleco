@@ -42,8 +42,9 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Componente GestureRecognizer para la mano izquierda")]
         [SerializeField] private GestureRecognizer leftHandRecognizer;
 
-        [Tooltip("Componente DynamicGestureRecognizer para gestos dinámicos (J, Z)")]
-        [SerializeField] private DynamicGestureRecognizer dynamicGestureRecognizer;
+        [Header("Dynamic Gestures (J, Z)")]
+        [Tooltip("Componente DynamicGestureRecognizer para gestos dinámicos")]
+        [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
 
         [Header("Feedback UI")]
         [Tooltip("Panel que muestra feedback durante la práctica")]
@@ -52,8 +53,9 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Texto del feedback")]
         [SerializeField] private TextMeshProUGUI feedbackText;
 
-        [Tooltip("Texto que muestra el estado de grabación (RECORDING, WAITING, etc.)")]
-        [SerializeField] private TextMeshProUGUI recordingStatusText;
+        // NOTA: Recording status text eliminado - ya no es necesario
+        // [Tooltip("Texto que muestra el estado de grabación (RECORDING, WAITING, etc.)")]
+        // [SerializeField] private TextMeshProUGUI recordingStatusText;
 
         [Header("Navigation")]
         [Tooltip("Botón para ir al siguiente signo")]
@@ -61,6 +63,10 @@ namespace ASL_LearnVR.LearningModule
 
         [Tooltip("Botón para ir al signo anterior")]
         [SerializeField] private Button previousSignButton;
+
+        [Header("Additional Categories")]
+        [Tooltip("Categoría Digits para cargar poses numéricas (1, 2, 3, etc.)")]
+        [SerializeField] private CategoryData digitsCategory;
 
         private CategoryData currentCategory;
         private int currentSignIndex = 0;
@@ -99,6 +105,18 @@ namespace ASL_LearnVR.LearningModule
             if (previousSignButton != null)
                 previousSignButton.onClick.AddListener(OnPreviousSignButtonClicked);
 
+            // Configura listeners para gestos dinámicos
+            if (dynamicGestureRecognizer != null)
+            {
+                dynamicGestureRecognizer.OnGestureStarted += OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureCompleted += OnDynamicGestureCompleted;
+                dynamicGestureRecognizer.OnGestureFailed += OnDynamicGestureFailed;
+            }
+            else
+            {
+                Debug.LogWarning("[LearningController] DynamicGestureRecognizer no asignado - los gestos J y Z no funcionarán.");
+            }
+
             // Oculta el panel de feedback al inicio
             if (feedbackPanel != null)
                 feedbackPanel.SetActive(false);
@@ -110,59 +128,18 @@ namespace ASL_LearnVR.LearningModule
             LoadSign(currentSignIndex);
         }
 
-        void Update()
+        void OnDestroy()
         {
-            // Actualiza el estado visual si está practicando
-            if (isPracticing)
+            // Desuscribirse de eventos dinámicos
+            if (dynamicGestureRecognizer != null)
             {
-                UpdateRecordingStatus();
+                dynamicGestureRecognizer.OnGestureStarted -= OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureCompleted -= OnDynamicGestureCompleted;
+                dynamicGestureRecognizer.OnGestureFailed -= OnDynamicGestureFailed;
             }
         }
 
-        /// <summary>
-        /// Actualiza el texto de estado de grabación.
-        /// </summary>
-        private void UpdateRecordingStatus()
-        {
-            if (recordingStatusText == null)
-                return;
-
-            SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
-
-            if (currentSign != null && currentSign.requiresMovement)
-            {
-                // Gesto dinámico
-                if (dynamicGestureRecognizer != null && dynamicGestureRecognizer.IsRecording)
-                {
-                    recordingStatusText.text = "RECORDING MOVEMENT...";
-                    recordingStatusText.color = Color.red;
-                }
-                else if (isWaitingForDynamicGesture)
-                {
-                    recordingStatusText.text = "WAITING... (Make the gesture)";
-                    recordingStatusText.color = Color.yellow;
-                }
-                else
-                {
-                    recordingStatusText.text = "READY";
-                    recordingStatusText.color = Color.green;
-                }
-            }
-            else
-            {
-                // Gesto estático
-                if (rightHandRecognizer != null && rightHandRecognizer.IsDetected)
-                {
-                    recordingStatusText.text = "DETECTED!";
-                    recordingStatusText.color = Color.green;
-                }
-                else
-                {
-                    recordingStatusText.text = "WATCHING... (Make the sign)";
-                    recordingStatusText.color = Color.cyan;
-                }
-            }
-        }
+        // NOTA: Update() y UpdateRecordingStatus() eliminados - ya no son necesarios sin el recording status text
 
         /// <summary>
         /// Carga un signo por índice.
@@ -195,8 +172,25 @@ namespace ASL_LearnVR.LearningModule
             if (sign.requiresMovement)
             {
                 // Gesto dinámico: usa DynamicGestureRecognizer
-                if (dynamicGestureRecognizer != null)
-                    dynamicGestureRecognizer.SetTargetSign(sign);
+                Debug.Log($"[LearningController] Cargando gesto dinámico: '{sign.signName}'");
+
+                // Para gestos dinámicos, configurar la pose INICIAL que necesitan
+                SignData initialPose = GetInitialPoseForDynamicGesture(sign);
+
+                if (initialPose != null)
+                {
+                    Debug.Log($"[LearningController] Configurando pose inicial '{initialPose.signName}' para gesto dinámico '{sign.signName}'");
+
+                    if (rightHandRecognizer != null)
+                        rightHandRecognizer.TargetSign = initialPose;
+
+                    if (leftHandRecognizer != null)
+                        leftHandRecognizer.TargetSign = initialPose;
+                }
+                else
+                {
+                    Debug.LogError($"[LearningController] No se encontró pose inicial para gesto dinámico '{sign.signName}'");
+                }
             }
             else
             {
@@ -289,32 +283,15 @@ namespace ASL_LearnVR.LearningModule
 
             if (currentSign != null && currentSign.requiresMovement)
             {
-                // Gesto dinámico: usa DynamicGestureRecognizer
+                // Gesto dinámico: activar DynamicGestureRecognizer
+                Debug.Log($"[LearningController] Reconocimiento de gesto dinámico '{currentSign.signName}': {enabled}");
+
                 if (dynamicGestureRecognizer != null)
                 {
-                    if (enabled)
-                    {
-                        Debug.Log($"[LearningController] ACTIVANDO reconocimiento dinámico para '{currentSign.signName}'");
-                        dynamicGestureRecognizer.onDynamicGestureDetected.AddListener(OnDynamicGestureDetected);
-                        dynamicGestureRecognizer.onDynamicGestureFailed.AddListener(OnDynamicGestureFailed);
-                        isWaitingForDynamicGesture = true;
-                        dynamicGestureRecognizer.StartRecording();
-                        Debug.Log($"[LearningController] GRABACION INICIADA - Haz el gesto '{currentSign.signName}' AHORA!");
-                    }
-                    else
-                    {
-                        Debug.Log($"[LearningController] DESACTIVANDO reconocimiento dinámico");
-                        dynamicGestureRecognizer.onDynamicGestureDetected.RemoveListener(OnDynamicGestureDetected);
-                        dynamicGestureRecognizer.onDynamicGestureFailed.RemoveListener(OnDynamicGestureFailed);
-                        isWaitingForDynamicGesture = false;
-                        if (dynamicGestureRecognizer.IsRecording)
-                            dynamicGestureRecognizer.StopRecording();
-                    }
+                    dynamicGestureRecognizer.SetEnabled(enabled);
                 }
-            }
-            else
-            {
-                // Gesto estático: usa GestureRecognizer normal
+
+                // IMPORTANTE: También activar GestureRecognizer para detectar pose inicial (I para J, Z para Z)
                 if (rightHandRecognizer != null)
                 {
                     rightHandRecognizer.SetDetectionEnabled(enabled);
@@ -331,20 +308,39 @@ namespace ASL_LearnVR.LearningModule
                     }
                 }
 
-                if (leftHandRecognizer != null)
-                {
-                    leftHandRecognizer.SetDetectionEnabled(enabled);
+                return;
+            }
 
-                    if (enabled)
-                    {
-                        leftHandRecognizer.onGestureDetected.AddListener(OnGestureDetected);
-                        leftHandRecognizer.onGestureEnded.AddListener(OnGestureEnded);
-                    }
-                    else
-                    {
-                        leftHandRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
-                        leftHandRecognizer.onGestureEnded.RemoveListener(OnGestureEnded);
-                    }
+            // Gesto estático: usa GestureRecognizer normal
+            if (rightHandRecognizer != null)
+            {
+                rightHandRecognizer.SetDetectionEnabled(enabled);
+
+                if (enabled)
+                {
+                    rightHandRecognizer.onGestureDetected.AddListener(OnGestureDetected);
+                    rightHandRecognizer.onGestureEnded.AddListener(OnGestureEnded);
+                }
+                else
+                {
+                    rightHandRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
+                    rightHandRecognizer.onGestureEnded.RemoveListener(OnGestureEnded);
+                }
+            }
+
+            if (leftHandRecognizer != null)
+            {
+                leftHandRecognizer.SetDetectionEnabled(enabled);
+
+                if (enabled)
+                {
+                    leftHandRecognizer.onGestureDetected.AddListener(OnGestureDetected);
+                    leftHandRecognizer.onGestureEnded.AddListener(OnGestureEnded);
+                }
+                else
+                {
+                    leftHandRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
+                    leftHandRecognizer.onGestureEnded.RemoveListener(OnGestureEnded);
                 }
             }
         }
@@ -354,7 +350,19 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         private void OnGestureDetected(SignData sign)
         {
-            UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
+            SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
+
+            // Si el signo actual es dinámico y detectamos su pose inicial
+            if (currentSign != null && currentSign.requiresMovement)
+            {
+                // Es un gesto dinámico - mostrar mensaje especial
+                UpdateFeedbackText($"Pose '{sign.signName}' detectada!\nAhora mueve para completar '{currentSign.signName}'...");
+            }
+            else
+            {
+                // Gesto estático normal
+                UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
+            }
         }
 
         /// <summary>
@@ -366,43 +374,30 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Callback cuando un gesto dinámico es detectado correctamente.
+        /// Callback cuando se inicia un gesto dinámico.
         /// </summary>
-        private void OnDynamicGestureDetected(SignData sign)
+        private void OnDynamicGestureStarted(string gestureName)
         {
-            UpdateFeedbackText($"PERFECTO! Gesto dinamico '{sign.signName}' correcto!");
-
-            // Detiene la grabación y permite volver a intentar
-            if (dynamicGestureRecognizer != null && dynamicGestureRecognizer.IsRecording)
-            {
-                Invoke(nameof(RestartDynamicRecording), 2f);
-            }
+            Debug.Log($"[LearningController] Gesto dinámico INICIADO: {gestureName}");
+            UpdateFeedbackText($"GESTO '{gestureName}' INICIADO!\nSigue moviendo para completar...");
         }
 
         /// <summary>
-        /// Callback cuando un gesto dinámico falla.
+        /// Callback cuando se completa un gesto dinámico.
         /// </summary>
-        private void OnDynamicGestureFailed(SignData sign)
+        private void OnDynamicGestureCompleted(string gestureName)
         {
-            UpdateFeedbackText($"Intenta de nuevo. El movimiento no coincide con '{sign.signName}'.");
-
-            // Permite volver a intentar
-            if (dynamicGestureRecognizer != null)
-            {
-                Invoke(nameof(RestartDynamicRecording), 1.5f);
-            }
+            Debug.Log($"[LearningController] Gesto dinámico COMPLETADO: {gestureName}");
+            UpdateFeedbackText($"PERFECTO!\nGesto '{gestureName}' completado correctamente!");
         }
 
         /// <summary>
-        /// Reinicia la grabación de gestos dinámicos.
+        /// Callback cuando falla un gesto dinámico.
         /// </summary>
-        private void RestartDynamicRecording()
+        private void OnDynamicGestureFailed(string gestureName, string reason)
         {
-            if (dynamicGestureRecognizer != null && isPracticing)
-            {
-                UpdateFeedbackText("Make the dynamic gesture...");
-                dynamicGestureRecognizer.StartRecording();
-            }
+            Debug.Log($"[LearningController] Gesto dinámico FALLADO: {gestureName} - Razón: {reason}");
+            UpdateFeedbackText($"Intenta de nuevo '{gestureName}'. {reason}");
         }
 
         /// <summary>
@@ -460,28 +455,67 @@ namespace ASL_LearnVR.LearningModule
             }
         }
 
-        void OnDestroy()
+        /// <summary>
+        /// Obtiene la pose inicial necesaria para un gesto dinámico.
+        /// </summary>
+        private SignData GetInitialPoseForDynamicGesture(SignData dynamicSign)
         {
-            // Limpia los listeners
-            if (repeatButton != null)
-                repeatButton.onClick.RemoveListener(OnRepeatButtonClicked);
+            if (dynamicSign == null || currentCategory == null)
+                return null;
 
-            if (practiceButton != null)
-                practiceButton.onClick.RemoveListener(OnPracticeButtonClicked);
+            // Mapeo de gestos dinámicos a sus poses iniciales
+            switch (dynamicSign.signName)
+            {
+                case "J":
+                    // J comienza con la pose I (meñique hacia arriba)
+                    return FindSignByName("I");
 
-            if (selfAssessmentButton != null)
-                selfAssessmentButton.onClick.RemoveListener(OnSelfAssessmentButtonClicked);
+                case "Z":
+                    // Z comienza con pose de índice (busca "1" o "D")
+                    var zInitial = FindSignByName("1");
+                    if (zInitial == null)
+                        zInitial = FindSignByName("D");
+                    return zInitial;
 
-            if (backButton != null)
-                backButton.onClick.RemoveListener(OnBackButtonClicked);
-
-            if (nextSignButton != null)
-                nextSignButton.onClick.RemoveListener(OnNextSignButtonClicked);
-
-            if (previousSignButton != null)
-                previousSignButton.onClick.RemoveListener(OnPreviousSignButtonClicked);
-
-            SetRecognitionEnabled(false);
+                default:
+                    Debug.LogWarning($"[LearningController] No se conoce la pose inicial para el gesto dinámico '{dynamicSign.signName}'");
+                    return dynamicSign; // Fallback al signo original
+            }
         }
+
+        /// <summary>
+        /// Busca un SignData por nombre en categoría actual y en categoría Digits.
+        /// </summary>
+        private SignData FindSignByName(string signName)
+        {
+            // Primero buscar en la categoría actual
+            if (currentCategory != null && currentCategory.signs != null)
+            {
+                foreach (var sign in currentCategory.signs)
+                {
+                    if (sign != null && sign.signName == signName)
+                    {
+                        return sign;
+                    }
+                }
+            }
+
+            // Si no se encuentra, buscar en la categoría Digits (para poses numéricas como "1")
+            if (digitsCategory != null && digitsCategory.signs != null)
+            {
+                foreach (var sign in digitsCategory.signs)
+                {
+                    if (sign != null && sign.signName == signName)
+                    {
+                        Debug.Log($"[LearningController] Signo '{signName}' encontrado en categoría Digits");
+                        return sign;
+                    }
+                }
+            }
+
+            Debug.LogError($"[LearningController] No se encontró el signo '{signName}' ni en categoría actual ni en Digits. Asegúrate de asignar 'Digits Category' en el Inspector de LearningController.");
+            return null;
+        }
+
     }
 }

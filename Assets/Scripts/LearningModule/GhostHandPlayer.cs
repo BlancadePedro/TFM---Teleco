@@ -230,8 +230,10 @@ namespace ASL_LearnVR.LearningModule
 
             if (currentSign.requiresMovement)
             {
-                // Gestos dinámicos (J, Z)
-                PlayDynamicGesture();
+                // NOTA: Gestos dinámicos no soportados actualmente
+                Debug.LogWarning($"GhostHandPlayer: El signo '{currentSign.signName}' requiere movimiento pero no está soportado actualmente.");
+                isPlaying = false;
+                SetGhostHandsVisible(false);
             }
             else
             {
@@ -266,41 +268,18 @@ namespace ASL_LearnVR.LearningModule
             Invoke(nameof(StopPlaying), staticPoseDisplayTime);
         }
 
-        /// <summary>
-        /// Reproduce un gesto dinámico (animación o grabación).
-        /// </summary>
+        // NOTA: Método deshabilitado - gestos dinámicos no soportados
+        /*
         private void PlayDynamicGesture()
         {
             if (showDebugLogs)
                 Debug.Log($"GhostHandPlayer: Reproduciendo gesto dinámico '{currentSign.signName}'");
 
             isPlaying = true;
-
-            // Asegura que las ghost hands estén en su posición fija
             PositionGhostHands();
-
-            // TODO: Implementar reproducción de grabación de manos
-            // Si tienes un handRecordingData en el SignData:
-            // 1. Parsear los datos de la grabación
-            // 2. Reproducir frame por frame las posiciones de los joints
-            // 3. Aplicar las transformaciones manualmente (sin XRHandSkeletonDriver)
-            // 4. Mantener las ghost hands en su posición fija, solo animar los joints
-
-            if (currentSign.handRecordingData != null)
-            {
-                // Aquí iría la lógica de reproducción de la grabación
-                Debug.LogWarning("GhostHandPlayer: Reproducción de grabaciones aún no implementada.");
-            }
-            else
-            {
-                Debug.LogWarning($"GhostHandPlayer: El signo '{currentSign.signName}' requiere movimiento pero no tiene handRecordingData.");
-            }
-
-            SetGhostHandsVisible(true);
-
-            // Por ahora, simplemente oculta después de un tiempo
-            Invoke(nameof(StopPlaying), staticPoseDisplayTime);
+            Debug.LogWarning("GhostHandPlayer: Gestos dinámicos no soportados actualmente.");
         }
+        */
 
         /// <summary>
         /// Detiene la reproducción y oculta las ghost hands.

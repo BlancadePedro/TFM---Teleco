@@ -40,29 +40,8 @@ namespace ASL_LearnVR.Utils
 
         private void HandleLog(string logString, string stackTrace, LogType type)
         {
-            // Solo muestra logs que contengan estos prefijos
-            if (logString.Contains("[DynamicGestureRecognizer]") ||
-                logString.Contains("[LearningController]") ||
-                logString.Contains("[GestureRecognizer]"))
-            {
-                string coloredLog = logString;
-
-                // Colorea según el tipo
-                if (type == LogType.Error)
-                    coloredLog = $"<color=red>{logString}</color>";
-                else if (type == LogType.Warning)
-                    coloredLog = $"<color=yellow>{logString}</color>";
-                else
-                    coloredLog = $"<color=white>{logString}</color>";
-
-                logLines.Enqueue(coloredLog);
-
-                // Mantiene solo las últimas N líneas
-                while (logLines.Count > maxLines)
-                    logLines.Dequeue();
-
-                UpdateDebugText();
-            }
+            // NOTA: DebugLogger deshabilitado - no se muestran logs en pantalla
+            return;
         }
 
         private void UpdateDebugText()
