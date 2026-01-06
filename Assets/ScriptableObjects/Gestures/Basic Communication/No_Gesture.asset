@@ -16,11 +16,14 @@ MonoBehaviour:
   gestureDescription: Two fingers shaking side to side
   poseSequence:
   - poseName: U
+    timing: 0
+    isOptional: 0
+  - poseName: U
     timing: 1
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
-  directionTolerance: 70
+  directionTolerance: 50
   minSpeed: 0.1
   minDistance: 0.08
   minDuration: 0.5
@@ -28,11 +31,11 @@ MonoBehaviour:
   requiresDirectionChange: 1
   requiredDirectionChanges: 2
   requiresRotation: 0
-  rotationAxis: {x: 0, y: 1, z: 0}
+  rotationAxis: {x: 0, y: 0, z: 0}
   minRotationAngle: 30
   requiresCircularMotion: 0
   minCircularityScore: 0.6
   requiresSpatialZone: 0
-  zoneCenter: {x: 0, y: 0, z: 0.2}
+  zoneCenter: {x: 0, y: 0, z: 0}
   zoneRadius: 0.14999999
   zoneValidationTiming: 0

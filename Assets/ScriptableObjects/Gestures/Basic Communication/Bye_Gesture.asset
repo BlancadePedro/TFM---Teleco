@@ -13,26 +13,29 @@ MonoBehaviour:
   m_Name: Bye_Gesture
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
   gestureName: Bye
-  gestureDescription: Open hand waving up and down
+  gestureDescription: Open hand waving laterally with elevation
   poseSequence:
+  - poseName: Bye
+    timing: 0
+    isOptional: 0
   - poseName: Bye
     timing: 1
     isOptional: 0
   requiresMovement: 1
-  primaryDirection: {x: 0, y: -1, z: 0}
+  primaryDirection: {x: 1, y: 0, z: 0}
   directionTolerance: 70
-  minSpeed: 0.08
-  minDistance: 0.08
+  minSpeed: 0.15
+  minDistance: 0.1
   minDuration: 0.5
   maxDuration: 2.5
-  requiresDirectionChange: 0
+  requiresDirectionChange: 1
   requiredDirectionChanges: 2
   requiresRotation: 0
-  rotationAxis: {x: 0, y: 1, z: 0}
-  minRotationAngle: 30
+  rotationAxis: {x: 0, y: 0, z: 0}
+  minRotationAngle: 0
   requiresCircularMotion: 0
   minCircularityScore: 0.6
   requiresSpatialZone: 1
   zoneCenter: {x: 0.15, y: -0.1, z: 0.3}
-  zoneRadius: 0.2
+  zoneRadius: 0.3
   zoneValidationTiming: 1

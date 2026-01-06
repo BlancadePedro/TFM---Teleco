@@ -16,16 +16,19 @@ MonoBehaviour:
   gestureDescription: Open hand making circle over chest
   poseSequence:
   - poseName: Please
+    timing: 0
+    isOptional: 0
+  - poseName: Please
     timing: 1
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
   directionTolerance: 85
-  minSpeed: 0.07
+  minSpeed: 0.1
   minDistance: 0.12
   minDuration: 0.6
-  maxDuration: 2.5
-  requiresDirectionChange: 0
+  maxDuration: 3
+  requiresDirectionChange: 1
   requiredDirectionChanges: 2
   requiresRotation: 0
   rotationAxis: {x: 0, y: 1, z: 0}
@@ -33,6 +36,6 @@ MonoBehaviour:
   requiresCircularMotion: 1
   minCircularityScore: 0.5
   requiresSpatialZone: 1
-  zoneCenter: {x: 0, y: -0.2, z: 0.3}
-  zoneRadius: 0.14999999
+  zoneCenter: {x: 0, y: -0.4, z: 0.3}
+  zoneRadius: 0.2
   zoneValidationTiming: 1

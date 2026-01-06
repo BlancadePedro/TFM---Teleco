@@ -16,6 +16,9 @@ MonoBehaviour:
   gestureDescription: Fist moving up and down (nodding)
   poseSequence:
   - poseName: S
+    timing: 0
+    isOptional: 0
+  - poseName: S
     timing: 1
     isOptional: 0
   requiresMovement: 1
@@ -28,11 +31,11 @@ MonoBehaviour:
   requiresDirectionChange: 1
   requiredDirectionChanges: 1
   requiresRotation: 0
-  rotationAxis: {x: 0, y: 1, z: 0}
+  rotationAxis: {x: 0, y: 0, z: 0}
   minRotationAngle: 30
   requiresCircularMotion: 0
   minCircularityScore: 0.6
   requiresSpatialZone: 0
-  zoneCenter: {x: 0, y: 0, z: 0.2}
+  zoneCenter: {x: 0, y: 0, z: 0}
   zoneRadius: 0.14999999
   zoneValidationTiming: 0

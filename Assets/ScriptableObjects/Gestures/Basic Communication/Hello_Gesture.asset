@@ -16,23 +16,26 @@ MonoBehaviour:
   gestureDescription: Open hand waving side to side near head
   poseSequence:
   - poseName: Hello
+    timing: 0
+    isOptional: 0
+  - poseName: Hello
     timing: 1
     isOptional: 0
   requiresMovement: 1
-  primaryDirection: {x: 1, y: 0, z: 0}
-  directionTolerance: 70
-  minSpeed: 0.08
+  primaryDirection: {x: 0, y: 0.7971079, z: 0.603837}
+  directionTolerance: 50
+  minSpeed: 0.12
   minDistance: 0.08
-  minDuration: 0.5
+  minDuration: 0.4
   maxDuration: 2.5
   requiresDirectionChange: 1
-  requiredDirectionChanges: 2
+  requiredDirectionChanges: 1
   requiresRotation: 0
   rotationAxis: {x: 0, y: 1, z: 0}
   minRotationAngle: 30
   requiresCircularMotion: 0
   minCircularityScore: 0.6
   requiresSpatialZone: 1
-  zoneCenter: {x: 0.15, y: 0.1, z: 0.25}
+  zoneCenter: {x: 0.15, y: -0.1, z: 0.25}
   zoneRadius: 0.2
   zoneValidationTiming: 1

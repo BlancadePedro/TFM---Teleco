@@ -16,6 +16,9 @@ MonoBehaviour:
   gestureDescription: Thumbs down moving downward
   poseSequence:
   - poseName: ThumbsDown
+    timing: 0
+    isOptional: 0
+  - poseName: ThumbsDown
     timing: 1
     isOptional: 0
   requiresMovement: 1
