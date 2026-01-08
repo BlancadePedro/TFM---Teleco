@@ -40,12 +40,17 @@ namespace ASL_LearnVR.Gestures
         [Tooltip("Mostrar logs de debug en la consola")]
         [SerializeField] private bool showDebugLogs = true;
 
+        [Header("Tolerancia")]
+        [Tooltip("Tiempo de tolerancia antes de considerar que el gesto se perdió (segundos)")]
+        [SerializeField] private float detectionLossTolerance = 0.2f;
+
         private XRHandShape handShape;
         private XRHandPose handPose;
         private bool wasDetected = false;
         private bool performedTriggered = false;
         private float timeOfLastCheck = 0f;
         private float holdStartTime = 0f;
+        private float lastDetectionTime = 0f;
 
         /// <summary>
         /// El signo actualmente configurado para detectar.
@@ -162,6 +167,12 @@ namespace ASL_LearnVR.Gestures
                 Debug.Log($"GestureRecognizer [{targetSign.signName}]: Tracked={handTracked}, Shape={shapeMatches}, Pose={poseMatches}, Detected={detected}");
             }
 
+            // Actualizar timestamp si está detectado
+            if (detected)
+            {
+                lastDetectionTime = Time.timeSinceLevelLoad;
+            }
+
             // Inicio de detección
             if (!wasDetected && detected)
             {
@@ -169,18 +180,26 @@ namespace ASL_LearnVR.Gestures
 
                 if (showDebugLogs)
                     Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' detectado, esperando hold time.");
+
+                wasDetected = true;
             }
-            // Fin de detección
+            // Fin de detección con TOLERANCIA
             else if (wasDetected && !detected)
             {
-                performedTriggered = false;
-                onGestureEnded?.Invoke(targetSign);
+                float timeSinceLoss = Time.timeSinceLevelLoad - lastDetectionTime;
 
-                if (showDebugLogs)
-                    Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' terminado.");
+                // Solo terminar si ha pasado suficiente tiempo sin detección
+                if (timeSinceLoss > detectionLossTolerance)
+                {
+                    performedTriggered = false;
+                    onGestureEnded?.Invoke(targetSign);
+                    wasDetected = false;
+
+                    if (showDebugLogs)
+                        Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' terminado (pérdida de {timeSinceLoss:F2}s).");
+                }
+                // Si no, mantener wasDetected=true y continuar
             }
-
-            wasDetected = detected;
 
             // Verifica si el hold time ha sido cumplido
             if (!performedTriggered && detected)

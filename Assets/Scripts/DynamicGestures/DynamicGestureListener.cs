@@ -190,12 +190,12 @@ namespace ASL.DynamicGestures
 
             if (statusText != null)
             {
-                statusText.text = $"✓ ¡PERFECTO!\nGesto '{gestureName}' completado";
+                statusText.text = $"¡PERFECTO!\nGesto '{gestureName}' completado";
                 statusText.color = Color.green;
             }
 
-            // Limpiar UI después de 2 segundos
-            Invoke(nameof(ClearUI), 2f);
+            // Limpiar UI después de 3 segundos
+            Invoke(nameof(ClearUI), 3f);
 
             // Aquí puedes añadir tu lógica personalizada:
             // - Reproducir animación de éxito

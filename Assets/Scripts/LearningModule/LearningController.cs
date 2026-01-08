@@ -72,6 +72,7 @@ namespace ASL_LearnVR.LearningModule
         private int currentSignIndex = 0;
         private bool isPracticing = false;
         private bool isWaitingForDynamicGesture = false;
+        private bool isShowingSuccessMessage = false; // Flag para evitar sobrescribir mensaje de éxito
 
         void Start()
         {
@@ -350,19 +351,31 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         private void OnGestureDetected(SignData sign)
         {
+            // No sobrescribir si estamos mostrando mensaje de éxito
+            if (isShowingSuccessMessage)
+                return;
+
             SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
 
-            // Si el signo actual es dinámico y detectamos su pose inicial
-            if (currentSign != null && currentSign.requiresMovement)
+            if (currentSign == null)
+                return;
+
+            // CASO 1: El signo actual es DINÁMICO (requiere movimiento)
+            if (currentSign.requiresMovement)
             {
-                // Es un gesto dinámico - mostrar mensaje especial
-                UpdateFeedbackText($"Pose '{sign.signName}' detectada!\nAhora mueve para completar '{currentSign.signName}'...");
+                // Para gestos dinámicos, NO mostrar nada aquí
+                // El DynamicGestureRecognizer mostrará mensajes cuando se complete el gesto
+                // Esto evita confusión: cuando practicas "1" (estático) muestra "1"
+                // y cuando practicas "Z" (dinámico) solo muestra "Z completado" al terminar
+                return;
             }
-            else
+            // CASO 2: El signo actual es ESTÁTICO (NO requiere movimiento)
+            else if (!currentSign.requiresMovement && currentSign.signName == sign.signName)
             {
-                // Gesto estático normal
+                // Gesto estático normal - solo si coincide EXACTAMENTE con el signo actual
                 UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
             }
+            // Si no coincide con ningún caso, no mostrar nada
         }
 
         /// <summary>
@@ -370,7 +383,11 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         private void OnGestureEnded(SignData sign)
         {
-            UpdateFeedbackText("Make the sign to practice...");
+            // No sobrescribir si estamos mostrando mensaje de éxito
+            if (!isShowingSuccessMessage)
+            {
+                UpdateFeedbackText("Make the sign to practice...");
+            }
         }
 
         /// <summary>
@@ -379,7 +396,12 @@ namespace ASL_LearnVR.LearningModule
         private void OnDynamicGestureStarted(string gestureName)
         {
             Debug.Log($"[LearningController] Gesto dinámico INICIADO: {gestureName}");
-            UpdateFeedbackText($"GESTO '{gestureName}' INICIADO!\nSigue moviendo para completar...");
+
+            // No sobrescribir si estamos mostrando mensaje de éxito
+            if (!isShowingSuccessMessage)
+            {
+                UpdateFeedbackText($"GESTO '{gestureName}' INICIADO!\nSigue moviendo para completar...");
+            }
         }
 
         /// <summary>
@@ -388,7 +410,14 @@ namespace ASL_LearnVR.LearningModule
         private void OnDynamicGestureCompleted(string gestureName)
         {
             Debug.Log($"[LearningController] Gesto dinámico COMPLETADO: {gestureName}");
-            UpdateFeedbackText($"PERFECTO!\nGesto '{gestureName}' completado correctamente!");
+            UpdateFeedbackText($"✓ ¡PERFECTO!\nGesto '{gestureName}' completado correctamente!");
+
+            // Marcar que estamos mostrando mensaje de éxito
+            isShowingSuccessMessage = true;
+
+            // Limpiar el mensaje después de 3 segundos
+            CancelInvoke(nameof(ClearSuccessMessage));
+            Invoke(nameof(ClearSuccessMessage), 3f);
         }
 
         /// <summary>
@@ -397,7 +426,12 @@ namespace ASL_LearnVR.LearningModule
         private void OnDynamicGestureFailed(string gestureName, string reason)
         {
             Debug.Log($"[LearningController] Gesto dinámico FALLADO: {gestureName} - Razón: {reason}");
-            UpdateFeedbackText($"Intenta de nuevo '{gestureName}'. {reason}");
+
+            // No sobrescribir si estamos mostrando mensaje de éxito
+            if (!isShowingSuccessMessage)
+            {
+                UpdateFeedbackText($"Intenta de nuevo '{gestureName}'. {reason}");
+            }
         }
 
         /// <summary>
@@ -406,7 +440,23 @@ namespace ASL_LearnVR.LearningModule
         private void UpdateFeedbackText(string message)
         {
             if (feedbackText != null)
+            {
                 feedbackText.text = message;
+                Debug.Log($"[LearningController] FEEDBACK UI ACTUALIZADO: '{message}' (isShowingSuccess={isShowingSuccessMessage})");
+            }
+            else
+            {
+                Debug.LogWarning("[LearningController] feedbackText es NULL! No se puede actualizar UI");
+            }
+        }
+
+        /// <summary>
+        /// Limpia el mensaje de éxito después de 3 segundos.
+        /// </summary>
+        private void ClearSuccessMessage()
+        {
+            isShowingSuccessMessage = false;
+            UpdateFeedbackText("Make the sign to practice...");
         }
 
         /// <summary>
@@ -467,15 +517,26 @@ namespace ASL_LearnVR.LearningModule
             switch (dynamicSign.signName)
             {
                 case "J":
-                    // J comienza con la pose I (meñique hacia arriba)
-                    return FindSignByName("I");
+                    // J usa su propio SignData (Sign_J con ASL_Letter_J_Shape)
+                    // NO usar Sign_I para evitar confusión
+                    return dynamicSign;
 
                 case "Z":
-                    // Z comienza con pose de índice (busca "1" o "D")
-                    var zInitial = FindSignByName("1");
-                    if (zInitial == null)
-                        zInitial = FindSignByName("D");
-                    return zInitial;
+                    // Z usa su propio SignData (Sign_Z con ASL_Letter_Z_Shape)
+                    // NO usar Sign_1 para evitar confusión
+                    return dynamicSign;
+
+                case "Yes":
+                case "No":
+                case "Hello":
+                case "Bye":
+                case "Please":
+                case "Thank You":
+                case "Good":
+                case "Bad":
+                    // Los gestos de Basic Communication usan su propio SignData con requiresMovement
+                    // No necesitan mapeo a pose inicial diferente
+                    return dynamicSign;
 
                 default:
                     Debug.LogWarning($"[LearningController] No se conoce la pose inicial para el gesto dinámico '{dynamicSign.signName}'");

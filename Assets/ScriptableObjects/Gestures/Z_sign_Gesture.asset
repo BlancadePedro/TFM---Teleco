@@ -15,18 +15,21 @@ MonoBehaviour:
   gestureName: Z
   gestureDescription: "Zigzag horizontal con \xEDndice"
   poseSequence:
-  - poseName: 1
+  - poseName: Z
     timing: 0
+    isOptional: 0
+  - poseName: Z
+    timing: 1
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
   directionTolerance: 89
   minSpeed: 0.05
-  minDistance: 0.06
-  minDuration: 0.4
+  minDistance: 0.04
+  minDuration: 0.3
   maxDuration: 3
   requiresDirectionChange: 1
-  requiredDirectionChanges: 1
+  requiredDirectionChanges: 2
   requiresRotation: 0
   rotationAxis: {x: 0, y: 1, z: 0}
   minRotationAngle: 60

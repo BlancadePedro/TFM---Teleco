@@ -23,19 +23,19 @@ MonoBehaviour:
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
-  directionTolerance: 85
-  minSpeed: 0.1
-  minDistance: 0.12
-  minDuration: 0.6
-  maxDuration: 3
-  requiresDirectionChange: 1
-  requiredDirectionChanges: 2
+  directionTolerance: 89
+  minSpeed: 0.03
+  minDistance: 0.06
+  minDuration: 0.5
+  maxDuration: 4
+  requiresDirectionChange: 0
+  requiredDirectionChanges: 0
   requiresRotation: 0
   rotationAxis: {x: 0, y: 1, z: 0}
   minRotationAngle: 30
   requiresCircularMotion: 1
-  minCircularityScore: 0.5
-  requiresSpatialZone: 1
-  zoneCenter: {x: 0, y: -0.4, z: 0.3}
-  zoneRadius: 0.2
+  minCircularityScore: 0.25
+  requiresSpatialZone: 0
+  zoneCenter: {x: 0, y: 0, z: 0}
+  zoneRadius: 0.5
   zoneValidationTiming: 1

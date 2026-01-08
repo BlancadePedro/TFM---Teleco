@@ -5378,10 +5378,18 @@ MonoBehaviour:
   gestureDefinitions:
   - {fileID: 11400000, guid: 749649d9ac24aa7479e7fc582cacba89, type: 2}
   - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
+  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
+  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
+  - {fileID: 11400000, guid: cebf9f99c692f5541b1ed54453bef148, type: 2}
+  - {fileID: 11400000, guid: d3de2656ff72c0540851c7d38d04d99e, type: 2}
+  - {fileID: 11400000, guid: 549425d49b9d4ad429eb964e696e67d0, type: 2}
+  - {fileID: 11400000, guid: 730edf0803f54ed49a63bd5053c186af, type: 2}
+  - {fileID: 11400000, guid: 27b3e59ceb1a0ec469e5c19027d95e46, type: 2}
+  - {fileID: 11400000, guid: e7185dbe1fdb5924891f07bfd18e23f6, type: 2}
   poseAdapterComponent: {fileID: 1028728546}
   handTrackingEvents: {fileID: 2561790}
   positionSmoothingFactor: 0.3
-  debugMode: 0
+  debugMode: 1
 --- !u!4 &2135644455
 Transform:
   m_ObjectHideFlags: 0

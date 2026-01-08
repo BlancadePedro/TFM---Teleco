@@ -13,7 +13,12 @@ namespace ASL.DynamicGestures
         [Tooltip("GestureRecognizer que detecta el gesto activo (ej: RightHandRecognizer)")]
         [SerializeField] private GestureRecognizer gestureRecognizer;
 
+        [Header("Configuración")]
+        [Tooltip("Tiempo de tolerancia antes de considerar que la pose se perdió (segundos)")]
+        [SerializeField] private float poseLossTolerance = 0.3f;
+
         private string currentPoseName = null;
+        private float poseLastSeenTime = 0f;
 
         void OnEnable()
         {
@@ -52,12 +57,18 @@ namespace ASL.DynamicGestures
                 }
 
                 currentPoseName = newPoseName;
+                poseLastSeenTime = Time.time; // Actualizar timestamp
             }
             else if (currentPoseName != null)
             {
-                // DEBUG TEMPORAL - Mostrar cuando se pierde la pose
-                Debug.Log($"[SingleGestureAdapter] POSE PERDIDA: '{currentPoseName}'");
-                currentPoseName = null;
+                // TOLERANCIA: No resetear inmediatamente, dar margen
+                float timeSinceLoss = Time.time - poseLastSeenTime;
+                if (timeSinceLoss > poseLossTolerance)
+                {
+                    // DEBUG TEMPORAL - Mostrar cuando se pierde la pose definitivamente
+                    Debug.Log($"[SingleGestureAdapter] POSE PERDIDA: '{currentPoseName}' (después de {timeSinceLoss:F2}s)");
+                    currentPoseName = null;
+                }
             }
         }
 
@@ -70,6 +81,7 @@ namespace ASL.DynamicGestures
             {
                 Debug.Log($"[SingleGestureAdapter] OnPoseDetected EVENT: '{sign.signName}'");
                 currentPoseName = sign.signName;
+                poseLastSeenTime = Time.time;
             }
         }
 

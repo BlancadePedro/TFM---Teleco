@@ -15,12 +15,12 @@ MonoBehaviour:
   gestureName: J
   gestureDescription: "Curva hacia abajo con me\xF1ique"
   poseSequence:
-  - poseName: I
+  - poseName: J
     timing: 0
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 0, y: -1, z: 0}
-  directionTolerance: 89
+  directionTolerance: 70
   minSpeed: 0.08
   minDistance: 0.06
   minDuration: 0.5

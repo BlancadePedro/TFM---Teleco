@@ -15,19 +15,16 @@ MonoBehaviour:
   gestureName: Good
   gestureDescription: Thumbs up moving upward
   poseSequence:
-  - poseName: ThumbsUp
+  - poseName: Good
     timing: 0
     isOptional: 0
-  - poseName: ThumbsUp
+  - poseName: Good
     timing: 1
     isOptional: 0
-  - poseName: ThumbsUp
-    timing: 2
-    isOptional: 1
   requiresMovement: 1
   primaryDirection: {x: 0, y: 1, z: 0}
-  directionTolerance: 50
-  minSpeed: 0.08
+  directionTolerance: 65
+  minSpeed: 0.05
   minDistance: 0.06
   minDuration: 0.3
   maxDuration: 2

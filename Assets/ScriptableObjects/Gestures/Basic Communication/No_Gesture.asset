@@ -15,21 +15,21 @@ MonoBehaviour:
   gestureName: No
   gestureDescription: Two fingers shaking side to side
   poseSequence:
-  - poseName: U
+  - poseName: No
     timing: 0
     isOptional: 0
-  - poseName: U
+  - poseName: No
     timing: 1
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
-  directionTolerance: 50
-  minSpeed: 0.1
-  minDistance: 0.08
-  minDuration: 0.5
-  maxDuration: 2.5
+  directionTolerance: 75
+  minSpeed: 0.05
+  minDistance: 0.06
+  minDuration: 0.3
+  maxDuration: 3
   requiresDirectionChange: 1
-  requiredDirectionChanges: 2
+  requiredDirectionChanges: 1
   requiresRotation: 0
   rotationAxis: {x: 0, y: 0, z: 0}
   minRotationAngle: 30

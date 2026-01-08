@@ -152,6 +152,14 @@ namespace ASL_LearnVR.Gestures
             if (!isActiveAndEnabled || Time.timeSinceLevelLoad < timeOfLastCheck + detectionInterval)
                 return;
 
+            // Obtiene el signo que el usuario está practicando actualmente
+            SignData currentPracticingSign = null;
+            var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+            if (gameManager != null)
+            {
+                currentPracticingSign = gameManager.CurrentSign;
+            }
+
             // Determina el signo activo actual (el que tiene mejor match)
             SignData bestMatchSign = null;
             float bestConfidence = 0f;
@@ -160,6 +168,18 @@ namespace ASL_LearnVR.Gestures
             {
                 if (sign == null || sign.handShapeOrPose == null)
                     continue;
+
+                // FILTRO CRÍTICO: Si el usuario está practicando un gesto DINÁMICO,
+                // NO detectar signos ESTÁTICOS que compartan el mismo HandShape
+                if (currentPracticingSign != null && currentPracticingSign.requiresMovement)
+                {
+                    // Si este signo es estático, saltarlo para evitar falsos positivos
+                    if (!sign.requiresMovement)
+                    {
+                        confidenceScores[sign] = 0f;
+                        continue;
+                    }
+                }
 
                 // Obtiene el Hand Shape o Hand Pose
                 var handShape = sign.GetHandShape();

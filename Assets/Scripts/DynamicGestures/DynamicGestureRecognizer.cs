@@ -22,9 +22,9 @@ namespace ASL.DynamicGestures
         [SerializeField] private UnityEngine.XR.Hands.XRHandTrackingEvents handTrackingEvents;
 
         [Header("Suavizado")]
-        [Tooltip("Factor de suavizado de posición (0.2-0.4 recomendado para Quest 3)")]
-        [Range(0.1f, 0.5f)]
-        [SerializeField] private float positionSmoothingFactor = 0.3f;
+        [Tooltip("Factor de suavizado de posición (0.5-0.7 recomendado para Quest 3)")]
+        [Range(0.1f, 1.0f)]
+        [SerializeField] private float positionSmoothingFactor = 0.7f;
 
         [Header("Debug")]
         [Tooltip("Activar logs detallados y visualización de Gizmos")]
@@ -37,7 +37,7 @@ namespace ASL.DynamicGestures
         public System.Action<string, string> OnGestureFailed; // nombre, razón
 
         // Estado interno
-        private bool isEnabled = false; // AÑADIDO: Control de activación
+        private bool isEnabled = true; // Activado por defecto
         private GestureState currentState = GestureState.Idle;
         private DynamicGestureDefinition activeGesture = null;
         private MovementTracker movementTracker;
@@ -48,6 +48,8 @@ namespace ASL.DynamicGestures
         private Quaternion smoothedHandRotation = Quaternion.identity;
         private Vector3 lastHandPosition = Vector3.zero;
         private Quaternion lastHandRotation = Quaternion.identity;
+        private float trackingLostTime = 0f;
+        private const float TRACKING_LOSS_TOLERANCE = 0.2f; // Tolerar hasta 0.2s de pérdida de tracking
 
         // Cache XR Origin
         private Transform xrOriginTransform;
@@ -136,12 +138,40 @@ namespace ASL.DynamicGestures
             if (!isEnabled)
                 return;
 
-            // Verificar tracking
+            // Verificar tracking con tolerancia
             if (handTrackingEvents == null || !handTrackingEvents.handIsTracked)
             {
+                // Si hay un gesto en progreso, dar un margen de tolerancia
+                if (currentState == GestureState.InProgress)
+                {
+                    if (trackingLostTime == 0f)
+                    {
+                        trackingLostTime = Time.time;
+                        if (debugMode)
+                        {
+                            Debug.LogWarning($"[TRACKING] Hand tracking LOST during {activeGesture?.gestureName}, waiting {TRACKING_LOSS_TOLERANCE}s...");
+                        }
+                    }
+
+                    float lossTime = Time.time - trackingLostTime;
+                    if (lossTime < TRACKING_LOSS_TOLERANCE)
+                    {
+                        // Continuar usando la última posición conocida
+                        return;
+                    }
+
+                    if (debugMode)
+                    {
+                        Debug.LogError($"[TRACKING] Tracking lost for {lossTime:F2}s, failing gesture");
+                    }
+                }
+
                 HandleTrackingLost();
                 return;
             }
+
+            // Tracking recuperado
+            trackingLostTime = 0f;
 
             // Obtener posición y rotación de la mano
             Vector3 currentHandPos = GetHandPosition();
@@ -152,11 +182,22 @@ namespace ASL.DynamicGestures
             {
                 smoothedHandPosition = currentHandPos;
                 smoothedHandRotation = currentHandRot;
+                if (debugMode)
+                {
+                    Debug.Log($"[TRACKING] Initial smoothed position: {smoothedHandPosition}");
+                }
             }
             else
             {
+                Vector3 beforeSmoothing = smoothedHandPosition;
                 smoothedHandPosition = Vector3.Lerp(smoothedHandPosition, currentHandPos, positionSmoothingFactor);
                 smoothedHandRotation = Quaternion.Slerp(smoothedHandRotation, currentHandRot, positionSmoothingFactor);
+
+                if (debugMode && activeGesture != null)
+                {
+                    float distanceMoved = Vector3.Distance(beforeSmoothing, smoothedHandPosition);
+                    Debug.Log($"[TRACKING] Smoothed: Before={beforeSmoothing}, After={smoothedHandPosition}, Moved={distanceMoved:F4}m, Speed={movementTracker.CurrentSpeed:F4}m/s");
+                }
             }
 
             // Actualizar tracker de movimiento
@@ -182,6 +223,17 @@ namespace ASL.DynamicGestures
         {
             if (poseAdapter == null)
                 return;
+
+            // FILTRO CRÍTICO: Solo iniciar gestos dinámicos si el usuario está practicando un gesto que requiere movimiento
+            var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+            if (gameManager != null && gameManager.CurrentSign != null)
+            {
+                // Si el signo actual NO requiere movimiento, NO iniciar gestos dinámicos
+                if (!gameManager.CurrentSign.requiresMovement)
+                {
+                    return;
+                }
+            }
 
             string currentPose = poseAdapter.GetCurrentPoseName();
 
@@ -235,6 +287,12 @@ namespace ASL.DynamicGestures
 
             float elapsed = Time.time - gestureStartTime;
 
+            if (debugMode)
+            {
+                Debug.Log($"[PROGRESS] {activeGesture.gestureName}: Elapsed={elapsed:F2}s, TotalDistance={movementTracker.TotalDistance:F4}m, " +
+                          $"CurrentSpeed={movementTracker.CurrentSpeed:F4}m/s, DirChanges={movementTracker.DirectionChanges}");
+            }
+
             // Timeout
             if (elapsed > activeGesture.maxDuration)
             {
@@ -252,9 +310,9 @@ namespace ASL.DynamicGestures
             // Validar requisitos de movimiento
             if (activeGesture.requiresMovement)
             {
-                // IMPORTANTE: Si el gesto requiere rotación, NO validar dirección estrictamente
-                // porque la rotación hace que la trayectoria sea curva, no lineal
-                bool shouldValidateDirection = !activeGesture.requiresRotation;
+                // IMPORTANTE: Si el gesto requiere cambios de dirección (zigzag), NO validar dirección estrictamente
+                // Pero si solo requiere rotación (curva), SÍ validar dirección principal
+                bool shouldValidateDirection = !activeGesture.requiresDirectionChange;
 
                 if (shouldValidateDirection)
                 {
@@ -268,7 +326,7 @@ namespace ASL.DynamicGestures
                                 Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Dirección incorrecta. Esperada: {activeGesture.primaryDirection}, Actual: {movementTracker.AverageDirection}");
                             }
                             // No fallar inmediatamente, dar más margen
-                            if (elapsed > activeGesture.minDuration * 0.8f)
+                            if (elapsed > activeGesture.minDuration * 0.9f)
                             {
                                 FailGesture("Dirección de movimiento incorrecta");
                                 return;
@@ -284,10 +342,10 @@ namespace ASL.DynamicGestures
                 {
                     // Si no validamos dirección, marcarla como validada automáticamente
                     initialDirectionValidated = true;
-                    
+
                     if (debugMode && elapsed < 0.1f)
                     {
-                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validación de dirección DESACTIVADA (gesto con rotación)");
+                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validación de dirección DESACTIVADA (gesto con rotación/cambios)");
                     }
                 }
 
@@ -577,9 +635,21 @@ namespace ASL.DynamicGestures
 
                 if (hand.GetJoint(XRHandJointID.Palm).TryGetPose(out Pose palmPose))
                 {
+                    if (debugMode && activeGesture != null)
+                    {
+                        Debug.Log($"[TRACKING] GetHandPosition: {palmPose.position}, Changed: {Vector3.Distance(palmPose.position, lastHandPosition) > 0.001f}");
+                    }
                     lastHandPosition = palmPose.position;
                     return palmPose.position;
                 }
+                else if (debugMode && activeGesture != null)
+                {
+                    Debug.LogWarning($"[TRACKING] TryGetPose FAILED for Palm joint");
+                }
+            }
+            else if (debugMode && activeGesture != null)
+            {
+                Debug.LogError($"[TRACKING] XRHandSubsystem is NULL");
             }
 
             return lastHandPosition; // Fallback
