@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
+  m_Name: Sign_Monday
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
+  signName: Monday
+  description: M handshape with small circular motion palm inward
+  handShapeOrPose: {fileID: 11400000, guid: f00d8d678c744fe4ca7a7d230f6b920b, type: 2}
+  requiresMovement: 1
+  minimumHoldTime: 0.3
+  icon: {fileID: 0}

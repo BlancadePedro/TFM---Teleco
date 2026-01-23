@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbd361b3b0340da4c834ca35fb0a11ff, type: 3}
+  m_Name: Category_Digits
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.CategoryData
+  categoryName: Digits
+  description: Learn the ASL numbers from 0 to 9
+  signs:
+  - {fileID: 11400000, guid: b8ce145d71368454d8552fbdf573c498, type: 2}
+  - {fileID: 11400000, guid: 2097f54f4dde7dc43aedaa7ed336488a, type: 2}
+  - {fileID: 11400000, guid: 85b0f7a5bfea28047b894714cc62e023, type: 2}
+  - {fileID: 11400000, guid: 87788b18546e92b43b3ee8fe31df1110, type: 2}
+  - {fileID: 11400000, guid: b0e3a38d5911851468c017915bc03b4b, type: 2}
+  - {fileID: 11400000, guid: d4cb54b9de249dd4a84e994178aa989a, type: 2}
+  - {fileID: 11400000, guid: 03882fbe798134c4dbb376fce6cdc227, type: 2}
+  - {fileID: 11400000, guid: f4b7a808c86d31746846ee30e4cb68bc, type: 2}
+  - {fileID: 11400000, guid: a439cd883d1650e43839a978e4156101, type: 2}
+  - {fileID: 11400000, guid: 953b8c6281078c04cbb0a85cc013348d, type: 2}
+  icon: {fileID: 0}
+  themeColor: {r: 1, g: 1, b: 1, a: 1}

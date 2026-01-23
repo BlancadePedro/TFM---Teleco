@@ -99,7 +99,7 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 Assets/GaussianAssets/
-Data/
+
 *.claude/
 venv_asl/
 

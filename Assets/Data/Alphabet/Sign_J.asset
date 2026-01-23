@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
+  m_Name: Sign_J
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
+  signName: J
+  description: "Start with the I handshape and trace a \u201CJ\u201D shape in the
+    air with the pinky"
+  handShapeOrPose: {fileID: 11400000, guid: 78639307489d74f458c34dc3fee3e170, type: 2}
+  requiresMovement: 1
+  minimumHoldTime: 0.3
+  icon: {fileID: 21300000, guid: b8ece974960d5f1498858179d3fdef56, type: 3}

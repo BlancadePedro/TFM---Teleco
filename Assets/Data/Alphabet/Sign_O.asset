@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
+  m_Name: Sign_O
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
+  signName: O
+  description: "Fingers and thumb curved inward to form an \u201CO\u201D shape"
+  handShapeOrPose: {fileID: 11400000, guid: 9873890bcedda4646a0c27977f314c69, type: 2}
+  requiresMovement: 0
+  minimumHoldTime: 0.3
+  icon: {fileID: 21300000, guid: 4337efec38f40d9468df2d0b75886fcb, type: 3}
+  ghostHandsPrefab: {fileID: 0}
+  handRecordingData: {fileID: 0}

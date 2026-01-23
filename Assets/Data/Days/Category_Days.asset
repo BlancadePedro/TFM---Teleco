@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbd361b3b0340da4c834ca35fb0a11ff, type: 3}
+  m_Name: Category_Days
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.CategoryData
+  categoryName: Days
+  description: Learn the ASL days of the week
+  signs:
+  - {fileID: 11400000, guid: fcc67a47095629e40803c8c061e2191a, type: 2}
+  - {fileID: 11400000, guid: 1a61e54ffacf30d40a4982a1b51182e9, type: 2}
+  - {fileID: 11400000, guid: 5aa2c2ff5ef10c0428e6ef0b681ff2a2, type: 2}
+  - {fileID: 11400000, guid: fd77121e37533ca4e9e032503d25aecd, type: 2}
+  - {fileID: 11400000, guid: ce231ca7cd947114c858e286630d713b, type: 2}
+  - {fileID: 11400000, guid: 6454e805d13f1664495f26e794e6b62c, type: 2}
+  - {fileID: 11400000, guid: 121f308884161144880c43a0b6f9d5c7, type: 2}
+  icon: {fileID: 0}
+  themeColor: {r: 1, g: 1, b: 1, a: 1}

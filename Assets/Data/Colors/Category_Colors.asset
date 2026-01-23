@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbd361b3b0340da4c834ca35fb0a11ff, type: 3}
+  m_Name: Category_Colors
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.CategoryData
+  categoryName: Colors
+  description: Learn the ASL colors
+  signs:
+  - {fileID: 11400000, guid: 43815303e8455064a9e6fbbcb1d3d260, type: 2}
+  - {fileID: 11400000, guid: f522d16499a9df54ea2ca9a6b2e5e616, type: 2}
+  - {fileID: 11400000, guid: 1d53ef80c9d59fb4b81ecd5bfd4947c1, type: 2}
+  - {fileID: 11400000, guid: 56c0082a91870dd4aa6ecab6f3e3223c, type: 2}
+  - {fileID: 11400000, guid: 560f44635a693d94eb30997cce16413e, type: 2}
+  - {fileID: 11400000, guid: d28afdb2102c98b45b9b77411e95d409, type: 2}
+  - {fileID: 11400000, guid: 40aa088a8cf896d43b11707119e051c6, type: 2}
+  - {fileID: 11400000, guid: 460d20a6c84a9c74287ab69f0f155fce, type: 2}
+  - {fileID: 11400000, guid: a2d3d654023c050419433e67e3fd39db, type: 2}
+  icon: {fileID: 0}
+  themeColor: {r: 1, g: 1, b: 1, a: 1}
