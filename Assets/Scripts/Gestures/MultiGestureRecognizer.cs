@@ -22,6 +22,9 @@ namespace ASL_LearnVR.Gestures
         [Tooltip("Componente XRHandTrackingEvents de la mano derecha")]
         [SerializeField] private XRHandTrackingEvents rightHandTrackingEvents;
 
+        [Tooltip("(OPCIONAL) Reconocedor de gestos dinámicos para coordinación")]
+        [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
+
         [Header("Detection Settings")]
         [Tooltip("Intervalo de detección en segundos")]
         [SerializeField] private float detectionInterval = 0.1f;
@@ -50,6 +53,9 @@ namespace ASL_LearnVR.Gestures
         private float timeOfLastCheckLeft = 0f;
         private float timeOfLastCheckRight = 0f;
 
+        // Estado de coordinación con gestos dinámicos
+        private bool isDynamicGesturePending = false;
+
         /// <summary>
         /// Obtiene el signo activo actual (null si ninguno).
         /// </summary>
@@ -63,6 +69,12 @@ namespace ASL_LearnVR.Gestures
             if (rightHandTrackingEvents != null)
                 rightHandTrackingEvents.jointsUpdated.AddListener(OnRightHandJointsUpdated);
 
+            // Suscribirse a eventos del reconocedor dinámico si está asignado
+            if (dynamicGestureRecognizer != null)
+            {
+                dynamicGestureRecognizer.OnPendingConfirmationChanged += OnDynamicGesturePendingChanged;
+            }
+
             InitializeDetectionState();
         }
 
@@ -73,6 +85,12 @@ namespace ASL_LearnVR.Gestures
 
             if (rightHandTrackingEvents != null)
                 rightHandTrackingEvents.jointsUpdated.RemoveListener(OnRightHandJointsUpdated);
+
+            // Desuscribirse de eventos del reconocedor dinámico
+            if (dynamicGestureRecognizer != null)
+            {
+                dynamicGestureRecognizer.OnPendingConfirmationChanged -= OnDynamicGesturePendingChanged;
+            }
         }
 
         /// <summary>
@@ -262,13 +280,22 @@ namespace ASL_LearnVR.Gestures
                         : minimumHoldTime;
                     float holdTimer = Time.timeSinceLevelLoad - holdStartTimes[CurrentActiveSign];
 
-                    if (holdTimer >= requiredHoldTime)
+                    // COORDINACIÓN CON GESTOS DINÁMICOS:
+                    // Si el gesto NO requiere movimiento PERO hay un pending dinámico,
+                    // NO confirmar aún (esperar a que se resuelva la ambigüedad)
+                    bool shouldWaitForDynamicResolution = !CurrentActiveSign.requiresMovement && isDynamicGesturePending;
+
+                    if (holdTimer >= requiredHoldTime && !shouldWaitForDynamicResolution)
                     {
                         performedTriggered[CurrentActiveSign] = true;
                         onGestureDetected?.Invoke(CurrentActiveSign);
 
                         if (showDebugLogs)
                             Debug.Log($"MultiGestureRecognizer: Gesto '{CurrentActiveSign.signName}' confirmado!");
+                    }
+                    else if (shouldWaitForDynamicResolution && showDebugLogs)
+                    {
+                        Debug.Log($"MultiGestureRecognizer: Esperando resolución de gesto dinámico antes de confirmar '{CurrentActiveSign.signName}'");
                     }
                 }
             }
@@ -288,6 +315,25 @@ namespace ASL_LearnVR.Gestures
         public bool IsSignDetected(SignData sign)
         {
             return performedTriggered.ContainsKey(sign) && performedTriggered[sign];
+        }
+
+        /// <summary>
+        /// Callback cuando el DynamicGestureRecognizer entra/sale de estado pending
+        /// </summary>
+        private void OnDynamicGesturePendingChanged(bool isPending)
+        {
+            isDynamicGesturePending = isPending;
+
+            if (showDebugLogs)
+            {
+                Debug.Log($"[MultiGestureRecognizer] DynamicGesture pending state: {isPending}");
+            }
+
+            // Si salimos de pending y no se confirmó nada, resetear el signo activo
+            if (!isPending && CurrentActiveSign != null && !CurrentActiveSign.requiresMovement)
+            {
+                // El gesto estático puede continuar su hold time
+            }
         }
     }
 }

@@ -39,6 +39,12 @@ namespace ASL.DynamicGestures
         Idle,
 
         /// <summary>
+        /// Pose inicial detectada, esperando para desambiguar entre gestos estáticos/dinámicos
+        /// o entre gestos dinámicos con misma pose inicial
+        /// </summary>
+        PendingConfirmation,
+
+        /// <summary>
         /// Gesto en progreso, validando requisitos
         /// </summary>
         InProgress
@@ -64,5 +70,39 @@ namespace ASL.DynamicGestures
         /// Si es true, el gesto puede completarse sin esta pose
         /// </summary>
         public bool isOptional;
+
+        /// <summary>
+        ///  NUEVO: Familia de poses aceptables (alternativas). Si está vacío, solo se acepta poseName.
+        /// Ejemplo: ["OpenHand", "5", "FlatHand"] para gestos que aceptan variaciones de mano abierta
+        /// </summary>
+        public string[] poseFamilyAlternatives = new string[0];
+
+        /// <summary>
+        ///  NUEVO: Verifica si una pose detectada es válida para este requisito (nombre exacto o familia)
+        /// </summary>
+        public bool IsValidPose(string detectedPose)
+        {
+            if (string.IsNullOrEmpty(detectedPose))
+                return false;
+
+            // Verificar nombre exacto
+            if (poseName.Equals(detectedPose, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Verificar familia de alternativas
+            if (poseFamilyAlternatives != null && poseFamilyAlternatives.Length > 0)
+            {
+                foreach (var alternative in poseFamilyAlternatives)
+                {
+                    if (!string.IsNullOrEmpty(alternative) &&
+                        alternative.Equals(detectedPose, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

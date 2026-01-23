@@ -102,3 +102,11 @@ Assets/GaussianAssets/
 Data/
 *.claude/
 venv_asl/
+
+# Backup files
+*.bak
+*.backup
+*_BACKUP.*
+*_ORIGINAL.*
+*_v2_ORIGINAL.*
+*~

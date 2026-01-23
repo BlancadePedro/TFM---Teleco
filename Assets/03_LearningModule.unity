@@ -1441,6 +1441,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   showDebugLogs: 1
+  detectionLossTolerance: 0.2
 --- !u!114 &406396592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1454,6 +1455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.SingleGestureAdapter
   gestureRecognizer: {fileID: 406396591}
+  poseLossTolerance: 0.3
 --- !u!1001 &505723892
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2988,6 +2990,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   showDebugLogs: 1
+  detectionLossTolerance: 0.2
 --- !u!114 &1028728547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3001,6 +3004,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.SingleGestureAdapter
   gestureRecognizer: {fileID: 1028728546}
+  poseLossTolerance: 0.3
 --- !u!1 &1081421301
 GameObject:
   m_ObjectHideFlags: 0
@@ -3741,7 +3745,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1388454244}
-  - component: {fileID: 1388454245}
   m_Layer: 0
   m_Name: DynamicGestureRecognizer
   m_TagString: Untagged
@@ -3764,18 +3767,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 999510339}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1388454245
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1388454243}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e7bd775cf6d76a4b871378d13c9c08c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Gestures.DynamicGestureRecognizer
 --- !u!1 &1497046998
 GameObject:
   m_ObjectHideFlags: 0
@@ -5099,7 +5090,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1977446979
 Transform:
   m_ObjectHideFlags: 0
@@ -5386,6 +5377,21 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 730edf0803f54ed49a63bd5053c186af, type: 2}
   - {fileID: 11400000, guid: 27b3e59ceb1a0ec469e5c19027d95e46, type: 2}
   - {fileID: 11400000, guid: e7185dbe1fdb5924891f07bfd18e23f6, type: 2}
+  - {fileID: 11400000, guid: 365d926c7f01ba749b9b6db65bb4e740, type: 2}
+  - {fileID: 11400000, guid: 180fdd834dc9f5c40b17c544c254a870, type: 2}
+  - {fileID: 11400000, guid: ba8cbd2171571f144b26de58dca8ac58, type: 2}
+  - {fileID: 11400000, guid: 7c8004d256ed6d34e9f57a6696104434, type: 2}
+  - {fileID: 11400000, guid: b570f9fb72ca5d24e8ef4f7b0833a3cf, type: 2}
+  - {fileID: 11400000, guid: 4d0c51471ec2d3b43b3da179e7069366, type: 2}
+  - {fileID: 11400000, guid: ba395cefc96ecd146b329c697acdb9d1, type: 2}
+  - {fileID: 11400000, guid: 706f32039572cf1449176fdfe714cbb8, type: 2}
+  - {fileID: 11400000, guid: c5f9edf9ca2c39448a90eaa973c23bac, type: 2}
+  - {fileID: 11400000, guid: 1dcac3a324398e4479382331da9d1498, type: 2}
+  - {fileID: 11400000, guid: db62349471340644db2b9b2bbbfe5a27, type: 2}
+  - {fileID: 11400000, guid: 2b58e18cb3ef0b544abb16d50e4b2386, type: 2}
+  - {fileID: 11400000, guid: 7c3d2b7bd4ac85744b44c3187fa54db9, type: 2}
+  - {fileID: 11400000, guid: 6ccbca09b43d4b040847b5846de64472, type: 2}
+  - {fileID: 11400000, guid: e1686e7eb8a3e7e429e757d6d99b830e, type: 2}
   poseAdapterComponent: {fileID: 1028728546}
   handTrackingEvents: {fileID: 2561790}
   positionSmoothingFactor: 0.3

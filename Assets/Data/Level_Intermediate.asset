@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22cd6250994a1a34d8bed5fe8cd5e093, type: 3}
   m_Name: Level_Intermediate
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.LevelData
-  levelName: 
-  description: 
-  categories: []
+  levelName: Intermediate
+  description: Continue learning ASL with new signs
+  categories:
+  - {fileID: 11400000, guid: 76366e06b5e13004f881e46dfefece13, type: 2}
+  - {fileID: 11400000, guid: ad72ab09652bfce4099d82c823341ebe, type: 2}
   icon: {fileID: 0}
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   minimumHoldTime: 0.3

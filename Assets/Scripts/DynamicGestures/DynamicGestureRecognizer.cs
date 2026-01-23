@@ -35,6 +35,7 @@ namespace ASL.DynamicGestures
         public System.Action<string, float> OnGestureProgress; // nombre, progreso 0-1
         public System.Action<string> OnGestureCompleted;
         public System.Action<string, string> OnGestureFailed; // nombre, razón
+        public System.Action<bool> OnPendingConfirmationChanged; // true = entró en pending, false = salió de pending
 
         // Estado interno
         private bool isEnabled = true; // Activado por defecto
@@ -42,6 +43,11 @@ namespace ASL.DynamicGestures
         private DynamicGestureDefinition activeGesture = null;
         private MovementTracker movementTracker;
         private float gestureStartTime = 0f;
+
+        // Estado de confirmación pendiente
+        private List<DynamicGestureDefinition> pendingGestures = new List<DynamicGestureDefinition>();
+        private float pendingStartTime = 0f;
+        private const float PENDING_CONFIRMATION_TIMEOUT = 0.25f; // Tiempo de espera para desambiguar (REDUCIDO para respuesta rápida)
 
         // Tracking de mano
         private Vector3 smoothedHandPosition = Vector3.zero;
@@ -210,6 +216,10 @@ namespace ASL.DynamicGestures
                     CheckForGestureStart();
                     break;
 
+                case GestureState.PendingConfirmation:
+                    UpdatePendingConfirmation();
+                    break;
+
                 case GestureState.InProgress:
                     UpdateGestureProgress();
                     break;
@@ -224,15 +234,25 @@ namespace ASL.DynamicGestures
             if (poseAdapter == null)
                 return;
 
-            // FILTRO CRÍTICO: Solo iniciar gestos dinámicos si el usuario está practicando un gesto que requiere movimiento
+            // FILTRO CRÍTICO: Solo aplicar en modo aprendizaje (Scene 3)
+            // En modo autoevaluación (Scene 4), CurrentSign puede ser null o estático, así que permitimos todo
             var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
             if (gameManager != null && gameManager.CurrentSign != null)
             {
                 // Si el signo actual NO requiere movimiento, NO iniciar gestos dinámicos
+                // PERO solo aplicar este filtro si estamos en modo aprendizaje individual
                 if (!gameManager.CurrentSign.requiresMovement)
                 {
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] CurrentSign '{gameManager.CurrentSign.signName}' NO requiere movimiento, bloqueando reconocimiento dinámico");
+                    }
                     return;
                 }
+            }
+            else if (debugMode && Time.frameCount % 120 == 0)
+            {
+                Debug.Log($"[DynamicGesture] CurrentSign es NULL, permitiendo reconocimiento dinámico (modo autoevaluación)");
             }
 
             string currentPose = poseAdapter.GetCurrentPoseName();
@@ -240,17 +260,73 @@ namespace ASL.DynamicGestures
             if (string.IsNullOrEmpty(currentPose))
                 return;
 
-            // Buscar gestos que puedan iniciarse con esta pose
+            // DEBUG: Log de pose detectada
+            if (debugMode && Time.frameCount % 60 == 0)
+            {
+                Debug.Log($"[DynamicGesture] CheckForGestureStart: Pose actual = '{currentPose}', Gestos definidos = {gestureDefinitions.Count}");
+            }
+
+            // Buscar TODOS los gestos que puedan iniciarse con esta pose
+            pendingGestures.Clear();
+
+            // MODO ESPECIAL SCENE 4: Si CurrentSign es NULL (autoevaluación),
+            // considerar TODOS los gestos como candidatos para desambiguación por movimiento
+            bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
+
             foreach (var gesture in gestureDefinitions)
             {
                 if (gesture == null)
                     continue;
 
-                if (gesture.CanStartWithPose(currentPose))
+                bool canStart = false;
+
+                if (isScene4Mode)
                 {
-                    StartGesture(gesture);
-                    break; // Solo un gesto a la vez
+                    // En Scene 4: TODOS los gestos son candidatos, desambiguamos por movimiento
+                    canStart = true;
                 }
+                else
+                {
+                    // En Scene 3: Match exacto de pose
+                    canStart = gesture.CanStartWithPose(currentPose);
+                }
+
+                if (canStart)
+                {
+                    pendingGestures.Add(gesture);
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] ✅ Gesto '{gesture.gestureName}' puede iniciar con pose '{currentPose}' (Scene4Mode: {isScene4Mode})");
+                    }
+                }
+                else if (debugMode && Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"[DynamicGesture] ❌ Gesto '{gesture.gestureName}' NO puede iniciar con pose '{currentPose}'");
+                }
+            }
+
+            // Si encontramos gestos candidatos, entrar en estado de confirmación pendiente
+            if (pendingGestures.Count > 0)
+            {
+                if (debugMode)
+                {
+                    Debug.Log($"[DynamicGesture] 🎯 Encontrados {pendingGestures.Count} gestos candidatos para pose '{currentPose}'");
+                }
+
+                if (pendingGestures.Count == 1)
+                {
+                    // Solo un gesto posible, iniciarlo directamente
+                    StartGesture(pendingGestures[0]);
+                }
+                else
+                {
+                    // Múltiples gestos posibles, entrar en estado pendiente para desambiguar
+                    EnterPendingConfirmation();
+                }
+            }
+            else if (debugMode && Time.frameCount % 120 == 0)
+            {
+                Debug.Log($"[DynamicGesture] ⚠️ Ningún gesto dinámico puede iniciar con pose '{currentPose}'");
             }
         }
 
@@ -259,6 +335,8 @@ namespace ASL.DynamicGestures
         /// </summary>
         private void StartGesture(DynamicGestureDefinition gesture)
         {
+            bool wasPending = currentState == GestureState.PendingConfirmation;
+
             activeGesture = gesture;
             currentState = GestureState.InProgress;
             gestureStartTime = Time.time;
@@ -266,12 +344,233 @@ namespace ASL.DynamicGestures
             movementTracker.Reset();
             initialDirectionValidated = false;
 
+            // Notificar que salimos de pending si estábamos en ese estado
+            if (wasPending)
+            {
+                OnPendingConfirmationChanged?.Invoke(false);
+            }
+
             OnGestureStarted?.Invoke(gesture.gestureName);
 
             if (debugMode)
             {
                 Debug.Log($"[DynamicGesture] INICIADO: {gesture.gestureName}");
             }
+        }
+
+        /// <summary>
+        /// Entra en estado de confirmación pendiente cuando hay múltiples gestos candidatos
+        /// </summary>
+        private void EnterPendingConfirmation()
+        {
+            currentState = GestureState.PendingConfirmation;
+            pendingStartTime = Time.time;
+
+            // Resetear el tracker para empezar a detectar movimiento
+            movementTracker.Reset();
+
+            // Notificar que entramos en pending (bloquear MultiGestureRecognizer)
+            OnPendingConfirmationChanged?.Invoke(true);
+
+            if (debugMode)
+            {
+                string gestureNames = string.Join(", ", pendingGestures.ConvertAll(g => g.gestureName));
+                Debug.Log($"[DynamicGesture] PENDING: Desambiguando entre: {gestureNames}");
+            }
+        }
+
+        /// <summary>
+        /// Actualiza el estado de confirmación pendiente, esperando movimiento para desambiguar
+        /// </summary>
+        private void UpdatePendingConfirmation()
+        {
+            float elapsed = Time.time - pendingStartTime;
+
+            // Timeout: si no hay movimiento significativo, asumir que es un gesto estático
+            if (elapsed >= PENDING_CONFIRMATION_TIMEOUT)
+            {
+                // No se detectó movimiento suficiente, podría ser un gesto estático
+                // En este caso, NO marcamos como completado aquí, dejamos que MultiGestureRecognizer lo maneje
+                if (debugMode)
+                {
+                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
+                }
+                ResetState();
+                return;
+            }
+
+            // Verificar si la pose inicial se perdió
+            if (poseAdapter != null)
+            {
+                string currentPose = poseAdapter.GetCurrentPoseName();
+
+                // Si perdimos completamente la pose, resetear
+                if (string.IsNullOrEmpty(currentPose))
+                {
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING: Pose completamente perdida, reseteando");
+                    }
+                    ResetState();
+                    return;
+                }
+
+                // EN SCENE 4: NO validar si la pose cambió, permitir cualquier pose
+                // Solo resetear si se pierde completamente
+                var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+                bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
+
+                if (!isScene4Mode)
+                {
+                    // EN SCENE 3: Validar que la pose sigue siendo válida
+                    bool poseStillValid = false;
+
+                    foreach (var gesture in pendingGestures)
+                    {
+                        if (gesture.CanStartWithPose(currentPose))
+                        {
+                            poseStillValid = true;
+                            break;
+                        }
+                    }
+
+                    if (!poseStillValid)
+                    {
+                        // Perdió la pose, resetear
+                        if (debugMode)
+                        {
+                            Debug.Log($"[DynamicGesture] PENDING: Pose inicial perdida en Scene 3, reseteando");
+                        }
+                        ResetState();
+                        return;
+                    }
+                }
+            }
+
+            // Analizar si hay movimiento significativo (MÁS SENSIBLE para respuesta rápida)
+            bool hasSignificantMovement = movementTracker.TotalDistance > 0.015f || // 1.5cm de movimiento (reducido)
+                                          movementTracker.CurrentSpeed > 0.06f;     // Velocidad mínima (reducida)
+
+            if (hasSignificantMovement)
+            {
+                // Se detectó movimiento, ahora intentamos desambiguar qué gesto es
+                DynamicGestureDefinition bestMatch = DisambiguateGesture();
+
+                if (bestMatch != null)
+                {
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING RESOLVED: '{bestMatch.gestureName}' seleccionado por movimiento");
+                    }
+                    StartGesture(bestMatch);
+                }
+                else
+                {
+                    // No se pudo desambiguar aún, seguir esperando
+                    if (debugMode && Time.frameCount % 30 == 0)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING: Esperando más datos de movimiento...");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Intenta desambiguar entre múltiples gestos candidatos basándose en el movimiento detectado
+        /// </summary>
+        private DynamicGestureDefinition DisambiguateGesture()
+        {
+            if (pendingGestures.Count == 0)
+                return null;
+
+            // Si solo queda uno, retornarlo
+            if (pendingGestures.Count == 1)
+                return pendingGestures[0];
+
+            // PRIORIDAD 1: Detectar movimiento CIRCULAR primero (Please)
+            foreach (var gesture in pendingGestures)
+            {
+                if (gesture.requiresCircularMotion)
+                {
+                    float circularityScore = movementTracker.GetCircularityScore();
+                    // Si hay indicios de circularidad (score > 0.15), seleccionarlo inmediatamente
+                    if (circularityScore > 0.15f)
+                    {
+                        if (debugMode)
+                        {
+                            Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por circularidad (score: {circularityScore:F2})");
+                        }
+                        return gesture;
+                    }
+                }
+            }
+
+            // PRIORIDAD 2: Detectar ROTACIÓN (J, I, etc.)
+            foreach (var gesture in pendingGestures)
+            {
+                if (gesture.requiresRotation && movementTracker.TotalRotation > 8f)
+                {
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por rotación ({movementTracker.TotalRotation:F1}°)");
+                    }
+                    return gesture;
+                }
+            }
+
+            // PRIORIDAD 3: Detectar CAMBIOS DE DIRECCIÓN (Hello, Bye con waving)
+            foreach (var gesture in pendingGestures)
+            {
+                if (gesture.requiresDirectionChange && movementTracker.DirectionChanges > 0)
+                {
+                    // Verificar que también coincida la dirección general
+                    Vector3 currentDirection = movementTracker.AverageDirection;
+                    if (currentDirection.sqrMagnitude > 0.01f && gesture.primaryDirection.sqrMagnitude > 0.01f)
+                    {
+                        float angleDiff = Vector3.Angle(currentDirection, gesture.primaryDirection);
+                        if (angleDiff <= gesture.directionTolerance)
+                        {
+                            if (debugMode)
+                            {
+                                Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por cambios de dirección ({movementTracker.DirectionChanges}) + dirección ({angleDiff:F1}°)");
+                            }
+                            return gesture;
+                        }
+                    }
+                }
+            }
+
+            // PRIORIDAD 4: Analizar SOLO por dirección (Thank You, etc.)
+            Vector3 currentDir = movementTracker.AverageDirection;
+
+            if (currentDir.sqrMagnitude < 0.01f)
+                return null; // Sin dirección clara aún
+
+            // Buscar el gesto con mejor match de dirección
+            DynamicGestureDefinition bestMatch = null;
+            float bestAngleDifference = float.MaxValue;
+
+            foreach (var gesture in pendingGestures)
+            {
+                // Si el gesto no requiere movimiento direccional específico, saltarlo
+                if (gesture.primaryDirection.sqrMagnitude < 0.01f)
+                    continue;
+
+                float angleDiff = Vector3.Angle(currentDir, gesture.primaryDirection);
+
+                if (angleDiff < bestAngleDifference && angleDiff <= gesture.directionTolerance)
+                {
+                    bestAngleDifference = angleDiff;
+                    bestMatch = gesture;
+                }
+            }
+
+            if (bestMatch != null && debugMode)
+            {
+                Debug.Log($"[DynamicGesture] Desambiguación: '{bestMatch.gestureName}' seleccionado por dirección (ángulo: {bestAngleDifference:F1}°)");
+            }
+
+            return bestMatch;
         }
 
         /// <summary>
@@ -613,10 +912,19 @@ namespace ASL.DynamicGestures
         /// </summary>
         private void ResetState()
         {
+            bool wasPending = currentState == GestureState.PendingConfirmation;
+
             currentState = GestureState.Idle;
             activeGesture = null;
             gestureStartTime = 0f;
             initialDirectionValidated = false;
+            pendingGestures.Clear();
+
+            // Notificar que salimos de pending si estábamos en ese estado
+            if (wasPending)
+            {
+                OnPendingConfirmationChanged?.Invoke(false);
+            }
         }
 
         /// <summary>
@@ -758,6 +1066,22 @@ namespace ASL.DynamicGestures
             }
 
             Debug.Log($"[DynamicGestureRecognizer] Reconocimiento dinámico: {(enabled ? "ACTIVADO" : "DESACTIVADO")}");
+        }
+
+        /// <summary>
+        /// Verifica si está en estado de confirmación pendiente (esperando desambiguación)
+        /// </summary>
+        public bool IsInPendingState()
+        {
+            return currentState == GestureState.PendingConfirmation;
+        }
+
+        /// <summary>
+        /// Obtiene el estado actual del reconocedor (para debugging)
+        /// </summary>
+        public string GetCurrentStateName()
+        {
+            return currentState.ToString();
         }
     }
 }

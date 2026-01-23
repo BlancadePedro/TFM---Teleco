@@ -144,7 +144,7 @@ def main():
         print(f"   Diferencia media: {mean_diff:.6f}")
 
         if diff < 0.1:
-            print("   ✅ Modelos similares")
+            print("    Modelos similares")
         else:
             print(f"   ⚠️  Diferencia significativa, pero es aceptable para ONNX")
 
@@ -186,14 +186,14 @@ def main():
     print(f"   Opset version: {opset}")
     print("   Operadores:")
     for op, count in sorted(ops.items()):
-        status = "❌" if op == "BatchNormalization" else "✅"
+        status = "❌" if op == "BatchNormalization" else ""
         print(f"     {status} {op}: {count}")
 
     if "BatchNormalization" in ops:
         print("\n   ❌ ERROR: BatchNorm presente")
         return 1
 
-    print("\n   ✅ Sin BatchNormalization")
+    print("\n    Sin BatchNormalization")
 
     # 6. Test inference
     print("\n6. Test inferencia ONNX...")
@@ -213,11 +213,11 @@ def main():
         print("   ❌ NaN/Inf detectados")
         return 1
 
-    print("   ✅ Valores correctos")
+    print("    Valores correctos")
 
     # 7. Instrucciones
     print("\n" + "="*80)
-    print("✅ MODELO LISTO - OPSET 9")
+    print(" MODELO LISTO - OPSET 9")
     print("="*80)
 
     print(f"\n📦 Archivo: {output_path.name}")

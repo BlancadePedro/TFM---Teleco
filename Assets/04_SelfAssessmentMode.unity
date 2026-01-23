@@ -202,7 +202,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 50}
+  m_AnchoredPosition: {x: 0, y: 100}
   m_SizeDelta: {x: 150, y: 50}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &283325896
@@ -1380,8 +1380,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Realiza cada signo de la cuadr\xEDcula para marcarlo como completado. 
-    \n - Amarillo: Reconocido\n - Verde: Completado\nPuedes hacerlos en cualquier
-    orden.     "
+    Puedes hacerlos en cualquier orden.  \nPor pantalla se mostrar'an:\n - AMARILLO:
+    Reconocido\n - VERDE: Completado\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1494,6 +1494,51 @@ Transform:
   - {fileID: 1648325360}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1050090924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1050090925}
+  - component: {fileID: 1050090926}
+  m_Layer: 0
+  m_Name: 'StaticPoseAdapter '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1050090925
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1050090924}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1120855381}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1050090926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1050090924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7e8122738f65bb47b3a24424142e905, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.StaticPoseAdapter
+  multiGestureRecognizer: {fileID: 1120855380}
 --- !u!1 &1120855379
 GameObject:
   m_ObjectHideFlags: 0
@@ -1504,7 +1549,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1120855381}
   - component: {fileID: 1120855380}
-  - component: {fileID: 1120855382}
   m_Layer: 0
   m_Name: MultiGestureRecognizer
   m_TagString: Untagged
@@ -1527,8 +1571,11 @@ MonoBehaviour:
   targetSigns:
   - {fileID: 11400000, guid: 7b59cae75d8d03641864aeadcf0b0899, type: 2}
   - {fileID: 11400000, guid: 687586615af1cde4ca727473db7ccf75, type: 2}
+  - {fileID: 11400000, guid: cbc66e63bb3fb534f9991030326aa69d, type: 2}
+  - {fileID: 11400000, guid: 4e3d92a60acae494aa23149d3a3ed684, type: 2}
   leftHandTrackingEvents: {fileID: 756614766}
   rightHandTrackingEvents: {fileID: 756614765}
+  dynamicGestureRecognizer: {fileID: 0}
   detectionInterval: 0.1
   minimumHoldTime: 0.5
   onGestureDetected:
@@ -1553,22 +1600,10 @@ Transform:
   m_LocalPosition: {x: -0.05564, y: 0, z: 5.14552}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1050090925}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1120855382
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120855379}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7e8122738f65bb47b3a24424142e905, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.StaticPoseAdapter
-  multiGestureRecognizer: {fileID: 1120855380}
 --- !u!1 &1137281137
 GameObject:
   m_ObjectHideFlags: 0
@@ -1953,7 +1988,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -100}
-  m_SizeDelta: {x: 1475, y: 400}
+  m_SizeDelta: {x: 1500, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1429490330
 MonoBehaviour:
@@ -2074,7 +2109,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: NEXT
+  m_text: EXIT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2163,7 +2198,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1608912723}
   - component: {fileID: 1608912722}
-  - component: {fileID: 1608912721}
+  - component: {fileID: 1608912724}
   m_Layer: 0
   m_Name: DynamicGestureManager
   m_TagString: Untagged
@@ -2171,25 +2206,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1608912721
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608912720}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a68a546e9c9e69478b1c986efe230bb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureListener
-  gestureRecognizer: {fileID: 1608912722}
-  poseAdapter: {fileID: 0}
-  gestureNameText: {fileID: 513263632}
-  gestureProgressSlider: {fileID: 0}
-  statusText: {fileID: 0}
-  showConsoleLogs: 1
-  debugFontSize: 32
 --- !u!114 &1608912722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2205,6 +2221,8 @@ MonoBehaviour:
   gestureDefinitions:
   - {fileID: 11400000, guid: 749649d9ac24aa7479e7fc582cacba89, type: 2}
   - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
+  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
+  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
   poseAdapterComponent: {fileID: 1120855380}
   handTrackingEvents: {fileID: 756614765}
   positionSmoothingFactor: 0.3
@@ -2224,6 +2242,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1608912724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1608912720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71834ec2d9eb79b498b133b75fab662e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.SelfAssessment.DynamicGesturePracticeManager
+  gestureFilter: {fileID: 0}
+  selfAssessmentController: {fileID: 1137281139}
+  practiceGestures:
+  - {fileID: 11400000, guid: 730edf0803f54ed49a63bd5053c186af, type: 2}
+  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
+  - {fileID: 11400000, guid: 549425d49b9d4ad429eb964e696e67d0, type: 2}
+  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
+  - {fileID: 11400000, guid: 749649d9ac24aa7479e7fc582cacba89, type: 2}
+  - {fileID: 11400000, guid: e7185dbe1fdb5924891f07bfd18e23f6, type: 2}
+  - {fileID: 11400000, guid: cebf9f99c692f5541b1ed54453bef148, type: 2}
+  - {fileID: 11400000, guid: d3de2656ff72c0540851c7d38d04d99e, type: 2}
+  - {fileID: 11400000, guid: 27b3e59ceb1a0ec469e5c19027d95e46, type: 2}
+  - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
+  feedbackPanel: {fileID: 0}
+  feedbackText: {fileID: 1745650903}
+  progressBar: {fileID: 0}
+  failureReasonText: {fileID: 0}
+  successFeedbackDuration: 2
+  failureFeedbackDuration: 4
+  showDebugLogs: 1
 --- !u!1 &1639328510
 GameObject:
   m_ObjectHideFlags: 0

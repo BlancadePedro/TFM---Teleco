@@ -129,7 +129,7 @@ Sistema de reconocimiento de gestos dinámicos para Meta Quest 3 basado en **sec
 ### Cero Allocations en Update
 
 ```csharp
-// ✅ BIEN - Sin allocations
+//  BIEN - Sin allocations
 Queue<Vector3> positionHistory = new Queue<Vector3>(120); // Preallocado en constructor
 
 void Update() {
