@@ -4,7 +4,7 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.Core
 {
     /// <summary>
-    /// Singleton que gestiona el estado global de la aplicación.
+    /// Gestiona el estado global de la aplicación.
     /// Mantiene referencias al nivel, categoría y signo actualmente seleccionados.
     /// </summary>
     public class GameManager : MonoBehaviour
