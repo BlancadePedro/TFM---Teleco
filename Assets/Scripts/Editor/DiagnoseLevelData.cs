@@ -14,7 +14,7 @@ namespace ASL_LearnVR.Editor
 
             if (levelBasic == null)
             {
-                Debug.LogError("❌ No se encontró Level_Basic.asset");
+                Debug.LogError("No se encontró Level_Basic.asset");
                 return;
             }
 
@@ -23,7 +23,7 @@ namespace ASL_LearnVR.Editor
             Debug.Log($"Categories Count: {levelBasic.categories.Count}");
 
             // Verificar IsValid
-            Debug.Log($"\n🔍 Llamando a IsValid()...");
+            Debug.Log($"\nLlamando a IsValid()...");
             bool isValid = levelBasic.IsValid();
             Debug.Log($"IsValid() retorna: {isValid}");
 
@@ -33,7 +33,7 @@ namespace ASL_LearnVR.Editor
                 CategoryData category = levelBasic.categories[i];
                 if (category == null)
                 {
-                    Debug.LogError($"❌ Category[{i}] es NULL");
+                    Debug.LogError($" Category[{i}] es NULL");
                     continue;
                 }
 
@@ -49,12 +49,12 @@ namespace ASL_LearnVR.Editor
                     SignData sign = category.signs[j];
                     if (sign == null)
                     {
-                        Debug.LogError($"  ❌ Sign[{j}] es NULL");
+                        Debug.LogError($"   Sign[{j}] es NULL");
                         continue;
                     }
 
                     bool signValid = sign.IsValid();
-                    string status = signValid ? "✅" : "❌";
+                    string status = signValid ? "OK" : "KO";
                     Debug.Log($"  {status} Sign[{j}]: '{sign.signName}' | handShapeOrPose: {(sign.handShapeOrPose != null ? "OK" : "NULL")}");
                 }
             }
