@@ -142,8 +142,6 @@ namespace ASL_LearnVR.Core
             // Espera hasta que la escena esté completamente cargada
             while (!asyncLoad.isDone)
             {
-                // Aquí podrías actualizar una barra de progreso si quisieras
-                // float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
                 yield return null;
             }
 
