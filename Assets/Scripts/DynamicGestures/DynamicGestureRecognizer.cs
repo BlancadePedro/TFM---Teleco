@@ -91,16 +91,16 @@ namespace ASL.DynamicGestures
                     if (adapter != null)
                     {
                         poseAdapterComponent = adapter;
-                        Debug.Log($"[DynamicGestureRecognizer] ✅ SingleGestureAdapter encontrado en RightHandRecognizer");
+                        Debug.Log($"[DynamicGestureRecognizer] SingleGestureAdapter encontrado en RightHandRecognizer");
                     }
                     else
                     {
-                        Debug.LogError("[DynamicGestureRecognizer] ❌ RightHandRecognizer no tiene SingleGestureAdapter!");
+                        Debug.LogError("[DynamicGestureRecognizer] RightHandRecognizer no tiene SingleGestureAdapter!");
                     }
                 }
                 else
                 {
-                    Debug.LogError("[DynamicGestureRecognizer] ❌ No se encontró GameObject 'RightHandRecognizer'!");
+                    Debug.LogError("[DynamicGestureRecognizer] No se encontró GameObject 'RightHandRecognizer'!");
                 }
             }
 
@@ -115,7 +115,7 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    Debug.Log("[DynamicGestureRecognizer] ✅ Pose Adapter configurado correctamente!");
+                    Debug.Log("[DynamicGestureRecognizer] Pose Adapter configurado correctamente!");
                 }
             }
         }
@@ -296,12 +296,12 @@ namespace ASL.DynamicGestures
                     pendingGestures.Add(gesture);
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] ✅ Gesto '{gesture.gestureName}' puede iniciar con pose '{currentPose}' (Scene4Mode: {isScene4Mode})");
+                        Debug.Log($"[DynamicGesture] Gesto '{gesture.gestureName}' puede iniciar con pose '{currentPose}' (Scene4Mode: {isScene4Mode})");
                     }
                 }
                 else if (debugMode && Time.frameCount % 60 == 0)
                 {
-                    Debug.Log($"[DynamicGesture] ❌ Gesto '{gesture.gestureName}' NO puede iniciar con pose '{currentPose}'");
+                    Debug.Log($"[DynamicGesture] Gesto '{gesture.gestureName}' NO puede iniciar con pose '{currentPose}'");
                 }
             }
 
@@ -310,7 +310,7 @@ namespace ASL.DynamicGestures
             {
                 if (debugMode)
                 {
-                    Debug.Log($"[DynamicGesture] 🎯 Encontrados {pendingGestures.Count} gestos candidatos para pose '{currentPose}'");
+                    Debug.Log($"[DynamicGesture] Encontrados {pendingGestures.Count} gestos candidatos para pose '{currentPose}'");
                 }
 
                 if (pendingGestures.Count == 1)
@@ -326,7 +326,7 @@ namespace ASL.DynamicGestures
             }
             else if (debugMode && Time.frameCount % 120 == 0)
             {
-                Debug.Log($"[DynamicGesture] ⚠️ Ningún gesto dinámico puede iniciar con pose '{currentPose}'");
+                Debug.Log($"[DynamicGesture] Ningún gesto dinámico puede iniciar con pose '{currentPose}'");
             }
         }
 
