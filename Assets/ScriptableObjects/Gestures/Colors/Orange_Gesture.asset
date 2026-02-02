@@ -22,14 +22,14 @@ MonoBehaviour:
     poseFamilyAlternatives: []
   - poseName: S
     timing: 2
-    isOptional: 0
+    isOptional: 1
     poseData: {fileID: 11400000, guid: fadcb14fb32ecc942aa8f5152ba9f4b4, type: 2}
     poseFamilyAlternatives: []
   requiresMovement: 1
   primaryDirection: {x: 0, y: 0, z: 0}
   directionTolerance: 90
-  minSpeed: 0.1
-  minDistance: 0.04
+  minSpeed: 0.08
+  minDistance: 0.03
   minDuration: 0.4
   maxDuration: 3
   requiresDirectionChange: 0

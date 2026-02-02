@@ -28,8 +28,8 @@ MonoBehaviour:
   requiresMovement: 1
   primaryDirection: {x: 0, y: 0, z: 0}
   directionTolerance: 90
-  minSpeed: 0.12
-  minDistance: 0.1
+  minSpeed: 0.08
+  minDistance: 0.03
   minDuration: 0.4
   maxDuration: 3
   requiresDirectionChange: 0

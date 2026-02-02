@@ -363,10 +363,8 @@ namespace ASL_LearnVR.LearningModule
             // CASO 1: El signo actual es DINÁMICO (requiere movimiento)
             if (currentSign.requiresMovement)
             {
-                // Para gestos dinámicos, NO mostrar nada aquí
-                // El DynamicGestureRecognizer mostrará mensajes cuando se complete el gesto
-                // Esto evita confusión: cuando practicas "1" (estático) muestra "1"
-                // y cuando practicas "Z" (dinámico) solo muestra "Z completado" al terminar
+                // Mostrar confirmación de pose inicial para que el usuario sepa que puede empezar a moverse
+                UpdateFeedbackText("Pose inicial reconocida, haz el gesto.");
                 return;
             }
             // CASO 2: El signo actual es ESTÁTICO (NO requiere movimiento)
@@ -516,6 +514,14 @@ namespace ASL_LearnVR.LearningModule
             // Mapeo de gestos dinámicos a sus poses iniciales
             switch (dynamicSign.signName)
             {
+                case "White":
+                    // White empieza con mano abierta "5"
+                    return FindSignByName("5");
+
+                case "Orange":
+                    // Orange empieza con forma "O"
+                    return FindSignByName("O");
+
                 case "J":
                     // J usa su propio SignData (Sign_J con ASL_Letter_J_Shape)
                     // NO usar Sign_I para evitar confusión
@@ -574,7 +580,18 @@ namespace ASL_LearnVR.LearningModule
                 }
             }
 
-            Debug.LogError($"[LearningController] No se encontró el signo '{signName}' ni en categoría actual ni en Digits. Asegúrate de asignar 'Digits Category' en el Inspector de LearningController.");
+            // Fallback: buscar en todos los SignData cargados (útil para Alphabet - caso 'O')
+            var allSigns = Resources.FindObjectsOfTypeAll<SignData>();
+            foreach (var sign in allSigns)
+            {
+                if (sign != null && sign.signName == signName)
+                {
+                    Debug.Log($"[LearningController] Signo '{signName}' encontrado vía Resources.");
+                    return sign;
+                }
+            }
+
+            Debug.LogError($"[LearningController] No se encontró el signo '{signName}' ni en categoría actual ni en Digits. Asegúrate de asignar 'Digits Category' o que el signo esté en Resources.");
             return null;
         }
 
