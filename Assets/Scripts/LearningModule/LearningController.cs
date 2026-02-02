@@ -129,6 +129,12 @@ namespace ASL_LearnVR.LearningModule
             // Desactiva el reconocimiento de gestos al inicio
             SetRecognitionEnabled(false);
 
+            // Si existe MonthPracticeController, configura sus recognizers ahora
+            if (monthPracticeController != null)
+            {
+                monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
+            }
+
             // Carga el primer signo
             LoadSign(currentSignIndex);
         }
@@ -210,9 +216,23 @@ namespace ASL_LearnVR.LearningModule
             // Actualiza los botones de navegación
             UpdateNavigationButtons();
 
-            // Si hay un controlador de MonthPractice, notificar cambio de item para resetar UI/estado
+            // If there's a MonthPracticeController, manage its state according to the new sign
             if (monthPracticeController != null)
-                monthPracticeController.OnSignChanged();
+            {
+                // If the newly loaded sign is a MonthSequenceData and we're currently in Practice mode,
+                // start the practice for the new month immediately (so tiles update on navigation).
+                if (sign is ASL_LearnVR.Data.MonthSequenceData monthSequence && isPracticing)
+                {
+                    // Ensure recognizers are set on the controller and start practice for this month
+                    monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
+                    monthPracticeController.StartPractice(monthSequence);
+                }
+                else
+                {
+                    // Otherwise ensure any previous month practice is stopped/hidden
+                    monthPracticeController.OnSignChanged();
+                }
+            }
         }
 
         /// <summary>

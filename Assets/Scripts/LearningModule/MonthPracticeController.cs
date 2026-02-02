@@ -108,8 +108,10 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         public void OnSignChanged()
         {
-            if (isPracticing)
-                StopPractice();
+            // Always stop/clear any month practice UI when the selected sign changes.
+            // This ensures tiles from the previous month are hidden or reset when
+            // the user navigates with Next/Previous.
+            StopPractice();
         }
 
         /// <summary>
