@@ -11,10 +11,10 @@ namespace ASL_LearnVR.Core
     public class HandTrackingStatus : MonoBehaviour
     {
         [Header("Events")]
-        [Tooltip("Se invoca cuando ambas manos están siendo trackeadas")]
+        [Tooltip("Ambas manos están siendo trackeadas")]
         public UnityEvent onBothHandsTracked;
 
-        [Tooltip("Se invoca cuando al menos una mano deja de ser trackeada")]
+        [Tooltip("Al menos una mano deja de ser trackeada")]
         public UnityEvent onHandsLost;
 
         [Header("Status")]

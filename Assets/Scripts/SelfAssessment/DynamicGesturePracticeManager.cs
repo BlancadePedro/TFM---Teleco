@@ -8,9 +8,6 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.SelfAssessment
 {
     /// <summary>
-    ///  MANAGER DE PRÁCTICA DE GESTOS DINÁMICOS v1.0
-    /// Integra DynamicGestureRecognizer_v3_FINAL en Scene 4 (Self-Assessment Mode).
-    ///
     /// CARACTERÍSTICAS:
     /// - Auto-evaluación por gesto específico
     /// - Feedback visual en tiles del grid
@@ -67,7 +64,7 @@ namespace ASL_LearnVR.SelfAssessment
         {
             if (gestureFilter == null)
             {
-                Debug.LogError("[DynamicGesturePracticeManager] ❌ Falta asignar DynamicGestureFilter!");
+                Debug.LogError("[DynamicGesturePracticeManager] Falta asignar DynamicGestureFilter!");
                 enabled = false;
                 return;
             }
@@ -144,7 +141,7 @@ namespace ASL_LearnVR.SelfAssessment
                 }
                 else
                 {
-                    Debug.LogWarning($"[DynamicGesturePracticeManager] ⚠️ Gesto dinámico '{gestureName}' no encontrado en categoría '{currentCategory.categoryName}'");
+                    Debug.LogWarning($"[DynamicGesturePracticeManager] Gesto dinámico '{gestureName}' no encontrado en categoría '{currentCategory.categoryName}'");
                 }
             }
 
@@ -265,12 +262,12 @@ namespace ASL_LearnVR.SelfAssessment
         {
             if (showDebugLogs)
             {
-                Debug.LogWarning($"<color=red>[❌ FALLADO]</color> {gestureName} - {reason}");
+                Debug.LogWarning($"<color=red>[FALLADO]</color> {gestureName} - {reason}");
             }
 
             // Feedback detallado del fallo
             string userFriendlyReason = TranslateFailureReason(reason);
-            ShowFeedback($"❌ {gestureName}\n{userFriendlyReason}", Color.red, showProgress: false);
+            ShowFeedback($"KO {gestureName}\n{userFriendlyReason}", Color.red, showProgress: false);
             feedbackHideTime = Time.time + failureFeedbackDuration;
 
             // Mostrar razón específica
