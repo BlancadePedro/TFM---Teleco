@@ -1,4 +1,6 @@
 using System;
+using UnityEngine;
+using ASL_LearnVR.Data;
 
 namespace ASL.DynamicGestures
 {
@@ -70,6 +72,15 @@ namespace ASL.DynamicGestures
         /// Si es true, el gesto puede completarse sin esta pose
         /// </summary>
         public bool isOptional;
+
+        /// <summary>
+        /// NUEVO: Referencia directa al SignData para validación de poses End.
+        /// Cuando se usa SingleGestureAdapter (que solo retorna el TargetSign),
+        /// esta referencia permite validar poses End usando el HandShape directamente.
+        /// OBLIGATORIO para gestos compuestos (White: 5→S, Orange: O→S, Thursday: T→H)
+        /// </summary>
+        [Tooltip("Referencia directa al SignData para validación de poses End en gestos compuestos")]
+        public SignData poseData;
 
         /// <summary>
         ///  NUEVO: Familia de poses aceptables (alternativas). Si está vacío, solo se acepta poseName.

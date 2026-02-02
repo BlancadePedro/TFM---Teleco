@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
-  m_Name: Sign_Monday
+  m_Name: Sign_Orange
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
-  signName: Monday
-  description: M handshape with small circular motion palm inward
-  handShapeOrPose: {fileID: 11400000, guid: 6e37f42670d08e34c8bf36030cd86248, type: 2}
+  signName: Orange
+  description: O handshape closes to fist (S) with twist motion
+  handShapeOrPose: {fileID: 11400000, guid: e0bcc1d1a46f9974ab7290aaafee3285, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
   icon: {fileID: 0}

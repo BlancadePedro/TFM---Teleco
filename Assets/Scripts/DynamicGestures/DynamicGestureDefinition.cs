@@ -191,7 +191,8 @@ namespace ASL.DynamicGestures
 
             foreach (var pose in startPoses)
             {
-                if (pose.poseName.Equals(poseName, System.StringComparison.OrdinalIgnoreCase))
+                // Usar comparaciÃ³n flexible (familias de pose) para tolerar variaciones
+                if (pose.IsValidPose(poseName))
                 {
                     return true;
                 }

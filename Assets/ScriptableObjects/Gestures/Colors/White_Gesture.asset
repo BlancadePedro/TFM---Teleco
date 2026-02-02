@@ -10,36 +10,36 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 46c830ca965dc0c40b6000e52466824f, type: 3}
-  m_Name: Thursday_Gesture
+  m_Name: White_Gesture
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
-  gestureName: Thursday
-  gestureDescription: T handshape with small circular motion palm inward
+  gestureName: White
+  gestureDescription: Open hand (5) closes to fist (S) moving away from chest
   poseSequence:
-  - poseName: T
+  - poseName: 5
     timing: 0
     isOptional: 0
-    poseData: {fileID: 11400000, guid: a9b2cde6447c50643bae073ed135666e, type: 2}
+    poseData: {fileID: 11400000, guid: d4cb54b9de249dd4a84e994178aa989a, type: 2}
     poseFamilyAlternatives: []
-  - poseName: H
+  - poseName: S
     timing: 2
     isOptional: 0
-    poseData: {fileID: 11400000, guid: 72087b5251dfb564d820d06514fc49c3, type: 2}
+    poseData: {fileID: 11400000, guid: fadcb14fb32ecc942aa8f5152ba9f4b4, type: 2}
     poseFamilyAlternatives: []
   requiresMovement: 1
   primaryDirection: {x: 0, y: 0, z: 0}
   directionTolerance: 90
-  minSpeed: 0.08
-  minDistance: 0.03
+  minSpeed: 0.12
+  minDistance: 0.1
   minDuration: 0.4
   maxDuration: 3
   requiresDirectionChange: 0
-  requiredDirectionChanges: 0
+  requiredDirectionChanges: 1
   requiresRotation: 0
   rotationAxis: {x: 0, y: 0, z: 1}
-  minRotationAngle: 30
+  minRotationAngle: 25
   requiresCircularMotion: 0
-  minCircularityScore: 0.35
+  minCircularityScore: 0.6
   requiresSpatialZone: 0
-  zoneCenter: {x: 0, y: 1.75, z: 0.15}
-  zoneRadius: 0.18
-  zoneValidationTiming: 2
+  zoneCenter: {x: 0, y: 0.15, z: 0.25}
+  zoneRadius: 0.12
+  zoneValidationTiming: 1

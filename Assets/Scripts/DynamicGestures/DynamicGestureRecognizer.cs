@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Hands;
+using UnityEngine.XR.Hands.Gestures;
 using UnityEngine.XR.Management;
+using ASL_LearnVR.Data;
 
 namespace ASL.DynamicGestures
 {
@@ -67,6 +69,10 @@ namespace ASL.DynamicGestures
         // Cache del adaptador como interfaz
         private IPoseAdapter poseAdapter;
 
+        // Cache del último evento de joints para validación directa de HandShape
+        private XRHandJointsUpdatedEventArgs lastJointsEventArgs;
+        private bool hasValidJointsEventArgs = false;
+
         void Awake()
         {
             // Inicializar MovementTracker con parámetros conservadores
@@ -131,11 +137,33 @@ namespace ASL.DynamicGestures
             {
                 Debug.LogError("[DynamicGestureRecognizer] Falta asignar XRHandTrackingEvents en el Inspector!");
             }
+            else
+            {
+                // Suscribirse a jointsUpdated para cachear el último evento (validación directa de End poses)
+                handTrackingEvents.jointsUpdated.AddListener(OnJointsUpdated);
+            }
 
             if (gestureDefinitions.Count == 0)
             {
                 Debug.LogWarning("[DynamicGestureRecognizer] No hay gestos definidos en la lista.");
             }
+        }
+
+        void OnDisable()
+        {
+            if (handTrackingEvents != null)
+            {
+                handTrackingEvents.jointsUpdated.RemoveListener(OnJointsUpdated);
+            }
+        }
+
+        /// <summary>
+        /// Callback cuando los joints de la mano se actualizan. Cachea el evento para validación directa.
+        /// </summary>
+        private void OnJointsUpdated(XRHandJointsUpdatedEventArgs eventArgs)
+        {
+            lastJointsEventArgs = eventArgs;
+            hasValidJointsEventArgs = true;
         }
 
         void Update()
@@ -287,8 +315,15 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // En Scene 3: Match exacto de pose
+                    // En Scene 3: Primero intentar match exacto de pose
                     canStart = gesture.CanStartWithPose(currentPose);
+
+                    // GESTOS COMPUESTOS: Si no hay match por nombre pero hay poseData,
+                    // intentar validación directa usando HandShape
+                    if (!canStart)
+                    {
+                        canStart = CanStartWithPoseData(gesture);
+                    }
                 }
 
                 if (canStart)
@@ -772,20 +807,119 @@ namespace ASL.DynamicGestures
                 if (poseReq.isOptional)
                     continue;
 
-                bool matches = !string.IsNullOrEmpty(currentPose) &&
-                               currentPose.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase);
+                bool matches = false;
+
+                // SOLUCIÓN PARA GESTOS COMPUESTOS:
+                // Para poses End, si hay un poseData asignado, validar directamente con HandShape
+                // Esto permite detectar transiciones como 5→S (White), O→S (Orange), T→H (Thursday)
+                if (timing == PoseTimingRequirement.End && poseReq.poseData != null)
+                {
+                    matches = ValidatePoseDirectly(poseReq.poseData);
+
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validación DIRECTA de End pose '{poseReq.poseName}' = {matches}");
+                    }
+                }
+                else
+                {
+                    // Validación tradicional usando poseAdapter
+                    matches = !string.IsNullOrEmpty(currentPose) &&
+                              currentPose.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase);
+                }
 
                 if (!matches)
                 {
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Pose requerida '{poseReq.poseName}' no detectada. Actual: '{currentPose}'");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Pose requerida '{poseReq.poseName}' no detectada. " +
+                                         $"Actual: '{currentPose}', PoseData: {(poseReq.poseData != null ? poseReq.poseData.signName : "null")}");
                     }
                     return false;
                 }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Verifica si un gesto puede iniciar usando validación directa de poseData.
+        /// Usado para gestos compuestos donde el Start pose es diferente del TargetSign.
+        /// </summary>
+        private bool CanStartWithPoseData(DynamicGestureDefinition gesture)
+        {
+            if (gesture == null)
+                return false;
+
+            var startPoses = gesture.GetPosesForTiming(PoseTimingRequirement.Start);
+
+            if (startPoses.Count == 0)
+                return false;
+
+            foreach (var poseReq in startPoses)
+            {
+                // Si tiene poseData, validar directamente con HandShape
+                if (poseReq.poseData != null)
+                {
+                    bool matches = ValidatePoseDirectly(poseReq.poseData);
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] CanStartWithPoseData: '{gesture.gestureName}' Start pose '{poseReq.poseName}' validación directa = {matches}");
+                    }
+
+                    if (matches)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Valida una pose directamente usando el HandShape del SignData contra XRHandSubsystem.
+        /// Esto permite detectar poses End en gestos compuestos sin depender del poseAdapter.
+        /// </summary>
+        private bool ValidatePoseDirectly(SignData signData)
+        {
+            if (signData == null || signData.handShapeOrPose == null)
+            {
+                if (debugMode)
+                    Debug.LogWarning($"[DynamicGesture] ValidatePoseDirectly: SignData o handShapeOrPose es null");
+                return false;
+            }
+
+            // Verificar que tenemos el evento de joints cacheado
+            if (!hasValidJointsEventArgs)
+            {
+                if (debugMode)
+                    Debug.LogWarning($"[DynamicGesture] ValidatePoseDirectly: No hay evento de joints cacheado");
+                return false;
+            }
+
+            // Obtener HandShape o HandPose del SignData
+            var handShape = signData.GetHandShape();
+            var handPose = signData.GetHandPose();
+
+            if (handShape != null)
+            {
+                // Usar CheckConditions del XRHandShape con el evento cacheado
+                bool result = handShape.CheckConditions(lastJointsEventArgs);
+                if (debugMode)
+                    Debug.Log($"[DynamicGesture] ValidatePoseDirectly: HandShape '{signData.signName}' CheckConditions = {result}");
+                return result;
+            }
+            else if (handPose != null)
+            {
+                // Usar CheckConditions del XRHandPose con el evento cacheado
+                bool result = handPose.CheckConditions(lastJointsEventArgs);
+                if (debugMode)
+                    Debug.Log($"[DynamicGesture] ValidatePoseDirectly: HandPose '{signData.signName}' CheckConditions = {result}");
+                return result;
+            }
+
+            if (debugMode)
+                Debug.LogWarning($"[DynamicGesture] ValidatePoseDirectly: '{signData.signName}' no tiene HandShape ni HandPose");
+            return false;
         }
 
         /// <summary>
