@@ -17,6 +17,7 @@ MonoBehaviour:
   categories:
   - {fileID: 11400000, guid: 76366e06b5e13004f881e46dfefece13, type: 2}
   - {fileID: 11400000, guid: ad72ab09652bfce4099d82c823341ebe, type: 2}
+  - {fileID: 11400000, guid: 720e06a016c1fc646a6730653187a5df, type: 2}
   icon: {fileID: 0}
   themeColor: {r: 1, g: 1, b: 1, a: 1}
   minimumHoldTime: 0.3

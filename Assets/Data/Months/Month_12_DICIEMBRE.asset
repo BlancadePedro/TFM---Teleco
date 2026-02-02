@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d01ae6ca00d6a84b962b8e4b6926bd7, type: 3}
+  m_Name: Month_12_DICIEMBRE
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.MonthSequenceData
+  signName: DICIEMBRE
+  description: "Fingerspelling for DECEMBER: D \u2192 E \u2192 C"
+  handShapeOrPose: {fileID: 0}
+  requiresMovement: 0
+  minimumHoldTime: 0.3
+  icon: {fileID: 0}
+  letters:
+  - {fileID: 11400000, guid: 557d4f15caf0ea4429906bb415069c67, type: 2}
+  - {fileID: 11400000, guid: 1cdde55e08cd64e4dbda0b1147f73f14, type: 2}
+  - {fileID: 11400000, guid: 214ead2281280254fb68ee91e6e69e0c, type: 2}
+  guideClipLeft: {fileID: 0}
+  guideClipRight: {fileID: 0}

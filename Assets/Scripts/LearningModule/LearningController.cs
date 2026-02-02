@@ -68,6 +68,10 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Categoría Digits para cargar poses numéricas (1, 2, 3, etc.)")]
         [SerializeField] private CategoryData digitsCategory;
 
+        [Header("Month Sequence Support")]
+        [Tooltip("Componente que gestiona la práctica de secuencias de meses (3 letras)")]
+        [SerializeField] private MonthPracticeController monthPracticeController;
+
         private CategoryData currentCategory;
         private int currentSignIndex = 0;
         private bool isPracticing = false;
@@ -205,6 +209,10 @@ namespace ASL_LearnVR.LearningModule
 
             // Actualiza los botones de navegación
             UpdateNavigationButtons();
+
+            // Si hay un controlador de MonthPractice, notificar cambio de item para resetar UI/estado
+            if (monthPracticeController != null)
+                monthPracticeController.OnSignChanged();
         }
 
         /// <summary>
@@ -241,6 +249,71 @@ namespace ASL_LearnVR.LearningModule
         {
             isPracticing = !isPracticing;
 
+            // Si el item actual es una MonthSequenceData, delegar a MonthPracticeController
+            SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
+
+            if (currentSign is MonthSequenceData monthSequence && monthPracticeController != null)
+            {
+                if (isPracticing)
+                {
+                    Debug.Log($"[LearningController] ====== INICIANDO PRÁCTICA DE MES: {monthSequence.signName} ======");
+
+                    // Activar feedbackPanel (contiene los tiles de MonthTilesUI)
+                    if (feedbackPanel != null)
+                        feedbackPanel.SetActive(true);
+
+                    // OCULTAR el texto de feedback (MonthTilesUI mostrará su propia UI)
+                    if (feedbackText != null)
+                        feedbackText.gameObject.SetActive(false);
+
+                    // Configurar recognizers
+                    monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
+
+                    // Habilitar detección de gestos
+                    SetRecognitionEnabled(true);
+
+                    // Iniciar práctica (esto mostrará los tiles)
+                    monthPracticeController.StartPractice(monthSequence);
+
+                    // Cambiar texto del botón
+                    if (practiceButton != null)
+                    {
+                        var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
+                        if (buttonText != null)
+                            buttonText.text = "Detener";
+                    }
+                }
+                else
+                {
+                    Debug.Log("[LearningController] ====== DETENIENDO PRÁCTICA DE MES ======");
+
+                    // Detener práctica (esto ocultará los tiles)
+                    monthPracticeController.StopPractice();
+
+                    // Desactivar detección
+                    SetRecognitionEnabled(false);
+
+                    // Ocultar feedbackPanel
+                    if (feedbackPanel != null)
+                        feedbackPanel.SetActive(false);
+
+                    // Restaurar visibilidad del feedbackText para futuras prácticas normales
+                    if (feedbackText != null)
+                        feedbackText.gameObject.SetActive(true);
+
+                    // Restaurar texto del botón
+                    if (practiceButton != null)
+                    {
+                        var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
+                        if (buttonText != null)
+                            buttonText.text = "Practicar";
+                    }
+                }
+
+                return;
+            }
+
+            // Comportamiento por defecto para signos individuales
             if (isPracticing)
             {
                 // Activa el feedback y el reconocimiento de gestos
@@ -360,6 +433,14 @@ namespace ASL_LearnVR.LearningModule
             if (currentSign == null)
                 return;
 
+            // Si el signo actual es una secuencia de mes, delegar a MonthPracticeController
+            // (MonthTilesUI maneja toda la UI, no tocar feedbackText)
+            if (currentSign is MonthSequenceData && isPracticing && monthPracticeController != null)
+            {
+                monthPracticeController.ProcessDetection(sign);
+                return;
+            }
+
             // CASO 1: El signo actual es DINÁMICO (requiere movimiento)
             if (currentSign.requiresMovement)
             {
@@ -381,6 +462,11 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         private void OnGestureEnded(SignData sign)
         {
+            // No hacer nada si estamos practicando meses (MonthTilesUI maneja la UI)
+            SignData currentSign = GameManager.Instance?.CurrentSign;
+            if (currentSign is MonthSequenceData)
+                return;
+
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {

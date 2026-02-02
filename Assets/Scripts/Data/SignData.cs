@@ -52,7 +52,7 @@ namespace ASL_LearnVR.Data
         /// <summary>
         /// Valida que el SignData esté correctamente configurado.
         /// </summary>
-        public bool IsValid()
+        public virtual bool IsValid()
         {
             if (string.IsNullOrEmpty(signName))
             {
