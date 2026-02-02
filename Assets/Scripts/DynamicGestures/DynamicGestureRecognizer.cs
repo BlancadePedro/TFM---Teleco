@@ -301,7 +301,29 @@ namespace ASL.DynamicGestures
             // considerar TODOS los gestos como candidatos para desambiguación por movimiento
             bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
-            foreach (var gesture in gestureDefinitions)
+            List<DynamicGestureDefinition> candidateGestures;
+            if (!isScene4Mode)
+            {
+                string currentSignName = gameManager.CurrentSign.signName;
+
+                bool MatchesCurrent(string gestureName)
+                {
+                    return gestureName.Equals(currentSignName, System.StringComparison.OrdinalIgnoreCase) ||
+                           (currentSignName.Equals("Grey", System.StringComparison.OrdinalIgnoreCase) &&
+                            gestureName.Equals("Gray", System.StringComparison.OrdinalIgnoreCase)) ||
+                           (currentSignName.Equals("Gray", System.StringComparison.OrdinalIgnoreCase) &&
+                            gestureName.Equals("Grey", System.StringComparison.OrdinalIgnoreCase));
+                }
+
+                var focused = gestureDefinitions.Find(g => g != null && MatchesCurrent(g.gestureName));
+                candidateGestures = focused != null ? new List<DynamicGestureDefinition> { focused } : gestureDefinitions;
+            }
+            else
+            {
+                candidateGestures = gestureDefinitions;
+            }
+
+            foreach (var gesture in candidateGestures)
             {
                 if (gesture == null)
                     continue;
