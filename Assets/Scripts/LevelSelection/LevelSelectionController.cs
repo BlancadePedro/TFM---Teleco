@@ -465,7 +465,7 @@ namespace ASL_LearnVR.LevelSelection
             }
 
             // Actualiza el texto
-            /*if (headerText != null)
+            if (headerText != null)
             {
                 string levelName = string.IsNullOrEmpty(level.levelName) ? level.name : level.levelName;
                 headerText.text = $"Has seleccionado: {levelName.ToUpper()}\n\nElige una categoría para comenzar:";

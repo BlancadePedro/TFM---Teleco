@@ -845,9 +845,25 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // Validación tradicional usando poseAdapter
-                    matches = !string.IsNullOrEmpty(currentPose) &&
-                              currentPose.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase);
+                    // Fallback: si no hay poseData pero el CurrentSign coincide por nombre,
+                    // validar directamente usando ese SignData para evitar ambigüedades (ej: Gray).
+                    SignData fallbackSignData = null;
+                    var gm = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+                    if (gm != null && gm.CurrentSign != null &&
+                        gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        fallbackSignData = gm.CurrentSign;
+                    }
+
+                    if (fallbackSignData != null && timing == PoseTimingRequirement.Start)
+                    {
+                        matches = ValidatePoseDirectly(fallbackSignData);
+                    }
+                    else
+                    {
+                        // Validación tradicional usando poseAdapter, aceptando familias de pose
+                        matches = !string.IsNullOrEmpty(currentPose) && poseReq.IsValidPose(currentPose);
+                    }
                 }
 
                 if (!matches)
@@ -891,6 +907,23 @@ namespace ASL.DynamicGestures
 
                     if (matches)
                         return true;
+                }
+                else
+                {
+                    // Fallback: si la pose no tiene poseData pero coincide con el CurrentSign, validar con ese SignData
+                    var gm = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+                    if (gm != null && gm.CurrentSign != null &&
+                        gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        bool matches = ValidatePoseDirectly(gm.CurrentSign);
+                        if (debugMode)
+                        {
+                            Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback CurrentSign '{gm.CurrentSign.signName}' = {matches}");
+                        }
+
+                        if (matches)
+                            return true;
+                    }
                 }
             }
 
