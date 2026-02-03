@@ -19,6 +19,9 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Los 3 textos de las letras (TextMeshPro)")]
         [SerializeField] private TextMeshProUGUI[] tileLetters = new TextMeshProUGUI[3];
 
+        [Tooltip("Los 3 iconos de las letras (Image)")]
+        [SerializeField] private Image[] tileIcons = new Image[3];
+
         [Header("Status")]
         [Tooltip("Texto que muestra 'Ahora toca: X' o '¡Completado!'")]
         [SerializeField] private TextMeshProUGUI statusText;
@@ -72,6 +75,21 @@ namespace ASL_LearnVR.LearningModule
 
                 if (tileBackgrounds[i] != null)
                     tileBackgrounds[i].color = colorPending;
+
+                // Asignar icono de la letra
+                if (tileIcons[i] != null)
+                {
+                    var letterIcon = monthData.letters[i]?.icon;
+                    if (letterIcon != null)
+                    {
+                        tileIcons[i].sprite = letterIcon;
+                        tileIcons[i].enabled = true;
+                    }
+                    else
+                    {
+                        tileIcons[i].enabled = false;
+                    }
+                }
             }
 
             // Resaltar el primer tile
