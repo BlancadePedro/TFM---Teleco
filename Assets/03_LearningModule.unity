@@ -6727,18 +6727,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1dcac3a324398e4479382331da9d1498, type: 2}
   - {fileID: 11400000, guid: db62349471340644db2b9b2bbbfe5a27, type: 2}
   - {fileID: 11400000, guid: 2b58e18cb3ef0b544abb16d50e4b2386, type: 2}
+  - {fileID: 11400000, guid: 781b6c567a2b94b43bed7a4bdb1f1a0c, type: 2}
+  - {fileID: 11400000, guid: 60cab9d8acd421447b043b92f2326479, type: 2}
+  - {fileID: 11400000, guid: 2b116f1d7c909e94990ae9a490b7e1f6, type: 2}
   - {fileID: 11400000, guid: 7c3d2b7bd4ac85744b44c3187fa54db9, type: 2}
   - {fileID: 11400000, guid: 6ccbca09b43d4b040847b5846de64472, type: 2}
   - {fileID: 11400000, guid: e1686e7eb8a3e7e429e757d6d99b830e, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b9, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b1, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b8, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b4, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b5, type: 2}
+  - {fileID: 11400000, guid: 2b116f1d7c909e94990ae9a490b7e1f6, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b2, type: 2}
+  - {fileID: 11400000, guid: 60cab9d8acd421447b043b92f2326479, type: 2}
+  - {fileID: 11400000, guid: 781b6c567a2b94b43bed7a4bdb1f1a0c, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b5, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b7, type: 2}
-  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b3, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b4, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b8, type: 2}
   poseAdapterComponent: {fileID: 1028728546}
   handTrackingEvents: {fileID: 2561790}
   positionSmoothingFactor: 0.3

@@ -18,5 +18,3 @@ MonoBehaviour:
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 7b25fab04f9b3614f8b4c11a8b8e0561, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

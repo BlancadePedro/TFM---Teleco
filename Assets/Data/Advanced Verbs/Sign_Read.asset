@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
-  m_Name: Sign_Think
+  m_Name: Sign_Read
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
-  signName: Think
-  description: Point your index finger (1 shape) to your temple with a small circular motion.
-  handShapeOrPose: {fileID: 11400000, guid: e255dc5f8ad725c45b883c8ffc5ebf8f, type: 2}
+  signName: Read
+  description: V handshape (index and middle extended) moving up and down like eyes scanning a page.
+  handShapeOrPose: {fileID: 11400000, guid: 89f9f1765ce8d8a4881544e1561bc013, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
   icon: {fileID: 0}

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8454fc3ebe80db243bf3c896e4c13307, type: 3}
-  m_Name: Sign_Sleep
+  m_Name: Sign_Drink
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
-  signName: Sleep
-  description: Igual que WHITE literal: inicia con palma abierta (5) y cierra a White,
-    sin trayectoria obligatoria.
-  handShapeOrPose: {fileID: 11400000, guid: 9209272f549fc7d4089770feb91f7dbf, type: 2}
+  signName: Drink
+  description: C handshape (like holding a cup) moving in and out toward the mouth
+    just like the Eat motion (no wrist tilt required).
+  handShapeOrPose: {fileID: 11400000, guid: 952052b573ed9c6488b09d0172caa0aa, type: 2}
   requiresMovement: 1
-  minimumHoldTime: 0.2
+  minimumHoldTime: 0.3
   icon: {fileID: 0}

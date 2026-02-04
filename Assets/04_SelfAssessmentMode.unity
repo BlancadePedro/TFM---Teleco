@@ -2223,6 +2223,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
   - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
   - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b1, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b2, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b5, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b7, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b4, type: 2}
+  - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b8, type: 2}
+  - {fileID: 11400000, guid: 781b6c567a2b94b43bed7a4bdb1f1a0c, type: 2}
+  - {fileID: 11400000, guid: 60cab9d8acd421447b043b92f2326479, type: 2}
+  - {fileID: 11400000, guid: 2b116f1d7c909e94990ae9a490b7e1f6, type: 2}
   poseAdapterComponent: {fileID: 1120855380}
   handTrackingEvents: {fileID: 756614765}
   positionSmoothingFactor: 0.3

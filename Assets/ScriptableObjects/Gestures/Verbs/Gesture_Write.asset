@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 46c830ca965dc0c40b6000e52466824f, type: 3}
-  m_Name: Gesture_Think
+  m_Name: Gesture_Write
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
-  gestureName: Think
-  gestureDescription: Index finger points to temple with tiny tap motion
+  gestureName: Write
+  gestureDescription: F handshape (pinch with thumb and index) tracing a wavy line like writing
   poseSequence:
-  - poseName: Think
+  - poseName: F
     timing: 0
     isOptional: 0
-    poseData: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d3, type: 2}
+    poseData: {fileID: 11400000, guid: 196952f992750bb47b6302757e536c57, type: 2}
     poseFamilyAlternatives: []
   requiresMovement: 1
-  primaryDirection: {x: 0.5, y: 0.3, z: -0.8}
-  directionTolerance: 55
-  minSpeed: 0.08
-  minDistance: 0.05
+  primaryDirection: {x: 1, y: 0, z: 0}
+  directionTolerance: 80
+  minSpeed: 0.03
+  minDistance: 0.03
   minDuration: 0.4
-  maxDuration: 2
-  requiresDirectionChange: 0
-  requiredDirectionChanges: 0
+  maxDuration: 3
+  requiresDirectionChange: 1
+  requiredDirectionChanges: 1
   requiresRotation: 0
   rotationAxis: {x: 0, y: 0, z: 1}
   minRotationAngle: 25

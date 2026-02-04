@@ -16,75 +16,35 @@ MonoBehaviour:
   - m_FingerID: 0
     m_Targets:
     - m_ShapeType: 0
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
+      m_UpperTolerance: 0.5
+      m_LowerTolerance: 0.1
       m_Tolerance: 0
-      m_Desired: 0.94639695
-    - m_ShapeType: 4
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0
+      m_Desired: 0.39999998
   - m_FingerID: 1
     m_Targets:
     - m_ShapeType: 0
       m_UpperTolerance: 0.15
       m_LowerTolerance: 0.15
       m_Tolerance: 0
-      m_Desired: 0.8930673
-    - m_ShapeType: 3
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0.06609601
-    - m_ShapeType: 4
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0
+      m_Desired: 0.9
   - m_FingerID: 2
     m_Targets:
     - m_ShapeType: 0
       m_UpperTolerance: 0.15
       m_LowerTolerance: 0.15
       m_Tolerance: 0
-      m_Desired: 0.83314556
-    - m_ShapeType: 3
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0.4630007
-    - m_ShapeType: 4
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0
+      m_Desired: 0.9
   - m_FingerID: 3
     m_Targets:
     - m_ShapeType: 0
       m_UpperTolerance: 0.15
       m_LowerTolerance: 0.15
       m_Tolerance: 0
-      m_Desired: 0.7490536
-    - m_ShapeType: 3
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0.8161416
-    - m_ShapeType: 4
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0
+      m_Desired: 0.9
   - m_FingerID: 4
     m_Targets:
     - m_ShapeType: 0
       m_UpperTolerance: 0.15
       m_LowerTolerance: 0.15
       m_Tolerance: 0
-      m_Desired: 0.7144924
-    - m_ShapeType: 3
-      m_UpperTolerance: 0.15
-      m_LowerTolerance: 0.15
-      m_Tolerance: 0
-      m_Desired: 0.58652157
+      m_Desired: 0.9

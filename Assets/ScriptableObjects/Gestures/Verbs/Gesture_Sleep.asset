@@ -13,20 +13,26 @@ MonoBehaviour:
   m_Name: Gesture_Sleep
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
   gestureName: Sleep
-  gestureDescription: Open B hand brought to cheek, head tilts
+  gestureDescription: Igual que WHITE literal: empieza con palma abierta (5) frente
+    a la cara y termina cerrando a White, sin trayectoria obligatoria.
   poseSequence:
-  - poseName: Sleep
+  - poseName: 5
     timing: 0
     isOptional: 0
-    poseData: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d2, type: 2}
+    poseData: {fileID: 11400000, guid: d4cb54b9de249dd4a84e994178aa989a, type: 2}
+    poseFamilyAlternatives: []
+  - poseName: White
+    timing: 2
+    isOptional: 0
+    poseData: {fileID: 11400000, guid: 7fb6288f8e26938419ca8c9958e7d78f, type: 2}
     poseFamilyAlternatives: []
   requiresMovement: 1
-  primaryDirection: {x: 0.5, y: 0.2, z: -0.8}
-  directionTolerance: 55
-  minSpeed: 0.08
-  minDistance: 0.05
-  minDuration: 0.4
-  maxDuration: 2
+  primaryDirection: {x: 0, y: 0, z: 0}
+  directionTolerance: 180
+  minSpeed: 0
+  minDistance: 0
+  minDuration: 0.2
+  maxDuration: 3
   requiresDirectionChange: 0
   requiredDirectionChanges: 0
   requiresRotation: 0
