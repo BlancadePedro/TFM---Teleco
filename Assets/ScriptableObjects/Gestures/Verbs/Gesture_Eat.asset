@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Gesture_Eat
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
   gestureName: Eat
-  gestureDescription: Flattened O hand (White shape) moving towards mouth repeatedly like eating
+  gestureDescription: Flattened O hand (White shape) moving towards mouth repeatedly
+    like eating
   poseSequence:
   - poseName: White
     timing: 0
@@ -23,7 +24,7 @@ MonoBehaviour:
   requiresMovement: 1
   primaryDirection: {x: 0, y: 0, z: -1}
   directionTolerance: 80
-  minSpeed: 0.03
+  minSpeed: 0.05
   minDistance: 0.02
   minDuration: 0.3
   maxDuration: 3

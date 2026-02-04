@@ -14,9 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: N
   description: Thumb tucked under two fingers (index and middle), other fingers folded
-  handShapeOrPose: {fileID: 11400000, guid: 03d469d58c5add34bac8a2d3829f37b1, type: 2}
+  handShapeOrPose: {fileID: 11400000, guid: 78c5e48d5173ae141a1fadb544a14cda, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: ca891a654bf4d7046ab154c69f74fe7c, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

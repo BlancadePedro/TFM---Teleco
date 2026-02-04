@@ -397,11 +397,11 @@ namespace ASL_LearnVR.LevelSelection
                 if (layoutElement == null)
                     layoutElement = buttonObj.AddComponent<UnityEngine.UI.LayoutElement>();
 
-                // Configura el tamaño mínimo del botón
-                layoutElement.minWidth = 250f; // Ancho mínimo
-                layoutElement.preferredWidth = 350f; // Ancho preferido
-                layoutElement.minHeight = 60f; // Alto mínimo
-                layoutElement.preferredHeight = 70f; // Alto preferido
+                // Configura el tamaño del botón (tiles más grandes)
+                layoutElement.minWidth = 320f; // Ancho mínimo
+                layoutElement.preferredWidth = 420f; // Ancho preferido
+                layoutElement.minHeight = 80f; // Alto mínimo
+                layoutElement.preferredHeight = 90f; // Alto preferido
                 layoutElement.flexibleWidth = 1f; // Permite que se expanda si hay espacio
 
                 // Busca TODOS los TextMeshProUGUI en el botón
@@ -468,7 +468,7 @@ namespace ASL_LearnVR.LevelSelection
             if (headerText != null)
             {
                 string levelName = string.IsNullOrEmpty(level.levelName) ? level.name : level.levelName;
-                headerText.text = $"";
+                headerText.text = $" "; // VERIFICAR
             }
 
             // Guarda la referencia si el campo está disponible

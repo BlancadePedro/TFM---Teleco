@@ -24,7 +24,7 @@ MonoBehaviour:
   requiresMovement: 1
   primaryDirection: {x: 0, y: 0, z: -1}
   directionTolerance: 80
-  minSpeed: 0.03
+  minSpeed: 0.05
   minDistance: 0.02
   minDuration: 0.3
   maxDuration: 3

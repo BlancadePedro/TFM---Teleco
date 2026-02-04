@@ -13,23 +13,25 @@ MonoBehaviour:
   m_Name: Black_Gesture
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
   gestureName: Black
-  gestureDescription: Index finger draws across forehead horizontally
+  gestureDescription: Índice paralelo a la mirada que se mueve de izquierda a derecha suavemente (tipo Eat/Drink)
   poseSequence:
   - poseName: Black
     timing: 0
     isOptional: 0
+    poseData: {fileID: 0}
     poseFamilyAlternatives: []
   - poseName: Black
     timing: 1
     isOptional: 0
+    poseData: {fileID: 0}
     poseFamilyAlternatives: []
   requiresMovement: 1
   primaryDirection: {x: 1, y: 0, z: 0}
-  directionTolerance: 75
-  minSpeed: 0.05
-  minDistance: 0.08
-  minDuration: 0.3
-  maxDuration: 3
+  directionTolerance: 130
+  minSpeed: 0.015
+  minDistance: 0.03
+  minDuration: 0.2
+  maxDuration: 3.5
   requiresDirectionChange: 0
   requiredDirectionChanges: 0
   requiresRotation: 0
@@ -38,6 +40,6 @@ MonoBehaviour:
   requiresCircularMotion: 0
   minCircularityScore: 0.6
   requiresSpatialZone: 0
-  zoneCenter: {x: 0, y: 1.75, z: 0.15}
-  zoneRadius: 0.18
-  zoneValidationTiming: 2
+  zoneCenter: {x: 0, y: 0, z: 0}
+  zoneRadius: 0.15
+  zoneValidationTiming: 0

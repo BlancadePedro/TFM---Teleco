@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbd361b3b0340da4c834ca35fb0a11ff, type: 3}
   m_Name: Category_Months
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.CategoryData
-  categoryName: Meses
+  categoryName: Months
   description: 
   signs:
   - {fileID: 11400000, guid: 93b3dc8754d02294daacf64d73ae4d83, type: 2}

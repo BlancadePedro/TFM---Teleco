@@ -23,11 +23,11 @@ MonoBehaviour:
     isOptional: 0
   requiresMovement: 1
   primaryDirection: {x: 0, y: 1, z: 0}
-  directionTolerance: 65
-  minSpeed: 0.05
-  minDistance: 0.06
-  minDuration: 0.3
-  maxDuration: 2
+  directionTolerance: 95
+  minSpeed: 0.02
+  minDistance: 0.02
+  minDuration: 0.2
+  maxDuration: 3
   requiresDirectionChange: 0
   requiredDirectionChanges: 0
   requiresRotation: 0

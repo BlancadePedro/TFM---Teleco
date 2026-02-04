@@ -1,4 +1,4 @@
-# Checklist de Setup — Categoría "Meses" (Fingerspelling)
+# Checklist de Setup — Categoría "" (Fingerspelling)
 
 ## Resumen rápido
 Este documento te guía paso-a-paso para configurar la nueva categoría "Meses" con secuencias de 3 letras (JAN, FEB, etc.) en la escena LearningModule. Cada paso es una acción concreta en el Editor de Unity.

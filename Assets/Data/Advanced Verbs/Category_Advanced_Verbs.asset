@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbd361b3b0340da4c834ca35fb0a11ff, type: 3}
   m_Name: Category_Advanced_Verbs
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.CategoryData
-  categoryName: Advanced Verbs
+  categoryName: Verbs
   description: Learn common action verbs in ASL
   signs:
   - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d1, type: 2}

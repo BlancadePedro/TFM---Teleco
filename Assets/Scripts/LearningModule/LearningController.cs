@@ -514,7 +514,7 @@ namespace ASL_LearnVR.LearningModule
         private void OnDynamicGestureCompleted(string gestureName)
         {
             Debug.Log($"[LearningController] Gesto dinámico COMPLETADO: {gestureName}");
-            UpdateFeedbackText($"✓ ¡PERFECTO!\nGesto '{gestureName}' completado correctamente!");
+            UpdateFeedbackText($"¡PERFECTO!\nGesto '{gestureName}' completado correctamente!");
 
             // Marcar que estamos mostrando mensaje de éxito
             isShowingSuccessMessage = true;
