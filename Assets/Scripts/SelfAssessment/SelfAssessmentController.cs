@@ -34,6 +34,8 @@ namespace ASL_LearnVR.SelfAssessment
         [Header("Progress")]
         [Tooltip("Texto que muestra el progreso")]
         [SerializeField] private TextMeshProUGUI progressText;
+        [Tooltip("Barra de progreso (Slider o Image con fill)")]
+        [SerializeField] private Slider progressBar;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = false;
@@ -262,11 +264,16 @@ namespace ASL_LearnVR.SelfAssessment
         /// </summary>
         private void UpdateProgress()
         {
+            int total = currentCategory.GetSignCount();
+            int completed = completedSigns.Count;
+
             if (progressText != null)
+                progressText.text = $"Progreso: {completed}/{total} ({(total > 0 ? (completed * 100f / total) : 0f):0.#}%)";
+
+            if (progressBar != null)
             {
-                int total = currentCategory.GetSignCount();
-                int completed = completedSigns.Count;
-                progressText.text = $"Progress: {completed}/{total}";
+                progressBar.maxValue = Mathf.Max(1, total);
+                progressBar.value = completed;
             }
         }
 

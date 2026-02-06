@@ -4,6 +4,7 @@ using UnityEngine.XR.Hands;
 using UnityEngine.XR.Hands.Gestures;
 using UnityEngine.XR.Management;
 using ASL_LearnVR.Data;
+using ASL_LearnVR.Feedback;
 
 namespace ASL.DynamicGestures
 {
@@ -32,12 +33,44 @@ namespace ASL.DynamicGestures
         [Tooltip("Activar logs detallados y visualización de Gizmos")]
         [SerializeField] private bool debugMode = false;
 
-        // Eventos públicos
+        // Eventos públicos (API original - mantener compatibilidad)
         public System.Action<string> OnGestureStarted;
         public System.Action<string, float> OnGestureProgress; // nombre, progreso 0-1
         public System.Action<string> OnGestureCompleted;
         public System.Action<string, string> OnGestureFailed; // nombre, razón
         public System.Action<bool> OnPendingConfirmationChanged; // true = entró en pending, false = salió de pending
+
+        // Eventos estructurados (nuevos - para FeedbackSystem)
+        /// <summary>
+        /// Evento con resultado estructurado al completar un gesto.
+        /// Incluye métricas detalladas de movimiento.
+        /// </summary>
+        public System.Action<DynamicGestureResult> OnGestureCompletedStructured;
+
+        /// <summary>
+        /// Evento con resultado estructurado al fallar un gesto.
+        /// Incluye razón de fallo, fase y métricas.
+        /// </summary>
+        public System.Action<DynamicGestureResult> OnGestureFailedStructured;
+
+        // Eventos para feedback por fases (nuevos)
+        /// <summary>
+        /// Evento cuando la pose inicial es detectada correctamente.
+        /// Se emite ANTES de que comience el movimiento (Fase 1: StartDetected).
+        /// </summary>
+        public System.Action<string> OnInitialPoseDetected;
+
+        /// <summary>
+        /// Evento de progreso con métricas detalladas.
+        /// Incluye nombre, progreso, métricas y definición del gesto para análisis de feedback.
+        /// </summary>
+        public System.Action<string, float, DynamicMetrics, DynamicGestureDefinition> OnGestureProgressWithMetrics;
+
+        /// <summary>
+        /// Evento cuando el gesto está cerca de completarse (>80%).
+        /// Usado para feedback de "casi completado" (Fase 3: NearCompletion).
+        /// </summary>
+        public System.Action<string, float> OnGestureNearCompletion;
 
         // Estado interno
         private bool isEnabled = true; // Activado por defecto
@@ -45,6 +78,41 @@ namespace ASL.DynamicGestures
         private DynamicGestureDefinition activeGesture = null;
         private MovementTracker movementTracker;
         private float gestureStartTime = 0f;
+
+        // Cooldown después de éxito (para que el usuario vea el mensaje)
+        private float successCooldownEndTime = 0f;
+        private const float SUCCESS_COOLDOWN_DURATION = 2f; // 2 segundos de pausa después de éxito
+
+        /// <summary>
+        /// True si el reconocedor está en cooldown después de un éxito.
+        /// </summary>
+        public bool IsInSuccessCooldown => Time.time < successCooldownEndTime;
+
+        /// <summary>
+        /// True si la pose inicial del gesto activo sigue siendo válida.
+        /// Usado por FeedbackSystem para decidir si volver a Idle tras un error.
+        /// </summary>
+        public bool IsStartPoseValid
+        {
+            get
+            {
+                // Si no estamos en progreso, no hay pose que validar
+                if (currentState != GestureState.InProgress || activeGesture == null)
+                    return false;
+
+                if (poseAdapter == null)
+                    return false;
+
+                string currentPose = poseAdapter.GetCurrentPoseName();
+
+                // Si no hay pose detectada, no es válida
+                if (string.IsNullOrEmpty(currentPose))
+                    return false;
+
+                // Verificar si la pose actual aún puede iniciar el gesto activo
+                return activeGesture.CanStartWithPose(currentPose) || CanStartWithPoseData(activeGesture);
+            }
+        }
 
         // Estado de confirmación pendiente
         private List<DynamicGestureDefinition> pendingGestures = new List<DynamicGestureDefinition>();
@@ -171,6 +239,13 @@ namespace ASL.DynamicGestures
             // SOLO funcionar si está activado
             if (!isEnabled)
                 return;
+
+            // IMPORTANTE: No procesar nuevos gestos durante el cooldown de éxito
+            // Esto permite que el usuario vea el mensaje "¡Movimiento reconocido!" durante 2 segundos
+            if (IsInSuccessCooldown)
+            {
+                return;
+            }
 
             // Verificar tracking con tolerancia
             if (handTrackingEvents == null || !handTrackingEvents.handIsTracked)
@@ -406,6 +481,9 @@ namespace ASL.DynamicGestures
             {
                 OnPendingConfirmationChanged?.Invoke(false);
             }
+
+            // Emitir evento de pose inicial detectada (Fase 1 del feedback)
+            OnInitialPoseDetected?.Invoke(gesture.gestureName);
 
             OnGestureStarted?.Invoke(gesture.gestureName);
 
@@ -775,6 +853,16 @@ namespace ASL.DynamicGestures
             float progress = Mathf.Clamp01(elapsed / activeGesture.minDuration);
             OnGestureProgress?.Invoke(activeGesture.gestureName, progress);
 
+            // Emitir progreso con métricas para feedback detallado
+            DynamicMetrics currentMetrics = GetCurrentMetrics();
+            OnGestureProgressWithMetrics?.Invoke(activeGesture.gestureName, progress, currentMetrics, activeGesture);
+
+            // Emitir evento de "casi completado" cuando supera el 80%
+            if (progress >= 0.8f && progress < 1.0f)
+            {
+                OnGestureNearCompletion?.Invoke(activeGesture.gestureName, progress);
+            }
+
             // Verificar completado
             if (elapsed >= activeGesture.minDuration)
             {
@@ -1053,6 +1141,9 @@ namespace ASL.DynamicGestures
         {
             string gestureName = activeGesture.gestureName;
 
+            // Recopilar métricas estructuradas
+            DynamicMetrics metrics = GetCurrentMetrics();
+
             if (debugMode)
             {
                 Debug.Log($"[DynamicGesture] COMPLETADO: {gestureName} - " +
@@ -1061,7 +1152,16 @@ namespace ASL.DynamicGestures
                           $"Cambios dirección: {movementTracker.DirectionChanges}");
             }
 
+            // IMPORTANTE: Activar cooldown de 2 segundos para que el usuario vea el mensaje
+            successCooldownEndTime = Time.time + SUCCESS_COOLDOWN_DURATION;
+            Debug.Log($"[DynamicGesture] ¡MOVIMIENTO RECONOCIDO! Cooldown de {SUCCESS_COOLDOWN_DURATION}s activado");
+
+            // Emitir evento original (compatibilidad)
             OnGestureCompleted?.Invoke(gestureName);
+
+            // Emitir evento estructurado
+            var result = DynamicGestureResult.Success(gestureName, metrics);
+            OnGestureCompletedStructured?.Invoke(result);
 
             ResetState();
         }
@@ -1073,14 +1173,112 @@ namespace ASL.DynamicGestures
         {
             string gestureName = activeGesture != null ? activeGesture.gestureName : "Unknown";
 
+            // Recopilar métricas estructuradas
+            DynamicMetrics metrics = GetCurrentMetrics();
+
+            // Determinar razón y fase de fallo
+            FailureReason failureReason = ParseFailureReason(reason);
+            GesturePhase failedPhase = DetermineFailedPhase(reason);
+
             if (debugMode)
             {
-                Debug.LogWarning($"[DynamicGesture] FALLADO: {gestureName} - Razón: {reason}");
+                Debug.LogWarning($"[DynamicGesture] FALLADO: {gestureName} - Razón: {reason} (enum: {failureReason}, fase: {failedPhase})");
             }
 
+            // Emitir evento original (compatibilidad)
             OnGestureFailed?.Invoke(gestureName, reason);
 
+            // Emitir evento estructurado
+            string troubleshootingMsg = FeedbackMessages.GetTroubleshootingMessage(failureReason, failedPhase, metrics, gestureName);
+            var result = DynamicGestureResult.Failure(gestureName, failureReason, failedPhase, metrics, troubleshootingMsg);
+            OnGestureFailedStructured?.Invoke(result);
+
             ResetState();
+        }
+
+        /// <summary>
+        /// Obtiene las métricas actuales del MovementTracker.
+        /// </summary>
+        public DynamicMetrics GetCurrentMetrics()
+        {
+            return new DynamicMetrics
+            {
+                averageSpeed = movementTracker.CurrentSpeed,
+                maxSpeed = movementTracker.CurrentSpeed, // Aproximación, idealmente trackear máximo
+                totalDistance = movementTracker.TotalDistance,
+                duration = movementTracker.GetDuration(),
+                directionChanges = movementTracker.DirectionChanges,
+                totalRotation = movementTracker.TotalRotation,
+                circularityScore = movementTracker.GetCircularityScore()
+            };
+        }
+
+        /// <summary>
+        /// Parsea el string de razón a enum FailureReason.
+        /// </summary>
+        private FailureReason ParseFailureReason(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+                return FailureReason.Unknown;
+
+            string lowerReason = reason.ToLower();
+
+            if (lowerReason.Contains("pose") && (lowerReason.Contains("perdida") || lowerReason.Contains("lost")))
+                return FailureReason.PoseLost;
+
+            if (lowerReason.Contains("velocidad") || lowerReason.Contains("speed"))
+            {
+                if (lowerReason.Contains("baja") || lowerReason.Contains("low"))
+                    return FailureReason.SpeedTooLow;
+                if (lowerReason.Contains("alta") || lowerReason.Contains("high"))
+                    return FailureReason.SpeedTooHigh;
+            }
+
+            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance"))
+                return FailureReason.DistanceTooShort;
+
+            if (lowerReason.Contains("direccion") || lowerReason.Contains("direction"))
+            {
+                if (lowerReason.Contains("cambios") || lowerReason.Contains("changes") || lowerReason.Contains("insuficientes"))
+                    return FailureReason.DirectionChangesInsufficient;
+                return FailureReason.DirectionWrong;
+            }
+
+            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation"))
+                return FailureReason.RotationInsufficient;
+
+            if (lowerReason.Contains("circular"))
+                return FailureReason.NotCircular;
+
+            if (lowerReason.Contains("timeout") || lowerReason.Contains("tiempo") || lowerReason.Contains("excedido"))
+                return FailureReason.Timeout;
+
+            if (lowerReason.Contains("tracking"))
+                return FailureReason.TrackingLost;
+
+            if (lowerReason.Contains("final") || lowerReason.Contains("end"))
+                return FailureReason.EndPoseMismatch;
+
+            return FailureReason.Unknown;
+        }
+
+        /// <summary>
+        /// Determina la fase donde ocurrió el fallo.
+        /// </summary>
+        private GesturePhase DetermineFailedPhase(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+                return GesturePhase.Move;
+
+            string lowerReason = reason.ToLower();
+
+            if (lowerReason.Contains("inicial") || lowerReason.Contains("start") || lowerReason.Contains("inicio"))
+                return GesturePhase.Start;
+
+            if (lowerReason.Contains("final") || lowerReason.Contains("end") || lowerReason.Contains("completar"))
+                return GesturePhase.End;
+
+            return GesturePhase.Move;
         }
 
         /// <summary>

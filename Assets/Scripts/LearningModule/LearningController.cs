@@ -4,6 +4,7 @@ using TMPro;
 using ASL_LearnVR.Core;
 using ASL_LearnVR.Data;
 using ASL_LearnVR.Gestures;
+using ASL_LearnVR.Feedback;
 
 namespace ASL_LearnVR.LearningModule
 {
@@ -71,6 +72,10 @@ namespace ASL_LearnVR.LearningModule
         [Header("Month Sequence Support")]
         [Tooltip("Componente que gestiona la práctica de secuencias de meses (3 letras)")]
         [SerializeField] private MonthPracticeController monthPracticeController;
+
+        [Header("Pedagogical Feedback System")]
+        [Tooltip("Sistema de feedback pedagógico (visual + textual + audio)")]
+        [SerializeField] private FeedbackSystem feedbackSystem;
 
         private CategoryData currentCategory;
         private int currentSignIndex = 0;
@@ -213,6 +218,13 @@ namespace ASL_LearnVR.LearningModule
                     leftHandRecognizer.TargetSign = sign;
             }
 
+            // IMPORTANTE: Si ya estamos practicando, actualizar también el FeedbackSystem
+            if (isPracticing && feedbackSystem != null)
+            {
+                feedbackSystem.SetCurrentSign(sign);
+                Debug.Log($"[LearningController] FeedbackSystem actualizado con signo: '{sign.signName}'");
+            }
+
             // Actualiza los botones de navegación
             UpdateNavigationButtons();
 
@@ -339,8 +351,25 @@ namespace ASL_LearnVR.LearningModule
                 // Activa el feedback y el reconocimiento de gestos
                 if (feedbackPanel != null)
                     feedbackPanel.SetActive(true);
+                if (feedbackText != null && !feedbackText.gameObject.activeSelf)
+                    feedbackText.gameObject.SetActive(true); // asegurar visibilidad en el primer arranque
 
                 SetRecognitionEnabled(true);
+
+                // Activar sistema de feedback pedagógico
+                if (feedbackSystem != null)
+                {
+                    // Pasar la referencia del feedbackText para que FeedbackSystem escriba directamente ahí
+                    feedbackSystem.SetDirectFeedbackText(feedbackText);
+                    feedbackSystem.SetCurrentSign(currentSign);
+                    feedbackSystem.SetActive(true);
+                    Debug.Log("[LearningController] FeedbackSystem ACTIVADO con feedbackText directo");
+                }
+                else
+                {
+                    // Sin FeedbackSystem, mostrar mensaje genérico
+                    UpdateFeedbackText("Make the sign to practice...");
+                }
 
                 if (practiceButton != null)
                 {
@@ -348,8 +377,6 @@ namespace ASL_LearnVR.LearningModule
                     if (buttonText != null)
                         buttonText.text = "Stop Practice";
                 }
-
-                UpdateFeedbackText("Make the sign to practice...");
             }
             else
             {
@@ -358,6 +385,13 @@ namespace ASL_LearnVR.LearningModule
                     feedbackPanel.SetActive(false);
 
                 SetRecognitionEnabled(false);
+
+                // Desactivar sistema de feedback pedagógico
+                if (feedbackSystem != null)
+                {
+                    feedbackSystem.SetActive(false);
+                    Debug.Log("[LearningController] FeedbackSystem DESACTIVADO");
+                }
 
                 if (practiceButton != null)
                 {
@@ -461,18 +495,32 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
+            // Si FeedbackSystem está activo, dejar que él maneje los mensajes de gestos estáticos
+            if (feedbackSystem != null && feedbackSystem.IsActive && !currentSign.requiresMovement)
+            {
+                // FeedbackSystem ya maneja este callback con mensajes más específicos
+                return;
+            }
+
             // CASO 1: El signo actual es DINÁMICO (requiere movimiento)
             if (currentSign.requiresMovement)
             {
                 // Mostrar confirmación de pose inicial para que el usuario sepa que puede empezar a moverse
-                UpdateFeedbackText("Pose inicial reconocida, haz el gesto.");
+                // Solo si FeedbackSystem no está activo
+                if (feedbackSystem == null || !feedbackSystem.IsActive)
+                {
+                    UpdateFeedbackText("Initial pose detected, make the gesture.");
+                }
                 return;
             }
             // CASO 2: El signo actual es ESTÁTICO (NO requiere movimiento)
             else if (!currentSign.requiresMovement && currentSign.signName == sign.signName)
             {
-                // Gesto estático normal - solo si coincide EXACTAMENTE con el signo actual
-                UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
+                // Gesto estático normal - solo si FeedbackSystem no está activo
+                if (feedbackSystem == null || !feedbackSystem.IsActive)
+                {
+                    UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
+                }
             }
             // Si no coincide con ningún caso, no mostrar nada
         }
@@ -485,6 +533,10 @@ namespace ASL_LearnVR.LearningModule
             // No hacer nada si estamos practicando meses (MonthTilesUI maneja la UI)
             SignData currentSign = GameManager.Instance?.CurrentSign;
             if (currentSign is MonthSequenceData)
+                return;
+
+            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
+            if (feedbackSystem != null && feedbackSystem.IsActive)
                 return;
 
             // No sobrescribir si estamos mostrando mensaje de éxito
@@ -501,10 +553,14 @@ namespace ASL_LearnVR.LearningModule
         {
             Debug.Log($"[LearningController] Gesto dinámico INICIADO: {gestureName}");
 
+            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
+            if (feedbackSystem != null && feedbackSystem.IsActive)
+                return;
+
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {
-                UpdateFeedbackText($"GESTO '{gestureName}' INICIADO!\nSigue moviendo para completar...");
+                UpdateFeedbackText($"'{gestureName}' started! Keep moving...");
             }
         }
 
@@ -514,7 +570,17 @@ namespace ASL_LearnVR.LearningModule
         private void OnDynamicGestureCompleted(string gestureName)
         {
             Debug.Log($"[LearningController] Gesto dinámico COMPLETADO: {gestureName}");
-            UpdateFeedbackText($"¡PERFECTO!\nGesto '{gestureName}' completado correctamente!");
+
+            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
+            if (feedbackSystem != null && feedbackSystem.IsActive)
+            {
+                isShowingSuccessMessage = true;
+                CancelInvoke(nameof(ClearSuccessMessage));
+                Invoke(nameof(ClearSuccessMessage), 3f);
+                return;
+            }
+
+            UpdateFeedbackText($"Perfect! '{gestureName}' completed!");
 
             // Marcar que estamos mostrando mensaje de éxito
             isShowingSuccessMessage = true;
@@ -531,10 +597,14 @@ namespace ASL_LearnVR.LearningModule
         {
             Debug.Log($"[LearningController] Gesto dinámico FALLADO: {gestureName} - Razón: {reason}");
 
+            // Si FeedbackSystem está activo, dejar que él maneje los mensajes con troubleshooting detallado
+            if (feedbackSystem != null && feedbackSystem.IsActive)
+                return;
+
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {
-                UpdateFeedbackText($"Intenta de nuevo '{gestureName}'. {reason}");
+                UpdateFeedbackText($"Try again '{gestureName}'. {reason}");
             }
         }
 

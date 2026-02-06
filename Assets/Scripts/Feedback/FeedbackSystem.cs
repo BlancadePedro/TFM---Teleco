@@ -1,0 +1,1449 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+using TMPro;
+using ASL_LearnVR.Data;
+using ASL_LearnVR.Gestures;
+using ASL.DynamicGestures;
+
+namespace ASL_LearnVR.Feedback
+{
+    /// <summary>
+    /// Sistema principal de feedback pedagógico.
+    /// Orquesta visual, UI y audio para proporcionar feedback explicable al usuario.
+    ///
+    /// Responsabilidades:
+    /// - Coordinar HandPoseAnalyzer, FeedbackUI, FeedbackAudio y FingerIndicatorVisualizer
+    /// - Aplicar debounce (200ms) para evitar parpadeos
+    /// - Escuchar eventos de GestureRecognizer y DynamicGestureRecognizer
+    /// - Activar/desactivar feedback según el modo de práctica
+    /// </summary>
+    public class FeedbackSystem : MonoBehaviour
+    {
+        [Header("Components")]
+        [Tooltip("Analizador de pose de mano")]
+        [SerializeField] private HandPoseAnalyzer handPoseAnalyzer;
+
+        [Tooltip("UI de feedback textual (opcional si usas Direct Text)")]
+        [SerializeField] private FeedbackUI feedbackUI;
+
+        [Tooltip("Audio de feedback")]
+        [SerializeField] private FeedbackAudio feedbackAudio;
+
+        [Tooltip("Visualizador de indicadores por dedo (puntos en fingertips)")]
+        [SerializeField] private FingerIndicatorVisualizer fingerIndicatorVisualizer;
+
+        [Tooltip("Renderizador de overlays por dedo (cápsulas a lo largo del dedo)")]
+        [SerializeField] private XRFingerOverlayRenderer fingerOverlayRenderer;
+
+        [Header("Direct Text Output (Alternativa a FeedbackUI)")]
+        [Tooltip("Si se asigna, el feedback se escribe directamente aquí (ej: feedbackText de LearningController)")]
+        [SerializeField] private TextMeshProUGUI directFeedbackText;
+
+        [Tooltip("Usar texto directo en lugar de FeedbackUI")]
+        [SerializeField] private bool useDirectText = true;
+
+        [Header("Gesture Recognizers")]
+        [Tooltip("GestureRecognizer para mano derecha")]
+        [SerializeField] private GestureRecognizer rightHandRecognizer;
+
+        [Tooltip("GestureRecognizer para mano izquierda (opcional)")]
+        [SerializeField] private GestureRecognizer leftHandRecognizer;
+
+        [Tooltip("DynamicGestureRecognizer para gestos con movimiento")]
+        [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
+
+        [Header("Sampling Settings")]
+        [Tooltip("Intervalo de análisis en segundos (debounce)")]
+        [SerializeField] private float analysisInterval = 0.2f;
+
+        [Tooltip("Tiempo que se muestra el feedback de éxito antes de volver a analizar (3s para éxito)")]
+        [SerializeField] private float successDisplayDuration = 3f;
+
+        [Header("Message Latch Settings (Dinámicos)")]
+        [Tooltip("Tiempo mínimo de hold para mensajes de error (1.0-1.3s)")]
+        [SerializeField] private float errorMessageHoldMin = 1.0f;
+
+        [Tooltip("Tiempo máximo de hold para mensajes de error (1.0-1.3s)")]
+        [SerializeField] private float errorMessageHoldMax = 1.3f;
+
+        [Tooltip("Tiempo de hold para mensaje de éxito dinámico (3s)")]
+        [SerializeField] private float dynamicSuccessHoldDuration = 3f;
+
+        [Header("Feedback Stability")]
+        [Tooltip("Tiempo mínimo que un error debe persistir antes de mostrarse (para evitar parpadeos)")]
+        [SerializeField] private float messageEnterDelay = 0.25f;
+
+        [Tooltip("Tiempo mínimo corregido antes de ocultar un mensaje (para evitar parpadeos)")]
+        [SerializeField] private float messageExitDelay = 0.45f;
+
+        [Header("Current Sign")]
+        [Tooltip("Signo actual que se está practicando")]
+        [SerializeField] private SignData currentSign;
+
+        [Header("Events")]
+        [Tooltip("Se invoca cuando el feedback cambia de estado")]
+        public UnityEvent<FeedbackState> onFeedbackStateChanged;
+
+        [Tooltip("Se invoca cuando se detecta éxito en un gesto")]
+        public UnityEvent<SignData> onGestureSuccess;
+
+        [Tooltip("Se invoca cuando cambia el mensaje de feedback (útil para integración externa)")]
+        public UnityEvent<string> onFeedbackMessageChanged;
+
+        // Estado interno
+        private bool isActive = false;
+        private float lastAnalysisTime = 0f;
+        private float successEndTime = 0f;
+        private FeedbackState currentState = FeedbackState.Inactive;
+        private StaticGestureResult lastResult;
+
+        // Cache para métricas de gesto dinámico
+        private DynamicGestureResult lastDynamicResult;
+        private bool directTextValidated = false;
+
+        // Analizador de feedback por fases para gestos dinámicos
+        private DynamicGestureFeedbackAnalyzer dynamicFeedbackAnalyzer;
+
+        // Estabilidad de mensajes para evitar parpadeos
+        private readonly Dictionary<string, MessageWindow> messageWindows = new Dictionary<string, MessageWindow>();
+        private List<string> lastStableMessages = new List<string>();
+
+        // === MESSAGE LATCH para gestos dinámicos ===
+        // Bloquea la emisión de mensajes nuevos hasta que pase el tiempo de hold
+        private float messageLatchUntil = 0f;
+        private bool lastDynamicMessageWasError = false;
+        private bool pendingResetToIdle = false;
+
+        // === Control de overlay según fase dinámica ===
+        // Si dynamicPhase != Idle => overlay OFF
+        // Si dynamicPhase == Idle => overlay ON
+        private bool isDynamicGestureActive = false;
+
+        void Start()
+        {
+            // Validar componentes
+            ValidateComponents();
+            EnsureDirectTextMode();
+
+            // Inicializar analizador de feedback dinámico
+            dynamicFeedbackAnalyzer = new DynamicGestureFeedbackAnalyzer();
+            dynamicFeedbackAnalyzer.OnPhaseChanged += OnDynamicPhaseChanged;
+            dynamicFeedbackAnalyzer.OnFeedbackMessage += OnDynamicFeedbackMessage;
+
+            // Desactivar feedback al inicio
+            SetActive(false);
+        }
+
+        void OnEnable()
+        {
+            SubscribeToEvents();
+        }
+
+        void OnDisable()
+        {
+            UnsubscribeFromEvents();
+        }
+
+        void Update()
+        {
+            if (!isActive)
+                return;
+
+            // === LÓGICA DE MESSAGE LATCH ===
+            // Verificar si el latch expiró y hay que resetear a Idle
+            if (pendingResetToIdle && Time.time >= messageLatchUntil)
+            {
+                HandleLatchExpired();
+            }
+
+            // Si estamos mostrando éxito, esperar antes de volver a analizar
+            if (currentState == FeedbackState.Success && Time.time < successEndTime)
+                return;
+
+            // Debounce: analizar solo cada analysisInterval segundos
+            if (Time.time - lastAnalysisTime < analysisInterval)
+                return;
+
+            // Ejecutar análisis para gestos estáticos
+            if (currentSign != null && !currentSign.requiresMovement)
+            {
+                AnalyzeCurrentPose();
+            }
+
+            lastAnalysisTime = Time.time;
+        }
+
+        /// <summary>
+        /// Se llama cuando expira el message latch.
+        /// Decide si volver a Idle o continuar evaluando.
+        /// </summary>
+        private void HandleLatchExpired()
+        {
+            pendingResetToIdle = false;
+
+            // Si el último mensaje fue de ÉXITO => volver a Idle
+            if (!lastDynamicMessageWasError)
+            {
+                ForceDynamicIdle();
+                return;
+            }
+
+            // Si el último mensaje fue de ERROR => verificar si la pose inicial sigue válida
+            bool startPoseStillValid = CheckStartPoseStillValid();
+
+            if (!startPoseStillValid)
+            {
+                // Pose inicial se perdió => volver a Idle para re-colocar
+                ForceDynamicIdle();
+            }
+            // Si la pose sigue válida, continuamos en InProgress (no reseteamos)
+        }
+
+        /// <summary>
+        /// Verifica si la pose inicial del gesto dinámico sigue siendo válida.
+        /// </summary>
+        private bool CheckStartPoseStillValid()
+        {
+            if (dynamicGestureRecognizer == null)
+                return false;
+
+            // El DynamicGestureRecognizer tiene un método para verificar la pose inicial
+            // Si no existe, asumimos que sigue válida si el gesto está en progreso
+            return dynamicGestureRecognizer.IsStartPoseValid;
+        }
+
+        /// <summary>
+        /// Fuerza la vuelta a Idle para gestos dinámicos.
+        /// Activa el overlay y resetea el analizador.
+        /// </summary>
+        private void ForceDynamicIdle()
+        {
+            isDynamicGestureActive = false;
+
+            // Activar overlay (feedback estático visual)
+            SetOverlayVisible(true);
+
+            // Resetear analizador de feedback dinámico
+            dynamicFeedbackAnalyzer?.Reset();
+
+            // Notificar Idle
+            if (currentSign != null)
+            {
+                dynamicFeedbackAnalyzer?.NotifyIdle(currentSign.signName);
+                string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Coloca la mano para '{currentSign.signName}'";
+                UpdateFeedbackMessage(message);
+            }
+
+            SetState(FeedbackState.Waiting);
+
+            Debug.Log("[FeedbackSystem] Forzado a Idle - overlay activado");
+        }
+
+        /// <summary>
+        /// Activa o desactiva el overlay visual según la fase.
+        /// </summary>
+        private void SetOverlayVisible(bool visible)
+        {
+            fingerIndicatorVisualizer?.SetVisible(visible);
+            fingerOverlayRenderer?.SetVisible(visible);
+        }
+
+        /// <summary>
+        /// Valida que todos los componentes necesarios estén asignados.
+        /// </summary>
+        private void ValidateComponents()
+        {
+            if (handPoseAnalyzer == null)
+                Debug.LogWarning("[FeedbackSystem] HandPoseAnalyzer no asignado - el análisis de errores por dedo no funcionará");
+
+            if (feedbackUI == null)
+                Debug.LogWarning("[FeedbackSystem] FeedbackUI no asignado - no se mostrará feedback textual");
+
+            if (feedbackAudio == null)
+                Debug.LogWarning("[FeedbackSystem] FeedbackAudio no asignado - no habrá audio de feedback");
+
+            if (fingerIndicatorVisualizer == null)
+                Debug.LogWarning("[FeedbackSystem] FingerIndicatorVisualizer no asignado - no habrá indicadores visuales por dedo (bolas)");
+
+            if (fingerOverlayRenderer == null)
+                Debug.LogWarning("[FeedbackSystem] XRFingerOverlayRenderer no asignado - no habrá overlays de color en los dedos (cápsulas)");
+        }
+
+        /// <summary>
+        /// Suscribirse a eventos de los recognizers.
+        /// </summary>
+        private void SubscribeToEvents()
+        {
+            // Gestos estáticos
+            if (rightHandRecognizer != null)
+            {
+                rightHandRecognizer.onGestureDetected.AddListener(OnStaticGestureDetected);
+                rightHandRecognizer.onGestureEnded.AddListener(OnStaticGestureEnded);
+            }
+
+            if (leftHandRecognizer != null)
+            {
+                leftHandRecognizer.onGestureDetected.AddListener(OnStaticGestureDetected);
+                leftHandRecognizer.onGestureEnded.AddListener(OnStaticGestureEnded);
+            }
+
+            // Gestos dinámicos
+            if (dynamicGestureRecognizer != null)
+            {
+                dynamicGestureRecognizer.OnGestureStarted += OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureProgress += OnDynamicGestureProgress;
+                dynamicGestureRecognizer.OnGestureCompletedStructured += OnDynamicGestureCompletedStructured;
+                dynamicGestureRecognizer.OnGestureFailedStructured += OnDynamicGestureFailedStructured;
+                // Nuevos eventos para feedback por fases
+                dynamicGestureRecognizer.OnInitialPoseDetected += OnInitialPoseDetected;
+                dynamicGestureRecognizer.OnGestureProgressWithMetrics += OnDynamicGestureProgressWithMetrics;
+                dynamicGestureRecognizer.OnGestureNearCompletion += OnDynamicGestureNearCompletion;
+            }
+        }
+
+        /// <summary>
+        /// Desuscribirse de eventos.
+        /// </summary>
+        private void UnsubscribeFromEvents()
+        {
+            if (rightHandRecognizer != null)
+            {
+                rightHandRecognizer.onGestureDetected.RemoveListener(OnStaticGestureDetected);
+                rightHandRecognizer.onGestureEnded.RemoveListener(OnStaticGestureEnded);
+            }
+
+            if (leftHandRecognizer != null)
+            {
+                leftHandRecognizer.onGestureDetected.RemoveListener(OnStaticGestureDetected);
+                leftHandRecognizer.onGestureEnded.RemoveListener(OnStaticGestureEnded);
+            }
+
+            if (dynamicGestureRecognizer != null)
+            {
+                dynamicGestureRecognizer.OnGestureStarted -= OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureProgress -= OnDynamicGestureProgress;
+                dynamicGestureRecognizer.OnGestureCompletedStructured -= OnDynamicGestureCompletedStructured;
+                dynamicGestureRecognizer.OnGestureFailedStructured -= OnDynamicGestureFailedStructured;
+                // Desuscribir nuevos eventos
+                dynamicGestureRecognizer.OnInitialPoseDetected -= OnInitialPoseDetected;
+                dynamicGestureRecognizer.OnGestureProgressWithMetrics -= OnDynamicGestureProgressWithMetrics;
+                dynamicGestureRecognizer.OnGestureNearCompletion -= OnDynamicGestureNearCompletion;
+            }
+        }
+
+        #region Public API
+
+        /// <summary>
+        /// Activa o desactiva el sistema de feedback.
+        /// </summary>
+        public void SetActive(bool active)
+        {
+            isActive = active;
+            EnsureDirectTextMode();
+            ClearMessageWindows();
+
+            if (feedbackUI != null)
+                feedbackUI.SetVisible(active);
+
+            if (fingerIndicatorVisualizer != null)
+                fingerIndicatorVisualizer.SetVisible(active);
+
+            if (fingerOverlayRenderer != null)
+                fingerOverlayRenderer.SetVisible(active);
+
+            if (active)
+            {
+                SetState(FeedbackState.Waiting);
+                UpdateFeedbackMessage($"Practice '{currentSign?.signName ?? "sign"}'...");
+                if (!useDirectText && feedbackUI != null)
+                {
+                    feedbackUI.SetWaitingState($"Practice '{currentSign?.signName ?? "sign"}'...");
+                }
+                feedbackAudio?.PlayStartPractice();
+            }
+            else
+            {
+                SetState(FeedbackState.Inactive);
+            }
+
+            Debug.Log($"[FeedbackSystem] Sistema de feedback: {(active ? "ACTIVADO" : "DESACTIVADO")}");
+        }
+
+        /// <summary>
+        /// Establece el signo actual a practicar.
+        /// IMPORTANTE: Asegúrate de que el GestureRecognizer también tenga el mismo signo configurado.
+        /// </summary>
+        public void SetCurrentSign(SignData sign)
+        {
+            currentSign = sign;
+            ClearMessageWindows();
+
+            // Sincronizar con los recognizers si están asignados
+            // (Esto es una verificación de seguridad - el LearningController ya debería haberlo hecho)
+            if (sign != null && !sign.requiresMovement)
+            {
+                if (rightHandRecognizer != null && rightHandRecognizer.TargetSign?.signName != sign.signName)
+                {
+                    rightHandRecognizer.TargetSign = sign;
+                    Debug.Log($"[FeedbackSystem] Sincronizado rightHandRecognizer con signo: {sign.signName}");
+                }
+                if (leftHandRecognizer != null && leftHandRecognizer.TargetSign?.signName != sign.signName)
+                {
+                    leftHandRecognizer.TargetSign = sign;
+                    Debug.Log($"[FeedbackSystem] Sincronizado leftHandRecognizer con signo: {sign.signName}");
+                }
+            }
+
+            EnsureDirectTextMode();
+
+            // Para gestos dinámicos, mostrar mensaje de Fase 0 (Idle)
+            string initialMessage;
+            if (sign != null && sign.requiresMovement)
+            {
+                // Fase 0: Esperando pose inicial para gesto dinámico
+                dynamicFeedbackAnalyzer?.NotifyIdle(sign.signName);
+                initialMessage = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Coloca la mano para '{sign.signName}'";
+            }
+            else
+            {
+                // Gesto estático: mensaje normal
+                initialMessage = $"Make the '{sign?.signName ?? "sign"}' sign...";
+            }
+
+            UpdateFeedbackMessage(initialMessage);
+            if (!useDirectText && feedbackUI != null)
+            {
+                feedbackUI.SetWaitingState(initialMessage);
+            }
+
+            // Reset estado al cambiar de signo
+            SetState(FeedbackState.Waiting);
+            if (fingerIndicatorVisualizer != null)
+            {
+                fingerIndicatorVisualizer.HideAll();
+            }
+            if (fingerOverlayRenderer != null)
+            {
+                fingerOverlayRenderer.ClearAllStatuses();
+            }
+
+            Debug.Log($"[FeedbackSystem] Signo configurado: {sign?.signName ?? "ninguno"}" +
+                     (sign?.requiresMovement == true ? " (dinámico - Fase 0: Idle)" : " (estático)"));
+        }
+
+        /// <summary>
+        /// Asigna el TextMeshProUGUI donde se mostrará el feedback directamente.
+        /// Útil para usar el feedbackText existente de LearningController.
+        /// </summary>
+        public void SetDirectFeedbackText(TextMeshProUGUI text)
+        {
+            directFeedbackText = text;
+            // Si recibimos un texto en runtime, forzamos modo directo y marcamos validado
+            if (text != null)
+            {
+                useDirectText = true;
+                directTextValidated = true;
+            }
+            else
+            {
+                useDirectText = false;
+                directTextValidated = false;
+                EnsureDirectTextMode();
+            }
+        }
+
+        /// <summary>
+        /// True si el sistema está activo.
+        /// </summary>
+        public bool IsActive => isActive;
+
+        /// <summary>
+        /// Estado actual del feedback.
+        /// </summary>
+        public FeedbackState CurrentState => currentState;
+
+        /// <summary>
+        /// Último resultado del análisis estático.
+        /// </summary>
+        public StaticGestureResult LastStaticResult => lastResult;
+
+        /// <summary>
+        /// Último resultado del análisis dinámico.
+        /// </summary>
+        public DynamicGestureResult LastDynamicResult => lastDynamicResult;
+
+        #endregion
+
+        #region Analysis
+
+        /// <summary>
+        /// Verifica si el GestureRecognizer está detectando activamente el signo actual.
+        /// IMPORTANTE: Solo retorna true si el recognizer está configurado con el MISMO signo que currentSign.
+        /// </summary>
+        private bool IsGestureCurrentlyDetected()
+        {
+            if (currentSign == null)
+                return false;
+
+            // Verificar con el recognizer de mano derecha
+            if (rightHandRecognizer != null && rightHandRecognizer.isActiveAndEnabled)
+            {
+                // IMPORTANTE: El recognizer DEBE tener el mismo signo que estamos practicando
+                if (rightHandRecognizer.TargetSign == null ||
+                    rightHandRecognizer.TargetSign.signName != currentSign.signName)
+                {
+                    Debug.LogWarning($"[FeedbackSystem] Recognizer tiene '{rightHandRecognizer.TargetSign?.signName}' pero debería tener '{currentSign.signName}'");
+                    return false;
+                }
+
+                if (rightHandRecognizer.IsPerformed)
+                {
+                    return true;
+                }
+            }
+
+            // Verificar con el recognizer de mano izquierda
+            if (leftHandRecognizer != null && leftHandRecognizer.isActiveAndEnabled)
+            {
+                // IMPORTANTE: El recognizer DEBE tener el mismo signo que estamos practicando
+                if (leftHandRecognizer.TargetSign == null ||
+                    leftHandRecognizer.TargetSign.signName != currentSign.signName)
+                {
+                    return false;
+                }
+
+                if (leftHandRecognizer.IsPerformed)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Analiza la pose actual y actualiza el feedback.
+        /// </summary>
+        private void AnalyzeCurrentPose()
+        {
+            if (currentSign == null)
+            {
+                UpdateFeedbackMessage("No sign selected...");
+                return;
+            }
+
+            // Obtener el estado de detección del GestureRecognizer
+            bool isDetectedByRecognizer = IsGestureCurrentlyDetected();
+
+            // Si no hay analyzer, mostrar mensaje basado en el recognizer
+            if (handPoseAnalyzer == null)
+            {
+                if (isDetectedByRecognizer)
+                {
+                    SetState(FeedbackState.Success);
+                    UpdateFeedbackMessage($"Correct! '{currentSign.signName}' detected!");
+                    if (fingerIndicatorVisualizer != null)
+                        fingerIndicatorVisualizer.ShowHandCorrect(true);
+                    // Mostrar todos los dedos en verde (correcto)
+                    fingerOverlayRenderer?.SetAllStatuses(
+                        FingerOverlayStatus.Correct,
+                        FingerOverlayStatus.Correct,
+                        FingerOverlayStatus.Correct,
+                        FingerOverlayStatus.Correct,
+                        FingerOverlayStatus.Correct
+                    );
+                }
+                else
+                {
+                    SetState(FeedbackState.Waiting);
+                    UpdateFeedbackMessage($"Make the '{currentSign.signName}' sign...");
+                    if (fingerIndicatorVisualizer != null)
+                        fingerIndicatorVisualizer.HideAll();
+                    fingerOverlayRenderer?.ClearAllStatuses();
+                }
+                return;
+            }
+
+            // Analizar pose con errores detallados por dedo, pasando el estado del recognizer
+            lastResult = handPoseAnalyzer.Analyze(currentSign, isDetectedByRecognizer, useGlobalMatch: true);
+
+            // Generar y mostrar mensaje específico
+            string message = GenerateDetailedFeedbackMessage(lastResult);
+            lastResult.summaryMessage = message;
+
+            // Actualizar indicadores visuales basados en el resultado
+            fingerIndicatorVisualizer?.UpdateFromResult(lastResult);
+            fingerOverlayRenderer?.UpdateFromResult(lastResult);
+
+            // Actualizar UI con FeedbackUI si está disponible
+            bool shouldUseUI = feedbackUI != null && (!useDirectText || directFeedbackText == null);
+            if (shouldUseUI)
+                feedbackUI.UpdateFromStaticResult(lastResult);
+
+            UpdateFeedbackMessage(message);
+
+            // Actualizar estado basado en el resultado
+            if (lastResult.isMatchGlobal)
+            {
+                SetState(FeedbackState.Success);
+                successEndTime = Time.time + successDisplayDuration;
+            }
+            else if (lastResult.majorErrorCount > 0)
+            {
+                SetState(FeedbackState.ShowingErrors);
+            }
+            else if (lastResult.minorErrorCount > 0)
+            {
+                SetState(FeedbackState.PartialMatch);
+            }
+            else
+            {
+                SetState(FeedbackState.Waiting);
+            }
+        }
+
+        /// <summary>
+        /// Genera un mensaje de feedback detallado basado en el resultado del análisis.
+        /// </summary>
+        private string GenerateDetailedFeedbackMessage(StaticGestureResult result)
+        {
+            if (result == null)
+                return $"Make the '{currentSign?.signName ?? "sign"}' sign...";
+
+            // Éxito confirmado: limpiar ventanas de mensajes y reforzar positivo
+            if (result.isMatchGlobal)
+            {
+                ClearMessageWindows();
+                return $"Correct! '{currentSign?.signName}' detected!";
+            }
+
+            var fingerStates = BuildFingerStates(result);
+            var candidates = BuildCandidateMessages(result, fingerStates);
+            var stableMessages = ApplyMessageHysteresis(candidates);
+
+            if (stableMessages.Count > 0)
+                return string.Join("\n", stableMessages);
+
+            // Fallback si no hay mensajes estables pero hay resumen previo
+            if (!string.IsNullOrEmpty(result.summaryMessage))
+                return result.summaryMessage;
+
+            return $"Adjust your hand for '{currentSign?.signName ?? "sign"}'...";
+        }
+
+        /// <summary>
+        /// Construye los estados por dedo (Correcto/Casi/Incorrecto) a partir del resultado.
+        /// </summary>
+        private FingerStateSnapshot[] BuildFingerStates(StaticGestureResult result)
+        {
+            var states = new FingerStateSnapshot[5];
+            for (int i = 0; i < states.Length; i++)
+            {
+                states[i] = new FingerStateSnapshot
+                {
+                    finger = (Finger)i,
+                    severity = Severity.None,
+                    errorType = FingerErrorType.None,
+                    message = string.Empty
+                };
+            }
+
+            if (result?.perFingerErrors == null)
+                return states;
+
+            foreach (var error in result.perFingerErrors)
+            {
+                if (error.severity == Severity.None)
+                    continue;
+
+                int index = (int)error.finger;
+                if (index < 0 || index >= states.Length)
+                    continue;
+
+                states[index] = new FingerStateSnapshot
+                {
+                    finger = error.finger,
+                    severity = error.severity,
+                    errorType = error.errorType,
+                    message = error.correctionMessage
+                };
+            }
+
+            return states;
+        }
+
+        /// <summary>
+        /// Genera candidatos de mensajes agrupados por acción y priorizados.
+        /// </summary>
+        private List<string> BuildCandidateMessages(StaticGestureResult result, FingerStateSnapshot[] states)
+        {
+            var candidates = new List<MessageCandidate>();
+            var needCurl = new List<Finger>();
+            var needExtend = new List<Finger>();
+            var needSpreadNarrow = new List<Finger>();
+            var needSpreadWide = new List<Finger>();
+
+            foreach (var state in states)
+            {
+                if (state.severity == Severity.None)
+                    continue;
+
+                switch (state.errorType)
+                {
+                    case FingerErrorType.TooExtended:
+                        needCurl.Add(state.finger);
+                        break;
+                    case FingerErrorType.TooCurled:
+                        needExtend.Add(state.finger);
+                        break;
+                    case FingerErrorType.SpreadTooNarrow:
+                        needSpreadNarrow.Add(state.finger);
+                        break;
+                    case FingerErrorType.SpreadTooWide:
+                        needSpreadWide.Add(state.finger);
+                        break;
+                    default:
+                        string fallback = !string.IsNullOrEmpty(state.message)
+                            ? state.message
+                            : FeedbackMessages.GetCorrectionMessage(state.finger, state.errorType);
+                        candidates.Add(new MessageCandidate
+                        {
+                            text = fallback,
+                            severityWeight = state.severity == Severity.Major ? 3 : 2,
+                            affectedCount = 1,
+                            order = 20
+                        });
+                        break;
+                }
+            }
+
+            AddActionCandidate(candidates, needCurl, "Cierra", 0, states);
+            AddActionCandidate(candidates, needExtend, "Extiende", 1, states);
+            AddActionCandidate(candidates, needSpreadWide, "Junta", 2, states);
+            AddActionCandidate(candidates, needSpreadNarrow, "Separa", 3, states);
+
+            int incorrectCount = CountSeverity(states, Severity.Major);
+            int almostCount = CountSeverity(states, Severity.Minor);
+            int totalIssues = incorrectCount + almostCount;
+
+            // Mensaje de estabilidad cuando solo faltan pequeños ajustes
+            if (incorrectCount == 0 && totalIssues > 0)
+            {
+                candidates.Add(new MessageCandidate
+                {
+                    text = "Casi: aguanta el gesto firme 0.5 s",
+                    severityWeight = 1,
+                    affectedCount = totalIssues,
+                    order = 40
+                });
+            }
+
+            // Progreso global: cuántos dedos faltan
+            if (totalIssues > 0)
+            {
+                string progress = totalIssues == 1
+                    ? "Solo falta 1 ajuste"
+                    : $"Te faltan {totalIssues} dedos";
+
+                candidates.Add(new MessageCandidate
+                {
+                    text = progress,
+                    severityWeight = incorrectCount > 0 ? 2 : 1,
+                    affectedCount = totalIssues,
+                    order = 50
+                });
+            }
+            else
+            {
+                candidates.Add(new MessageCandidate
+                {
+                    text = $"Repite el gesto '{currentSign?.signName ?? "sign"}' sin moverte un instante",
+                    severityWeight = 1,
+                    affectedCount = 1,
+                    order = 60
+                });
+            }
+
+            candidates.Sort((a, b) =>
+            {
+                int severityCompare = b.severityWeight.CompareTo(a.severityWeight);
+                if (severityCompare != 0) return severityCompare;
+
+                int countCompare = b.affectedCount.CompareTo(a.affectedCount);
+                if (countCompare != 0) return countCompare;
+
+                return a.order.CompareTo(b.order);
+            });
+
+            var uniqueMessages = new List<string>();
+            foreach (var candidate in candidates)
+            {
+                if (uniqueMessages.Contains(candidate.text))
+                    continue;
+
+                uniqueMessages.Add(candidate.text);
+                if (uniqueMessages.Count >= 3)
+                    break;
+            }
+
+            return uniqueMessages;
+        }
+
+        /// <summary>
+        /// Aplica histéresis a los mensajes para evitar parpadeos.
+        /// </summary>
+        private List<string> ApplyMessageHysteresis(List<string> candidates)
+        {
+            float now = Time.time;
+            var stable = new List<string>();
+
+            // Asegurar que también procesamos mensajes que estaban activos en el frame anterior
+            var orderedMessages = new List<string>(candidates);
+            foreach (var previous in messageWindows.Keys)
+            {
+                if (!orderedMessages.Contains(previous))
+                    orderedMessages.Add(previous);
+            }
+
+            foreach (var message in orderedMessages)
+            {
+                bool seenNow = candidates.Contains(message);
+
+                if (!messageWindows.TryGetValue(message, out var window))
+                {
+                    if (!seenNow)
+                        continue;
+
+                    window = new MessageWindow { firstSeen = now, lastSeen = now, isActive = false };
+                    messageWindows[message] = window;
+                }
+
+                if (seenNow)
+                {
+                    window.lastSeen = now;
+                    if (!window.isActive && now - window.firstSeen >= messageEnterDelay)
+                    {
+                        window.isActive = true;
+                    }
+                }
+
+                if (!seenNow && window.isActive && now - window.lastSeen >= messageExitDelay)
+                {
+                    window.isActive = false;
+                }
+
+                if (window.isActive)
+                {
+                    stable.Add(message);
+                }
+
+                if (!window.isActive && !seenNow && now - window.lastSeen >= messageExitDelay)
+                {
+                    messageWindows.Remove(message);
+                }
+            }
+
+            if (stable.Count == 0 && lastStableMessages.Count > 0)
+            {
+                stable.AddRange(lastStableMessages);
+            }
+            else if (stable.Count > 0)
+            {
+                lastStableMessages = stable;
+            }
+
+            return stable;
+        }
+
+        /// <summary>
+        /// Limpia el estado de histéresis (útil al cambiar de signo o tras éxito).
+        /// </summary>
+        private void ClearMessageWindows()
+        {
+            messageWindows.Clear();
+            lastStableMessages.Clear();
+        }
+
+        private void AddActionCandidate(List<MessageCandidate> list, List<Finger> fingers, string prefix, int order, FingerStateSnapshot[] states)
+        {
+            if (fingers == null || fingers.Count == 0)
+                return;
+
+            bool hasMajor = HasMajorSeverity(fingers, states);
+            string message = $"{prefix}: {BuildFingerList(fingers)}";
+
+            list.Add(new MessageCandidate
+            {
+                text = message,
+                severityWeight = hasMajor ? 3 : 2,
+                affectedCount = fingers.Count,
+                order = order
+            });
+        }
+
+        private bool HasMajorSeverity(List<Finger> fingers, FingerStateSnapshot[] states)
+        {
+            foreach (var finger in fingers)
+            {
+                int index = (int)finger;
+                if (index >= 0 && index < states.Length && states[index].severity == Severity.Major)
+                    return true;
+            }
+            return false;
+        }
+
+        private int CountSeverity(FingerStateSnapshot[] states, Severity severity)
+        {
+            int count = 0;
+            foreach (var state in states)
+            {
+                if (state.severity == severity)
+                    count++;
+            }
+            return count;
+        }
+
+        private string BuildFingerList(List<Finger> fingers)
+        {
+            if (fingers == null || fingers.Count == 0)
+                return string.Empty;
+
+            var labels = new List<string>();
+            foreach (var finger in fingers)
+            {
+                labels.Add(GetFingerLabel(finger));
+            }
+
+            if (labels.Count == 1)
+                return labels[0];
+
+            if (labels.Count == 2)
+                return $"{labels[0]} y {labels[1]}";
+
+            string leading = string.Join(", ", labels.GetRange(0, labels.Count - 1));
+            return $"{leading} y {labels[labels.Count - 1]}";
+        }
+
+        private string GetFingerLabel(Finger finger)
+        {
+            return finger switch
+            {
+                Finger.Thumb => "pulgar",
+                Finger.Index => "indice",
+                Finger.Middle => "medio",
+                Finger.Ring => "anular",
+                Finger.Pinky => "menique",
+                _ => "dedo"
+            };
+        }
+
+        private struct FingerStateSnapshot
+        {
+            public Finger finger;
+            public Severity severity;
+            public FingerErrorType errorType;
+            public string message;
+        }
+
+        private class MessageCandidate
+        {
+            public string text;
+            public int severityWeight;
+            public int affectedCount;
+            public int order;
+        }
+
+        private class MessageWindow
+        {
+            public float firstSeen;
+            public float lastSeen;
+            public bool isActive;
+        }
+
+        /// <summary>
+        /// Establece el estado actual del feedback.
+        /// </summary>
+        private void SetState(FeedbackState newState)
+        {
+            if (currentState == newState)
+                return;
+
+            currentState = newState;
+            onFeedbackStateChanged?.Invoke(newState);
+        }
+
+        /// <summary>
+        /// Actualiza el mensaje de feedback en el texto directo o en FeedbackUI.
+        /// </summary>
+        private void UpdateFeedbackMessage(string message)
+        {
+            // Prioridad 1: Texto directo (ej: feedbackText de LearningController)
+            if (useDirectText && directFeedbackText != null)
+            {
+                directFeedbackText.text = message;
+            }
+            // Prioridad 2: FeedbackUI
+            else if (feedbackUI != null)
+            {
+                // FeedbackUI maneja estados internamente; si estamos en modo panel,
+                // solo actualizamos el texto cuando está en estado de espera.
+                if (feedbackUI.CurrentState == FeedbackState.Waiting)
+                {
+                    feedbackUI.SetWaitingState(message);
+                }
+            }
+
+            // Siempre emitir evento para integración externa
+            onFeedbackMessageChanged?.Invoke(message);
+        }
+
+        #endregion
+
+        #region Static Gesture Callbacks
+
+        /// <summary>
+        /// Callback cuando un gesto estático es detectado por el GestureRecognizer.
+        /// Este callback solo maneja el audio y el evento externo.
+        /// La actualización visual se hace en AnalyzeCurrentPose() que ya verifica IsGestureCurrentlyDetected().
+        /// </summary>
+        private void OnStaticGestureDetected(SignData sign)
+        {
+            if (!isActive || currentSign == null)
+                return;
+
+            // IMPORTANTE: Ignorar si estamos en cooldown de éxito
+            if (currentState == FeedbackState.Success && Time.time < successEndTime)
+            {
+                return; // Silenciosamente ignorar - el usuario está viendo el mensaje de éxito
+            }
+
+            // IMPORTANTE: Solo procesar si es EXACTAMENTE el signo que estamos practicando
+            if (sign == null || sign.signName != currentSign.signName)
+            {
+                Debug.Log($"[FeedbackSystem] Ignorando detección de '{sign?.signName}' - practicando '{currentSign.signName}'");
+                return;
+            }
+
+            // Reproducir audio de éxito (solo una vez cuando se confirma)
+            feedbackAudio?.PlaySuccess();
+
+            // Emitir evento para que otros sistemas puedan reaccionar (usar currentSign, no sign)
+            onGestureSuccess?.Invoke(currentSign);
+
+            // Forzar feedback visual inmediato en éxito para evitar parpadeos rojo/verde
+            var successResult = StaticGestureResult.CreateSuccess();
+            successResult.summaryMessage = $"¡Correcto! '{currentSign.signName}' detectado";
+            lastResult = successResult;
+
+            fingerIndicatorVisualizer?.UpdateFromResult(successResult);
+            fingerOverlayRenderer?.UpdateFromResult(successResult);
+            SetState(FeedbackState.Success);
+            successEndTime = Time.time + successDisplayDuration;
+            UpdateFeedbackMessage(successResult.summaryMessage);
+
+            // Forzar un análisis inmediato para actualizar el feedback visual
+            // Esto evita el delay del analysisInterval
+            lastAnalysisTime = 0f; // Reset para permitir análisis inmediato
+
+            Debug.Log($"[FeedbackSystem] Gesto CORRECTO detectado: '{currentSign.signName}'");
+        }
+
+        /// <summary>
+        /// Callback cuando un gesto estático termina.
+        /// </summary>
+        private void OnStaticGestureEnded(SignData sign)
+        {
+            if (!isActive)
+                return;
+
+            // Volver a estado waiting después del éxito
+            if (currentState == FeedbackState.Success && Time.time > successEndTime)
+            {
+                SetState(FeedbackState.Waiting);
+                UpdateFeedbackMessage($"Make the '{currentSign?.signName ?? "sign"}' sign...");
+
+                if (feedbackUI != null)
+                    feedbackUI.SetWaitingState();
+            }
+        }
+
+        #endregion
+
+        #region Dynamic Gesture Callbacks
+
+        /// <summary>
+        /// Callback cuando un gesto dinámico inicia.
+        /// Fase 1: StartDetected - La pose inicial fue detectada.
+        /// REGLA: Al entrar en dinámico => overlay OFF
+        /// </summary>
+        private void OnDynamicGestureStarted(string gestureName)
+        {
+            if (!isActive)
+                return;
+
+            // IMPORTANTE: Ignorar si estamos en cooldown de éxito o en message latch
+            if (currentState == FeedbackState.Success && Time.time < successEndTime)
+            {
+                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en cooldown de éxito");
+                return;
+            }
+
+            if (Time.time < messageLatchUntil)
+            {
+                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en message latch");
+                return;
+            }
+
+            // === OVERLAY OFF al entrar en gesto dinámico ===
+            isDynamicGestureActive = true;
+            SetOverlayVisible(false);
+
+            // Fase 1: Notificar al analizador que la pose inicial fue detectada
+            dynamicFeedbackAnalyzer?.NotifyStartDetected(gestureName);
+
+            SetState(FeedbackState.InProgress);
+
+            // El mensaje viene del analizador
+            string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"¡Bien! Ahora empieza el movimiento";
+            UpdateFeedbackMessage(message);
+
+            if (feedbackUI != null)
+                feedbackUI.SetProgressState(message);
+
+            Debug.Log($"[FeedbackSystem] Fase 1 - StartDetected: {gestureName} (overlay OFF)");
+        }
+
+        /// <summary>
+        /// Callback de progreso de gesto dinámico.
+        /// Fase 2-3: InProgress/NearCompletion - Feedback sobre el movimiento.
+        /// REGLA: Si hay issue => mensaje fijo 1-1.3s, luego re-evaluar.
+        /// </summary>
+        private void OnDynamicGestureProgress(string gestureName, float progress)
+        {
+            if (!isActive)
+                return;
+
+            // === MESSAGE LATCH: si estamos en hold, seguir analizando pero no emitir mensajes ===
+            bool canEmitMessage = Time.time >= messageLatchUntil;
+
+            // Obtener métricas actuales del DynamicGestureRecognizer
+            DynamicMetrics metrics = new DynamicMetrics();
+            DynamicGestureDefinition gestureDefinition = null;
+
+            if (dynamicGestureRecognizer != null)
+            {
+                metrics = dynamicGestureRecognizer.GetCurrentMetrics();
+                gestureDefinition = GetActiveGestureDefinition(gestureName);
+            }
+
+            // Analizar progreso con el analizador por fases (siempre analizar, incluso en latch)
+            dynamicFeedbackAnalyzer?.AnalyzeProgress(gestureName, progress, metrics, gestureDefinition);
+
+            // Obtener el resultado del analizador
+            var result = dynamicFeedbackAnalyzer?.GetCurrentResult();
+            DynamicMovementIssue issue = result?.issue ?? DynamicMovementIssue.None;
+            DynamicFeedbackPhase phase = result?.phase ?? DynamicFeedbackPhase.InProgress;
+            string message = result?.message ?? "Sigue el movimiento";
+
+            // === EMITIR MENSAJE solo si no estamos en latch ===
+            if (canEmitMessage)
+            {
+                // Si hay un problema detectado => activar latch de 1-1.3s
+                if (issue != DynamicMovementIssue.None)
+                {
+                    float holdDuration = UnityEngine.Random.Range(errorMessageHoldMin, errorMessageHoldMax);
+                    messageLatchUntil = Time.time + holdDuration;
+                    lastDynamicMessageWasError = true;
+                    pendingResetToIdle = true; // Al expirar, verificar si volver a Idle
+
+                    UpdateFeedbackMessage(message);
+                    Debug.Log($"[FeedbackSystem] Issue detectado: {issue} - mensaje fijo por {holdDuration:F2}s");
+                }
+                else
+                {
+                    UpdateFeedbackMessage(message);
+                }
+
+                if (feedbackUI != null)
+                    feedbackUI.ShowDynamicProgress(gestureName, progress);
+            }
+
+            // Log solo en cambios de fase significativos
+            if (phase == DynamicFeedbackPhase.NearCompletion && canEmitMessage)
+            {
+                Debug.Log($"[FeedbackSystem] Fase 3 - NearCompletion: {gestureName} ({Mathf.RoundToInt(progress * 100)}%)");
+            }
+        }
+
+        /// <summary>
+        /// Callback cuando un gesto dinámico se completa exitosamente (evento estructurado).
+        /// Fase 4: Completed - Gesto correcto.
+        /// REGLA: Mensaje fijo 3s => luego volver a Idle.
+        /// </summary>
+        private void OnDynamicGestureCompletedStructured(DynamicGestureResult result)
+        {
+            if (!isActive || result == null)
+                return;
+
+            lastDynamicResult = result;
+
+            // Fase 4: Notificar éxito al analizador
+            dynamicFeedbackAnalyzer?.NotifyCompleted(result.gestureName, result.metrics);
+
+            SetState(FeedbackState.Success);
+            successEndTime = Time.time + dynamicSuccessHoldDuration;
+
+            // === MESSAGE LATCH de 3s para éxito ===
+            messageLatchUntil = Time.time + dynamicSuccessHoldDuration;
+            lastDynamicMessageWasError = false;
+            pendingResetToIdle = true; // Al expirar => volver a Idle
+
+            // Reproducir audio de éxito
+            feedbackAudio?.PlaySuccess();
+
+            // Mensaje de éxito claro y rotundo: "¡Movimiento reconocido!"
+            string message = "¡Movimiento reconocido!";
+            UpdateFeedbackMessage(message);
+
+            if (feedbackUI != null)
+                feedbackUI.UpdateFromDynamicResult(result);
+
+            // El overlay sigue OFF durante el hold de éxito (no mostramos dedos, solo éxito global)
+
+            Debug.Log($"[FeedbackSystem] Fase 4 - Completed: {result.gestureName} (hold 3s, luego Idle)");
+        }
+
+        /// <summary>
+        /// Callback cuando un gesto dinámico falla (evento estructurado).
+        /// Fase 5: Failed - Explicación del fallo.
+        /// REGLA: Mensaje fijo 1-1.3s => luego volver a Idle (overlay ON).
+        /// </summary>
+        private void OnDynamicGestureFailedStructured(DynamicGestureResult result)
+        {
+            if (!isActive || result == null)
+                return;
+
+            lastDynamicResult = result;
+
+            // Fase 5: Notificar fallo al analizador con contexto
+            dynamicFeedbackAnalyzer?.NotifyFailed(
+                result.gestureName,
+                result.failureReason,
+                result.failedPhase,
+                result.metrics
+            );
+
+            SetState(FeedbackState.ShowingErrors);
+
+            // === MESSAGE LATCH de 1-1.3s para fallo ===
+            float holdDuration = UnityEngine.Random.Range(errorMessageHoldMin, errorMessageHoldMax);
+            messageLatchUntil = Time.time + holdDuration;
+            lastDynamicMessageWasError = true;
+            pendingResetToIdle = true; // Al expirar => volver a Idle
+
+            // Reproducir audio de error (si está habilitado)
+            feedbackAudio?.PlayError();
+
+            // Mensaje de fallo que explica el por qué e invita a reintentar
+            string message = dynamicFeedbackAnalyzer?.CurrentMessage ??
+                FeedbackMessages.GetFailedMessage(result.failureReason, result.failedPhase, result.metrics, result.gestureName);
+
+            UpdateFeedbackMessage(message);
+
+            if (feedbackUI != null)
+                feedbackUI.UpdateFromDynamicResult(result);
+
+            // El overlay sigue OFF durante el hold de fallo
+
+            Debug.Log($"[FeedbackSystem] Fase 5 - Failed: {result.gestureName} - {result.failureReason} (hold {holdDuration:F2}s, luego Idle)");
+
+            // NO reseteamos el analizador aquí - lo hacemos cuando expira el latch en HandleLatchExpired
+        }
+
+        /// <summary>
+        /// Callback cuando cambia la fase del feedback dinámico.
+        /// REGLA: Idle => overlay ON, cualquier otra fase => overlay OFF
+        /// </summary>
+        private void OnDynamicPhaseChanged(DynamicFeedbackPhase phase, string message)
+        {
+            Debug.Log($"[FeedbackSystem] Cambio de fase dinámica: {phase} - {message}");
+
+            // === LÓGICA DE OVERLAY según fase ===
+            bool shouldShowOverlay = (phase == DynamicFeedbackPhase.Idle);
+            isDynamicGestureActive = !shouldShowOverlay;
+            SetOverlayVisible(shouldShowOverlay);
+        }
+
+        /// <summary>
+        /// Callback cuando hay un nuevo mensaje de feedback dinámico.
+        /// </summary>
+        private void OnDynamicFeedbackMessage(string message)
+        {
+            // El mensaje ya se actualiza en los callbacks principales
+            // Este callback es para extensibilidad futura
+        }
+
+        /// <summary>
+        /// Intenta obtener la definición del gesto activo por nombre.
+        /// </summary>
+        private ASL.DynamicGestures.DynamicGestureDefinition GetActiveGestureDefinition(string gestureName)
+        {
+            // Buscar en el GameManager o en los recursos del proyecto
+            // Por ahora retornamos null y usamos valores por defecto
+            // TODO: Implementar búsqueda de definiciones si es necesario
+            return null;
+        }
+
+        /// <summary>
+        /// Callback cuando la pose inicial del gesto dinámico es detectada.
+        /// Fase 1: El usuario ha colocado la mano correctamente, puede empezar a moverse.
+        /// </summary>
+        private void OnInitialPoseDetected(string gestureName)
+        {
+            if (!isActive)
+                return;
+
+            // El analizador ya fue notificado en OnDynamicGestureStarted
+            // Este callback es para acciones adicionales si se necesitan
+            Debug.Log($"[FeedbackSystem] Pose inicial detectada para '{gestureName}'");
+        }
+
+        /// <summary>
+        /// Callback de progreso con métricas detalladas.
+        /// Permite análisis más preciso del movimiento para feedback contextual.
+        /// </summary>
+        private void OnDynamicGestureProgressWithMetrics(
+            string gestureName,
+            float progress,
+            DynamicMetrics metrics,
+            ASL.DynamicGestures.DynamicGestureDefinition gestureDefinition)
+        {
+            if (!isActive)
+                return;
+
+            // Analizar progreso con métricas completas
+            dynamicFeedbackAnalyzer?.AnalyzeProgress(gestureName, progress, metrics, gestureDefinition);
+
+            // Actualizar mensaje si hay un problema detectado
+            var result = dynamicFeedbackAnalyzer?.GetCurrentResult();
+            if (result.HasValue && result.Value.issue != DynamicMovementIssue.None)
+            {
+                UpdateFeedbackMessage(result.Value.message);
+            }
+        }
+
+        /// <summary>
+        /// Callback cuando el gesto está cerca de completarse.
+        /// Fase 3: Mensaje de ánimo para que el usuario termine el movimiento.
+        /// </summary>
+        private void OnDynamicGestureNearCompletion(string gestureName, float progress)
+        {
+            if (!isActive)
+                return;
+
+            // El analizador ya maneja esto en AnalyzeProgress,
+            // pero podemos añadir feedback visual adicional aquí
+            Debug.Log($"[FeedbackSystem] Fase 3 - NearCompletion: {gestureName} ({Mathf.RoundToInt(progress * 100)}%)");
+
+            // Opcional: feedback visual de "casi completado"
+            if (feedbackUI != null)
+            {
+                feedbackUI.ShowDynamicProgress(gestureName, progress);
+            }
+        }
+
+        /// <summary>
+        /// Parsea el string de razón a enum FailureReason.
+        /// </summary>
+        private FailureReason ParseFailureReason(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+                return FailureReason.Unknown;
+
+            string lowerReason = reason.ToLower();
+
+            if (lowerReason.Contains("pose") && lowerReason.Contains("perdida") ||
+                lowerReason.Contains("pose") && lowerReason.Contains("lost"))
+                return FailureReason.PoseLost;
+
+            if (lowerReason.Contains("velocidad") || lowerReason.Contains("speed"))
+            {
+                if (lowerReason.Contains("baja") || lowerReason.Contains("low"))
+                    return FailureReason.SpeedTooLow;
+                if (lowerReason.Contains("alta") || lowerReason.Contains("high"))
+                    return FailureReason.SpeedTooHigh;
+            }
+
+            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance"))
+                return FailureReason.DistanceTooShort;
+
+            if (lowerReason.Contains("direccion") || lowerReason.Contains("direction"))
+            {
+                if (lowerReason.Contains("cambios") || lowerReason.Contains("changes"))
+                    return FailureReason.DirectionChangesInsufficient;
+                return FailureReason.DirectionWrong;
+            }
+
+            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation"))
+                return FailureReason.RotationInsufficient;
+
+            if (lowerReason.Contains("circular"))
+                return FailureReason.NotCircular;
+
+            if (lowerReason.Contains("timeout") || lowerReason.Contains("tiempo"))
+                return FailureReason.Timeout;
+
+            if (lowerReason.Contains("tracking"))
+                return FailureReason.TrackingLost;
+
+            if (lowerReason.Contains("final") || lowerReason.Contains("end"))
+                return FailureReason.EndPoseMismatch;
+
+            return FailureReason.Unknown;
+        }
+
+        /// <summary>
+        /// Determina la fase donde ocurrió el fallo.
+        /// </summary>
+        private GesturePhase DetermineFailedPhase(string reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+                return GesturePhase.Move;
+
+            string lowerReason = reason.ToLower();
+
+            if (lowerReason.Contains("inicial") || lowerReason.Contains("start") ||
+                lowerReason.Contains("inicio"))
+                return GesturePhase.Start;
+
+            if (lowerReason.Contains("final") || lowerReason.Contains("end") ||
+                lowerReason.Contains("completar"))
+                return GesturePhase.End;
+
+            return GesturePhase.Move;
+        }
+
+        /// <summary>
+        /// Garantiza que useDirectText solo esté activo cuando haya un Text asignado; si no, cae al FeedbackPanel de escena.
+        /// </summary>
+        private void EnsureDirectTextMode()
+        {
+            if (directTextValidated)
+                return;
+
+            if (useDirectText && directFeedbackText == null)
+            {
+                if (feedbackUI != null)
+                {
+                    Debug.LogWarning("[FeedbackSystem] useDirectText está activo pero no hay Text asignado. Se usará el FeedbackPanel configurado en escena.");
+                    useDirectText = false;
+                }
+            }
+
+            directTextValidated = true;
+        }
+
+        #endregion
+    }
+}
