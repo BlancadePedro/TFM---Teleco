@@ -27,8 +27,8 @@ namespace ASL_LearnVR.Feedback
 
         // Tip Curl (E, M, N): Solo puntas curvadas hasta los nudillos - NO es puño cerrado
         // Importante: maxCurl < FULL_CURL_MIN para evitar confusión con puño
-        private const float TIP_CURL_MIN = 0.45f;
-        private const float TIP_CURL_MAX = 0.75f;
+        private const float TIP_CURL_MIN = 0.55f;
+        private const float TIP_CURL_MAX = 0.8f;
 
         /// <summary>
         /// Crea el perfil para la letra A.
@@ -579,7 +579,7 @@ namespace ASL_LearnVR.Feedback
         /// <summary>
         /// Crea el perfil para la letra M.
         /// TIP CURL: Pulgar debajo de TRES dedos (índice, medio, anular).
-        /// Meñique extendido.
+        /// Meñique también cerrado (no extendido).
         /// DIFERENCIA con A/S: NO es puño cerrado, los 3 dedos usan tip curl sobre el pulgar.
         /// DIFERENCIA con N: M tiene 3 dedos sobre el pulgar, N solo tiene 2.
         /// </summary>
@@ -587,7 +587,7 @@ namespace ASL_LearnVR.Feedback
         {
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "M";
-            profile.description = "Thumb under THREE fingers (tip curl), pinky extended";
+            profile.description = "Thumb under THREE fingers (tip curl), pinky closed";
 
             profile.thumb = new ThumbConstraint
             {
@@ -622,12 +622,12 @@ namespace ASL_LearnVR.Feedback
                 customMessageTooCurled = "No cierres el puño, solo curva sobre el pulgar"
             };
 
-            // Meñique extendido - característica distintiva de M
+            // Meñique cerrado (evitar confusión con N)
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
-                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "El meñique debe estar extendido en la M"
+                curl = new CurlConstraint { minCurl = 0.7f, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
+                customMessageTooExtended = "Cierra el meñique sobre el pulgar"
             };
 
             return profile;
@@ -636,7 +636,7 @@ namespace ASL_LearnVR.Feedback
         /// <summary>
         /// Crea el perfil para la letra N.
         /// TIP CURL: Pulgar debajo de DOS dedos (índice y medio).
-        /// Anular y meñique extendidos.
+        /// Anular y meñique cerrados (no extendidos).
         /// DIFERENCIA con M: N tiene 2 dedos sobre el pulgar, M tiene 3.
         /// DIFERENCIA con A/S: NO es puño cerrado, los 2 dedos usan tip curl.
         /// </summary>
@@ -671,19 +671,19 @@ namespace ASL_LearnVR.Feedback
                 customMessageTooCurled = "No cierres el puño, solo curva sobre el pulgar"
             };
 
-            // Anular y meñique extendidos - característica distintiva de N
+            // Anular y meñique cerrados para diferenciar de U/M
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
-                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "El anular debe estar extendido en la N"
+                curl = new CurlConstraint { minCurl = 0.7f, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
+                customMessageTooExtended = "Cierra el anular"
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
-                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "El meñique debe estar extendido en la N"
+                curl = new CurlConstraint { minCurl = 0.7f, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
+                customMessageTooExtended = "Cierra el meñique"
             };
 
             return profile;
@@ -697,6 +697,8 @@ namespace ASL_LearnVR.Feedback
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "P";
             profile.description = "K shape tilted (thumb touching middle)";
+            profile.checkOrientation = true;
+            profile.expectedPalmDirection = Vector3.down; // orientado hacia abajo
 
             profile.thumb = new ThumbConstraint
             {
@@ -744,6 +746,8 @@ namespace ASL_LearnVR.Feedback
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "Q";
             profile.description = "Thumb and index pointing down (G mirrored)";
+            profile.checkOrientation = true;
+            profile.expectedPalmDirection = Vector3.down; // orientado hacia abajo
 
             profile.thumb = new ThumbConstraint
             {

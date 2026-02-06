@@ -109,6 +109,13 @@ namespace ASL_LearnVR.Feedback
         private readonly Dictionary<string, MessageWindow> messageWindows = new Dictionary<string, MessageWindow>();
         private List<string> lastStableMessages = new List<string>();
 
+        // Hints específicos para gestos dinámicos (J, Z, etc.)
+        private readonly Dictionary<string, string> dynamicHints = new Dictionary<string, string>()
+        {
+            { "J", "Dibuja una J con el índice: sale hacia afuera y termina abajo" },
+            { "Z", "Dibuja una Z con el índice: tres trazos rápidos" }
+        };
+
         // === MESSAGE LATCH para gestos dinámicos ===
         // Bloquea la emisión de mensajes nuevos hasta que pase el tiempo de hold
         private float messageLatchUntil = 0f;
@@ -938,6 +945,20 @@ namespace ASL_LearnVR.Feedback
             };
         }
 
+        /// <summary>
+        /// Obtiene un hint predefinido para gestos dinámicos (J, Z, etc.).
+        /// </summary>
+        private string GetDynamicHint(string gestureName)
+        {
+            if (string.IsNullOrEmpty(gestureName))
+                return string.Empty;
+
+            if (dynamicHints.TryGetValue(gestureName.ToUpper(), out var hint))
+                return hint;
+
+            return string.Empty;
+        }
+
         private struct FingerStateSnapshot
         {
             public Finger finger;
@@ -1106,6 +1127,11 @@ namespace ASL_LearnVR.Feedback
 
             // El mensaje viene del analizador
             string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"¡Bien! Ahora empieza el movimiento";
+            string hint = GetDynamicHint(gestureName);
+            if (!string.IsNullOrEmpty(hint))
+            {
+                message = hint;
+            }
             UpdateFeedbackMessage(message);
 
             if (feedbackUI != null)
@@ -1145,6 +1171,14 @@ namespace ASL_LearnVR.Feedback
             DynamicMovementIssue issue = result?.issue ?? DynamicMovementIssue.None;
             DynamicFeedbackPhase phase = result?.phase ?? DynamicFeedbackPhase.InProgress;
             string message = result?.message ?? "Sigue el movimiento";
+            if (issue == DynamicMovementIssue.None)
+            {
+                string hint = GetDynamicHint(gestureName);
+                if (!string.IsNullOrEmpty(hint))
+                {
+                    message = $"{hint} ({Mathf.RoundToInt(progress * 100)}%)";
+                }
+            }
 
             // === EMITIR MENSAJE solo si no estamos en latch ===
             if (canEmitMessage)

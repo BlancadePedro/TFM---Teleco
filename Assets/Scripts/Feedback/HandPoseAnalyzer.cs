@@ -517,6 +517,9 @@ namespace ASL_LearnVR.Feedback
                 AnalyzeThumbTouch(profile.thumb, Finger.Pinky);
             }
 
+            // Reglas de colocación del pulgar (sobre o al lado de los dedos)
+            AnalyzeThumbPlacement(profile.thumb);
+
             // Orientación de la mano (solo si el perfil lo pide)
             EvaluateOrientation(profile);
         }
@@ -597,6 +600,47 @@ namespace ASL_LearnVR.Feedback
                     FingerErrorType.ShouldTouch,
                     Severity.Major,
                     $"Touch your thumb to your {FeedbackMessages.GetFingerName(targetFinger)}"
+                ));
+            }
+        }
+
+        /// <summary>
+        /// Refuerza feedback de posición del pulgar (sobre o al lado de los dedos).
+        /// </summary>
+        private void AnalyzeThumbPlacement(ThumbConstraint thumbConstraint)
+        {
+            if (thumbConstraint == null)
+                return;
+
+            float thumbCurl = currentCurlValues[(int)Finger.Thumb];
+
+            // Pulgar sobre los dedos (ej. S): no debe estar demasiado extendido
+            if (thumbConstraint.shouldBeOverFingers && thumbCurl < 0.35f)
+            {
+                string msg = !string.IsNullOrEmpty(thumbConstraint.customMessageGeneric)
+                    ? thumbConstraint.customMessageGeneric
+                    : "Coloca el pulgar encima de los dedos (no lo extiendas)";
+
+                errorList.Add(FingerError.Create(
+                    Finger.Thumb,
+                    FingerErrorType.ThumbPositionWrong,
+                    Severity.Major,
+                    msg
+                ));
+            }
+
+            // Pulgar al lado de los dedos (ej. A): no debe cruzar ni meterse sobre ellos
+            if (thumbConstraint.shouldBeBesideFingers && thumbCurl > 0.6f)
+            {
+                string msg = !string.IsNullOrEmpty(thumbConstraint.customMessageGeneric)
+                    ? thumbConstraint.customMessageGeneric
+                    : "Mantén el pulgar al lado del puño, sin cruzarlo";
+
+                errorList.Add(FingerError.Create(
+                    Finger.Thumb,
+                    FingerErrorType.ThumbPositionWrong,
+                    Severity.Major,
+                    msg
                 ));
             }
         }
