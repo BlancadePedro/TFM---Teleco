@@ -116,6 +116,7 @@ namespace ASL_LearnVR.Feedback
 
     /// <summary>
     /// Constraint completo para un dedo individual.
+    /// Soporta la filosofía de tres estados: Extendido, Curvado, Cerrado.
     /// </summary>
     [Serializable]
     public class FingerConstraint
@@ -123,6 +124,64 @@ namespace ASL_LearnVR.Feedback
         [Header("Finger")]
         [Tooltip("Dedo al que aplica este constraint")]
         public Finger finger;
+
+        [Header("Expected State (Semantic)")]
+        [Tooltip("Estado semántico esperado para este dedo.\n" +
+                 "- Extended: dedo recto, sin flexión\n" +
+                 "- Curved: dedo curvado con control, sin tocar palma (para C, D, O, X)\n" +
+                 "- Closed: dedo en puño, toca la palma (para A, S, T)\n" +
+                 "Si no se especifica, se deriva automáticamente del rango de curl.")]
+        [SerializeField]
+        private FingerShapeState _expectedState = FingerShapeState.Extended;
+
+        [Tooltip("Si true, usa el valor de _expectedState. Si false, lo deriva del rango de curl.")]
+        [SerializeField]
+        private bool _useExplicitState = false;
+
+        /// <summary>
+        /// Estado semántico esperado para este dedo.
+        /// Si no se ha especificado explícitamente, se deriva del rango de curl.
+        /// </summary>
+        public FingerShapeState expectedState
+        {
+            get
+            {
+                if (_useExplicitState)
+                    return _expectedState;
+
+                // Derivar automáticamente del rango de curl
+                return DeriveStateFromCurlRange();
+            }
+            set
+            {
+                _expectedState = value;
+                _useExplicitState = true;
+            }
+        }
+
+        /// <summary>
+        /// Deriva el estado semántico esperado basándose en el rango de curl.
+        /// Usa los umbrales de la filosofía de tres estados:
+        /// - Extended: centro < 0.25
+        /// - Curved: centro 0.25-0.75
+        /// - Closed: centro > 0.75
+        /// </summary>
+        private FingerShapeState DeriveStateFromCurlRange()
+        {
+            if (curl == null || !curl.isEnabled)
+                return FingerShapeState.Extended;
+
+            // Calcular el punto medio del rango esperado
+            float midpoint = (curl.minCurl + curl.maxCurl) / 2f;
+
+            // Umbrales basados en la filosofía de tres estados
+            if (midpoint < 0.30f)
+                return FingerShapeState.Extended;
+            if (midpoint > 0.72f)
+                return FingerShapeState.Closed;
+
+            return FingerShapeState.Curved;
+        }
 
         [Header("Curl (Extension/Flexion)")]
         [Tooltip("Constraint de curl para este dedo")]
@@ -133,10 +192,22 @@ namespace ASL_LearnVR.Feedback
         public SpreadConstraint spread = new SpreadConstraint();
 
         [Header("Custom Messages")]
-        [Tooltip("Mensaje personalizado si el dedo está demasiado extendido")]
+        [Tooltip("Mensaje personalizado si el dedo debe CURVAR (de extendido a curvado)")]
+        public string customMessageNeedsCurve;
+
+        [Tooltip("Mensaje personalizado si el dedo debe CERRAR (a puño)")]
+        public string customMessageNeedsFist;
+
+        [Tooltip("Mensaje personalizado si el dedo cerró DEMASIADO (puño cuando debía curvar)")]
+        public string customMessageTooMuchCurl;
+
+        [Tooltip("Mensaje personalizado si el dedo debe EXTENDER")]
+        public string customMessageNeedsExtend;
+
+        [Tooltip("Mensaje personalizado si el dedo está demasiado extendido (legacy)")]
         public string customMessageTooExtended;
 
-        [Tooltip("Mensaje personalizado si el dedo está demasiado cerrado")]
+        [Tooltip("Mensaje personalizado si el dedo está demasiado cerrado (legacy)")]
         public string customMessageTooCurled;
 
         [Tooltip("Mensaje personalizado genérico para este dedo")]
@@ -144,11 +215,34 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Obtiene el mensaje apropiado para un tipo de error.
+        /// Prioriza mensajes personalizados sobre los genéricos.
         /// </summary>
         public string GetMessage(FingerErrorType errorType)
         {
             switch (errorType)
             {
+                // === Errores semánticos de tres estados ===
+                case FingerErrorType.NeedsCurve:
+                    return !string.IsNullOrEmpty(customMessageNeedsCurve)
+                        ? customMessageNeedsCurve
+                        : FeedbackMessages.GetCorrectionMessage(finger, errorType);
+
+                case FingerErrorType.NeedsFist:
+                    return !string.IsNullOrEmpty(customMessageNeedsFist)
+                        ? customMessageNeedsFist
+                        : FeedbackMessages.GetCorrectionMessage(finger, errorType);
+
+                case FingerErrorType.TooMuchCurl:
+                    return !string.IsNullOrEmpty(customMessageTooMuchCurl)
+                        ? customMessageTooMuchCurl
+                        : FeedbackMessages.GetCorrectionMessage(finger, errorType);
+
+                case FingerErrorType.NeedsExtend:
+                    return !string.IsNullOrEmpty(customMessageNeedsExtend)
+                        ? customMessageNeedsExtend
+                        : FeedbackMessages.GetCorrectionMessage(finger, errorType);
+
+                // === Errores legacy ===
                 case FingerErrorType.TooExtended:
                     return !string.IsNullOrEmpty(customMessageTooExtended)
                         ? customMessageTooExtended
@@ -167,39 +261,95 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo extendido.
+        /// Crea un constraint con valores típicos para dedo EXTENDIDO.
+        /// El dedo debe estar recto, sin flexión.
         /// </summary>
         public static FingerConstraint Extended(Finger finger)
         {
-            return new FingerConstraint
+            var constraint = new FingerConstraint
             {
                 finger = finger,
                 curl = new CurlConstraint { minCurl = 0f, maxCurl = 0.25f, isEnabled = true }
             };
+            constraint.expectedState = FingerShapeState.Extended;
+            return constraint;
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo cerrado.
+        /// Crea un constraint con valores típicos para dedo CERRADO (puño).
+        /// El dedo debe estar completamente plegado, tocando la palma.
+        /// Usado en signos como A, S, T.
         /// </summary>
-        public static FingerConstraint Curled(Finger finger)
+        public static FingerConstraint Closed(Finger finger)
         {
-            return new FingerConstraint
+            var constraint = new FingerConstraint
             {
                 finger = finger,
-                curl = new CurlConstraint { minCurl = 0.7f, maxCurl = 1f, isEnabled = true }
+                curl = new CurlConstraint { minCurl = 0.75f, maxCurl = 1f, isEnabled = true }
             };
+            constraint.expectedState = FingerShapeState.Closed;
+            return constraint;
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo parcialmente cerrado.
+        /// Crea un constraint con valores típicos para dedo CURVADO (forma controlada).
+        /// El dedo debe flexionarse sin cerrar la mano ni tocar la palma.
+        /// Usado en signos como C, D, O, X (gancho), E, M, N.
         /// </summary>
-        public static FingerConstraint PartiallyCurled(Finger finger)
+        public static FingerConstraint Curved(Finger finger)
         {
-            return new FingerConstraint
+            var constraint = new FingerConstraint
             {
                 finger = finger,
-                curl = new CurlConstraint { minCurl = 0.3f, maxCurl = 0.7f, isEnabled = true }
+                curl = new CurlConstraint { minCurl = 0.25f, maxCurl = 0.75f, isEnabled = true }
             };
+            constraint.expectedState = FingerShapeState.Curved;
+            return constraint;
+        }
+
+        /// <summary>
+        /// Alias de Closed para compatibilidad (legacy).
+        /// Prefiere usar Closed() para claridad semántica.
+        /// </summary>
+        public static FingerConstraint Curled(Finger finger) => Closed(finger);
+
+        /// <summary>
+        /// Alias de Curved para compatibilidad (legacy).
+        /// Prefiere usar Curved() para claridad semántica.
+        /// </summary>
+        public static FingerConstraint PartiallyCurled(Finger finger) => Curved(finger);
+
+        /// <summary>
+        /// Crea un constraint para TIP CURL (curvatura solo de la punta).
+        /// Usado en signos como E, M, N donde solo las puntas se curvan hasta el nudillo.
+        /// </summary>
+        public static FingerConstraint TipCurled(Finger finger)
+        {
+            var constraint = new FingerConstraint
+            {
+                finger = finger,
+                curl = new CurlConstraint { minCurl = 0.4f, maxCurl = 0.7f, isEnabled = true },
+                customMessageNeedsCurve = $"Curva solo la punta del {FeedbackMessages.GetFingerName(finger)} hasta el nudillo"
+            };
+            constraint.expectedState = FingerShapeState.Curved;
+            return constraint;
+        }
+
+        /// <summary>
+        /// Crea un constraint para GANCHO (hook shape).
+        /// Usado en signos como X donde el dedo forma un gancho.
+        /// </summary>
+        public static FingerConstraint Hook(Finger finger)
+        {
+            var constraint = new FingerConstraint
+            {
+                finger = finger,
+                curl = new CurlConstraint { minCurl = 0.5f, maxCurl = 0.8f, isEnabled = true },
+                customMessageNeedsCurve = $"Curva el {FeedbackMessages.GetFingerName(finger)} formando un gancho",
+                customMessageTooMuchCurl = $"Suelta un poco el {FeedbackMessages.GetFingerName(finger)}, es un gancho, no un puño"
+            };
+            constraint.expectedState = FingerShapeState.Curved;
+            return constraint;
         }
     }
 
@@ -275,6 +425,10 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Tolerancia angular en grados para la orientación")]
         [Range(10f, 90f)]
         public float orientationTolerance = 45f;
+
+        [Tooltip("Mensaje de ayuda especifico para orientar la palma (opcional)")]
+        [TextArea(1, 2)]
+        public string orientationHint;
 
         /// <summary>
         /// Obtiene el constraint para un dedo específico.

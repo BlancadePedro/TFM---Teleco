@@ -116,6 +116,8 @@ namespace ASL_LearnVR.Feedback
             { "Z", "Dibuja una Z con el índice: tres trazos rápidos" }
         };
 
+        private readonly Dictionary<string, DynamicGestureDefinition> gestureDefinitionCache = new Dictionary<string, DynamicGestureDefinition>();
+
         // === MESSAGE LATCH para gestos dinámicos ===
         // Bloquea la emisión de mensajes nuevos hasta que pase el tiempo de hold
         private float messageLatchUntil = 0f;
@@ -362,10 +364,10 @@ namespace ASL_LearnVR.Feedback
             if (active)
             {
                 SetState(FeedbackState.Waiting);
-                UpdateFeedbackMessage($"Practice '{currentSign?.signName ?? "sign"}'...");
-                if (!useDirectText && feedbackUI != null)
+                UpdateFeedbackMessage($"Practica '{currentSign?.signName ?? "signo"}'...");
+                if (feedbackUI != null)
                 {
-                    feedbackUI.SetWaitingState($"Practice '{currentSign?.signName ?? "sign"}'...");
+                    feedbackUI.SetWaitingState($"Practica '{currentSign?.signName ?? "signo"}'...");
                 }
                 feedbackAudio?.PlayStartPractice();
             }
@@ -415,11 +417,11 @@ namespace ASL_LearnVR.Feedback
             else
             {
                 // Gesto estático: mensaje normal
-                initialMessage = $"Make the '{sign?.signName ?? "sign"}' sign...";
+                initialMessage = $"Haz el signo '{sign?.signName ?? "signo"}'...";
             }
 
             UpdateFeedbackMessage(initialMessage);
-            if (!useDirectText && feedbackUI != null)
+            if (feedbackUI != null)
             {
                 feedbackUI.SetWaitingState(initialMessage);
             }
@@ -536,7 +538,7 @@ namespace ASL_LearnVR.Feedback
         {
             if (currentSign == null)
             {
-                UpdateFeedbackMessage("No sign selected...");
+                UpdateFeedbackMessage("Ningún signo seleccionado...");
                 return;
             }
 
@@ -549,7 +551,7 @@ namespace ASL_LearnVR.Feedback
                 if (isDetectedByRecognizer)
                 {
                     SetState(FeedbackState.Success);
-                    UpdateFeedbackMessage($"Correct! '{currentSign.signName}' detected!");
+                    UpdateFeedbackMessage($"¡Correcto! '{currentSign.signName}' detectado");
                     if (fingerIndicatorVisualizer != null)
                         fingerIndicatorVisualizer.ShowHandCorrect(true);
                     // Mostrar todos los dedos en verde (correcto)
@@ -564,7 +566,7 @@ namespace ASL_LearnVR.Feedback
                 else
                 {
                     SetState(FeedbackState.Waiting);
-                    UpdateFeedbackMessage($"Make the '{currentSign.signName}' sign...");
+                    UpdateFeedbackMessage($"Haz el signo '{currentSign.signName}'...");
                     if (fingerIndicatorVisualizer != null)
                         fingerIndicatorVisualizer.HideAll();
                     fingerOverlayRenderer?.ClearAllStatuses();
@@ -616,13 +618,13 @@ namespace ASL_LearnVR.Feedback
         private string GenerateDetailedFeedbackMessage(StaticGestureResult result)
         {
             if (result == null)
-                return $"Make the '{currentSign?.signName ?? "sign"}' sign...";
+                return $"Haz el signo '{currentSign?.signName ?? "signo"}'...";
 
             // Éxito confirmado: limpiar ventanas de mensajes y reforzar positivo
             if (result.isMatchGlobal)
             {
                 ClearMessageWindows();
-                return $"Correct! '{currentSign?.signName}' detected!";
+                return $"¡Correcto! '{currentSign?.signName}' detectado";
             }
 
             var fingerStates = BuildFingerStates(result);
@@ -636,7 +638,7 @@ namespace ASL_LearnVR.Feedback
             if (!string.IsNullOrEmpty(result.summaryMessage))
                 return result.summaryMessage;
 
-            return $"Adjust your hand for '{currentSign?.signName ?? "sign"}'...";
+            return $"Ajusta la mano para '{currentSign?.signName ?? "signo"}'...";
         }
 
         /// <summary>
@@ -652,7 +654,8 @@ namespace ASL_LearnVR.Feedback
                     finger = (Finger)i,
                     severity = Severity.None,
                     errorType = FingerErrorType.None,
-                    message = string.Empty
+                    message = string.Empty,
+                    expectedValue = 0f
                 };
             }
 
@@ -673,7 +676,8 @@ namespace ASL_LearnVR.Feedback
                     finger = error.finger,
                     severity = error.severity,
                     errorType = error.errorType,
-                    message = error.correctionMessage
+                    message = error.correctionMessage,
+                    expectedValue = error.expectedValue
                 };
             }
 
@@ -682,12 +686,20 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Genera candidatos de mensajes agrupados por acción y priorizados.
+        /// Usa la filosofía de TRES ESTADOS: Extendido, Curvado, Cerrado.
         /// </summary>
         private List<string> BuildCandidateMessages(StaticGestureResult result, FingerStateSnapshot[] states)
         {
             var candidates = new List<MessageCandidate>();
-            var needCurl = new List<Finger>();
-            var needExtend = new List<Finger>();
+
+            // === Listas de acciones semánticas (tres estados) ===
+            var needCurve = new List<Finger>();      // De extendido a curvado (sin cerrar puño)
+            var needFist = new List<Finger>();       // De curvado/extendido a puño cerrado
+            var needRelease = new List<Finger>();    // De puño a curvado (cerró demasiado)
+            var needExtend = new List<Finger>();     // De curvado/cerrado a extendido
+
+            // === Listas legacy (compatibilidad) ===
+            var needCurl = new List<Finger>();       // Genérico: cerrar (legacy)
             var needSpreadNarrow = new List<Finger>();
             var needSpreadWide = new List<Finger>();
 
@@ -698,18 +710,46 @@ namespace ASL_LearnVR.Feedback
 
                 switch (state.errorType)
                 {
-                    case FingerErrorType.TooExtended:
-                        needCurl.Add(state.finger);
+                    // === Errores semánticos de tres estados (PRIORIDAD) ===
+                    case FingerErrorType.NeedsCurve:
+                        needCurve.Add(state.finger);
                         break;
+
+                    case FingerErrorType.NeedsFist:
+                        needFist.Add(state.finger);
+                        break;
+
+                    case FingerErrorType.TooMuchCurl:
+                        needRelease.Add(state.finger);
+                        break;
+
+                    case FingerErrorType.NeedsExtend:
+                        needExtend.Add(state.finger);
+                        break;
+
+                    // === Errores legacy ===
+                    case FingerErrorType.TooExtended:
+                        // Determinar si debe curvar o cerrar basándose en expectedValue
+                        if (state.expectedValue >= 0.25f && state.expectedValue <= 0.75f)
+                            needCurve.Add(state.finger); // Objetivo es curvado
+                        else if (state.expectedValue > 0.75f)
+                            needFist.Add(state.finger);  // Objetivo es cerrado
+                        else
+                            needCurl.Add(state.finger);  // Fallback legacy
+                        break;
+
                     case FingerErrorType.TooCurled:
                         needExtend.Add(state.finger);
                         break;
+
                     case FingerErrorType.SpreadTooNarrow:
                         needSpreadNarrow.Add(state.finger);
                         break;
+
                     case FingerErrorType.SpreadTooWide:
                         needSpreadWide.Add(state.finger);
                         break;
+
                     default:
                         string fallback = !string.IsNullOrEmpty(state.message)
                             ? state.message
@@ -725,10 +765,25 @@ namespace ASL_LearnVR.Feedback
                 }
             }
 
-            AddActionCandidate(candidates, needCurl, "Cierra", 0, states);
+            // === Añadir candidatos en orden de prioridad semántica ===
+            // CURVA: Prioridad alta - forma controlada sin cerrar
+            AddActionCandidate(candidates, needCurve, "Curva", -2, states);
+
+            // SUELTA: Prioridad alta - cerró demasiado, debe relajar
+            AddActionCandidate(candidates, needRelease, "Suelta", -1, states);
+
+            // CIERRA: Para formar puño completo
+            AddActionCandidate(candidates, needFist, "Cierra", 0, states);
+
+            // EXTIENDE: Abrir dedo
             AddActionCandidate(candidates, needExtend, "Extiende", 1, states);
-            AddActionCandidate(candidates, needSpreadWide, "Junta", 2, states);
-            AddActionCandidate(candidates, needSpreadNarrow, "Separa", 3, states);
+
+            // Legacy: cerrar genérico
+            AddActionCandidate(candidates, needCurl, "Flexiona", 2, states);
+
+            // Spread
+            AddActionCandidate(candidates, needSpreadWide, "Junta", 3, states);
+            AddActionCandidate(candidates, needSpreadNarrow, "Separa", 4, states);
 
             int incorrectCount = CountSeverity(states, Severity.Major);
             int almostCount = CountSeverity(states, Severity.Minor);
@@ -765,7 +820,7 @@ namespace ASL_LearnVR.Feedback
             {
                 candidates.Add(new MessageCandidate
                 {
-                    text = $"Repite el gesto '{currentSign?.signName ?? "sign"}' sin moverte un instante",
+                    text = $"Repite el gesto '{currentSign?.signName ?? "signo"}' sin moverte un instante",
                     severityWeight = 1,
                     affectedCount = 1,
                     order = 60
@@ -953,8 +1008,17 @@ namespace ASL_LearnVR.Feedback
             if (string.IsNullOrEmpty(gestureName))
                 return string.Empty;
 
-            if (dynamicHints.TryGetValue(gestureName.ToUpper(), out var hint))
+            var upper = gestureName.ToUpper();
+
+            if (dynamicHints.TryGetValue(upper, out var hint))
                 return hint;
+
+            // Si el nombre viene con sufijos/prefijos (ej. "J_Right" o "J_Move"), detectar por prefijo
+            foreach (var kvp in dynamicHints)
+            {
+                if (upper.StartsWith(kvp.Key))
+                    return kvp.Value;
+            }
 
             return string.Empty;
         }
@@ -965,6 +1029,7 @@ namespace ASL_LearnVR.Feedback
             public Severity severity;
             public FingerErrorType errorType;
             public string message;
+            public float expectedValue;
         }
 
         private class MessageCandidate
@@ -1003,16 +1068,39 @@ namespace ASL_LearnVR.Feedback
             if (useDirectText && directFeedbackText != null)
             {
                 directFeedbackText.text = message;
+                Debug.Log($"[FeedbackSystem] Mensaje actualizado (directo): '{message}'");
             }
-            // Prioridad 2: FeedbackUI
-            else if (feedbackUI != null)
+
+            // Siempre sincronizar el panel de UI si existe, para que también muestre el feedback (estático o dinámico)
+            if (feedbackUI != null)
             {
-                // FeedbackUI maneja estados internamente; si estamos en modo panel,
-                // solo actualizamos el texto cuando está en estado de espera.
-                if (feedbackUI.CurrentState == FeedbackState.Waiting)
+                switch (currentState)
                 {
-                    feedbackUI.SetWaitingState(message);
+                    case FeedbackState.Waiting:
+                        feedbackUI.SetWaitingState(message);
+                        break;
+                    case FeedbackState.InProgress:
+                        feedbackUI.SetProgressState(message);
+                        break;
+                    case FeedbackState.ShowingErrors:
+                        feedbackUI.SetErrorState(message);
+                        break;
+                    case FeedbackState.PartialMatch:
+                        feedbackUI.SetWarningState(message);
+                        break;
+                    case FeedbackState.Success:
+                        feedbackUI.SetSuccessState(message);
+                        break;
+                    default:
+                        feedbackUI.SetWaitingState(message);
+                        break;
                 }
+                Debug.Log($"[FeedbackSystem] Mensaje actualizado (UI): '{message}' [Estado: {currentState}]");
+            }
+            else if (!(useDirectText && directFeedbackText != null))
+            {
+                // Solo avisar si no hay ni texto directo ni UI
+                Debug.LogWarning($"[FeedbackSystem] No hay destino para el mensaje: '{message}'");
             }
 
             // Siempre emitir evento para integración externa
@@ -1082,7 +1170,7 @@ namespace ASL_LearnVR.Feedback
             if (currentState == FeedbackState.Success && Time.time > successEndTime)
             {
                 SetState(FeedbackState.Waiting);
-                UpdateFeedbackMessage($"Make the '{currentSign?.signName ?? "sign"}' sign...");
+                UpdateFeedbackMessage($"Haz el signo '{currentSign?.signName ?? "signo"}'...");
 
                 if (feedbackUI != null)
                     feedbackUI.SetWaitingState();
@@ -1141,72 +1229,28 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback de progreso de gesto dinámico.
-        /// Fase 2-3: InProgress/NearCompletion - Feedback sobre el movimiento.
-        /// REGLA: Si hay issue => mensaje fijo 1-1.3s, luego re-evaluar.
+        /// Callback de progreso de gesto dinámico (evento básico).
+        /// NOTA: Este es un FALLBACK. La lógica principal está en OnDynamicGestureProgressWithMetrics
+        /// que recibe la definición del gesto directamente.
         /// </summary>
         private void OnDynamicGestureProgress(string gestureName, float progress)
         {
+            // Este callback es un fallback mínimo. La lógica principal está en OnDynamicGestureProgressWithMetrics.
+            // Solo actualizamos el mensaje con el hint si no estamos en latch y no hay otro mensaje en curso.
             if (!isActive)
                 return;
 
-            // === MESSAGE LATCH: si estamos en hold, seguir analizando pero no emitir mensajes ===
             bool canEmitMessage = Time.time >= messageLatchUntil;
 
-            // Obtener métricas actuales del DynamicGestureRecognizer
-            DynamicMetrics metrics = new DynamicMetrics();
-            DynamicGestureDefinition gestureDefinition = null;
-
-            if (dynamicGestureRecognizer != null)
+            if (canEmitMessage)
             {
-                metrics = dynamicGestureRecognizer.GetCurrentMetrics();
-                gestureDefinition = GetActiveGestureDefinition(gestureName);
-            }
-
-            // Analizar progreso con el analizador por fases (siempre analizar, incluso en latch)
-            dynamicFeedbackAnalyzer?.AnalyzeProgress(gestureName, progress, metrics, gestureDefinition);
-
-            // Obtener el resultado del analizador
-            var result = dynamicFeedbackAnalyzer?.GetCurrentResult();
-            DynamicMovementIssue issue = result?.issue ?? DynamicMovementIssue.None;
-            DynamicFeedbackPhase phase = result?.phase ?? DynamicFeedbackPhase.InProgress;
-            string message = result?.message ?? "Sigue el movimiento";
-            if (issue == DynamicMovementIssue.None)
-            {
+                // Mostrar hint con porcentaje como mensaje de progreso básico
                 string hint = GetDynamicHint(gestureName);
                 if (!string.IsNullOrEmpty(hint))
                 {
-                    message = $"{hint} ({Mathf.RoundToInt(progress * 100)}%)";
-                }
-            }
-
-            // === EMITIR MENSAJE solo si no estamos en latch ===
-            if (canEmitMessage)
-            {
-                // Si hay un problema detectado => activar latch de 1-1.3s
-                if (issue != DynamicMovementIssue.None)
-                {
-                    float holdDuration = UnityEngine.Random.Range(errorMessageHoldMin, errorMessageHoldMax);
-                    messageLatchUntil = Time.time + holdDuration;
-                    lastDynamicMessageWasError = true;
-                    pendingResetToIdle = true; // Al expirar, verificar si volver a Idle
-
-                    UpdateFeedbackMessage(message);
-                    Debug.Log($"[FeedbackSystem] Issue detectado: {issue} - mensaje fijo por {holdDuration:F2}s");
-                }
-                else
-                {
+                    string message = $"{hint} ({Mathf.RoundToInt(progress * 100)}%)";
                     UpdateFeedbackMessage(message);
                 }
-
-                if (feedbackUI != null)
-                    feedbackUI.ShowDynamicProgress(gestureName, progress);
-            }
-
-            // Log solo en cambios de fase significativos
-            if (phase == DynamicFeedbackPhase.NearCompletion && canEmitMessage)
-            {
-                Debug.Log($"[FeedbackSystem] Fase 3 - NearCompletion: {gestureName} ({Mathf.RoundToInt(progress * 100)}%)");
             }
         }
 
@@ -1323,10 +1367,54 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         private ASL.DynamicGestures.DynamicGestureDefinition GetActiveGestureDefinition(string gestureName)
         {
-            // Buscar en el GameManager o en los recursos del proyecto
-            // Por ahora retornamos null y usamos valores por defecto
-            // TODO: Implementar búsqueda de definiciones si es necesario
-            return null;
+            if (string.IsNullOrEmpty(gestureName))
+                return null;
+
+            if (gestureDefinitionCache.TryGetValue(gestureName, out var cached) && cached != null)
+                return cached;
+
+            DynamicGestureDefinition found = null;
+
+            if (dynamicGestureRecognizer != null)
+            {
+                var fieldInfo = typeof(ASL.DynamicGestures.DynamicGestureRecognizer)
+                    .GetField("gestureDefinitions", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                var definitions = fieldInfo?.GetValue(dynamicGestureRecognizer) as List<DynamicGestureDefinition>;
+                if (definitions != null)
+                {
+                    for (int i = 0; i < definitions.Count; i++)
+                    {
+                        var def = definitions[i];
+                        if (def != null && def.gestureName == gestureName)
+                        {
+                            found = def;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (found == null)
+            {
+                var loadedDefs = Resources.FindObjectsOfTypeAll<DynamicGestureDefinition>();
+                for (int i = 0; i < loadedDefs.Length; i++)
+                {
+                    var def = loadedDefs[i];
+                    if (def != null && def.gestureName == gestureName)
+                    {
+                        found = def;
+                        break;
+                    }
+                }
+            }
+
+            if (found != null)
+            {
+                gestureDefinitionCache[gestureName] = found;
+            }
+
+            return found;
         }
 
         /// <summary>
@@ -1345,7 +1433,8 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Callback de progreso con métricas detalladas.
-        /// Permite análisis más preciso del movimiento para feedback contextual.
+        /// Este es el callback PRINCIPAL para feedback durante el movimiento.
+        /// Recibe la definición del gesto directamente del recognizer.
         /// </summary>
         private void OnDynamicGestureProgressWithMetrics(
             string gestureName,
@@ -1356,14 +1445,53 @@ namespace ASL_LearnVR.Feedback
             if (!isActive)
                 return;
 
-            // Analizar progreso con métricas completas
+            // === LOG de métricas para depuración (cada 0.5s para no saturar) ===
+            if (Time.frameCount % 30 == 0)
+            {
+                Debug.Log($"[FeedbackSystem] Métricas: vel={metrics.averageSpeed:F3}m/s, dist={metrics.totalDistance:F3}m, " +
+                          $"rot={metrics.totalRotation:F1}°, dirChanges={metrics.directionChanges}, " +
+                          $"progress={Mathf.RoundToInt(progress * 100)}%, defGesto={(gestureDefinition != null ? gestureDefinition.gestureName : "NULL")}");
+            }
+
+            // === MESSAGE LATCH: si estamos en hold, seguir analizando pero no emitir mensajes ===
+            bool canEmitMessage = Time.time >= messageLatchUntil;
+
+            // Analizar progreso con métricas completas y definición del gesto
             dynamicFeedbackAnalyzer?.AnalyzeProgress(gestureName, progress, metrics, gestureDefinition);
 
-            // Actualizar mensaje si hay un problema detectado
+            // Obtener el resultado del analizador
             var result = dynamicFeedbackAnalyzer?.GetCurrentResult();
-            if (result.HasValue && result.Value.issue != DynamicMovementIssue.None)
+            DynamicMovementIssue issue = result?.issue ?? DynamicMovementIssue.None;
+            string message = result?.message ?? "Sigue el movimiento";
+
+            // Si no hay issue, mostrar el hint con porcentaje
+            if (issue == DynamicMovementIssue.None)
             {
-                UpdateFeedbackMessage(result.Value.message);
+                string hint = GetDynamicHint(gestureName);
+                if (!string.IsNullOrEmpty(hint))
+                {
+                    message = $"{hint} ({Mathf.RoundToInt(progress * 100)}%)";
+                }
+            }
+
+            // === EMITIR MENSAJE solo si no estamos en latch ===
+            if (canEmitMessage)
+            {
+                // Si hay un problema detectado => activar latch de 1s
+                if (issue != DynamicMovementIssue.None)
+                {
+                    float holdDuration = UnityEngine.Random.Range(errorMessageHoldMin, errorMessageHoldMax);
+                    messageLatchUntil = Time.time + holdDuration;
+                    lastDynamicMessageWasError = true;
+                    pendingResetToIdle = false; // NO volver a Idle, seguir evaluando
+
+                    UpdateFeedbackMessage(message);
+                    Debug.Log($"[FeedbackSystem] Issue detectado: {issue} - '{message}' (hold {holdDuration:F1}s, progreso continúa)");
+                }
+                else
+                {
+                    UpdateFeedbackMessage(message);
+                }
             }
         }
 
@@ -1389,52 +1517,73 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Parsea el string de razón a enum FailureReason.
+        /// Normaliza tildes para matching robusto.
         /// </summary>
         private FailureReason ParseFailureReason(string reason)
         {
             if (string.IsNullOrEmpty(reason))
                 return FailureReason.Unknown;
 
-            string lowerReason = reason.ToLower();
+            // Normalizar: minúsculas y quitar tildes
+            string lowerReason = RemoveAccents(reason.ToLower());
 
-            if (lowerReason.Contains("pose") && lowerReason.Contains("perdida") ||
-                lowerReason.Contains("pose") && lowerReason.Contains("lost"))
+            if (lowerReason.Contains("pose") && (lowerReason.Contains("perdida") || lowerReason.Contains("lost")))
                 return FailureReason.PoseLost;
 
             if (lowerReason.Contains("velocidad") || lowerReason.Contains("speed"))
             {
-                if (lowerReason.Contains("baja") || lowerReason.Contains("low"))
+                if (lowerReason.Contains("baja") || lowerReason.Contains("low") || lowerReason.Contains("lento"))
                     return FailureReason.SpeedTooLow;
-                if (lowerReason.Contains("alta") || lowerReason.Contains("high"))
+                if (lowerReason.Contains("alta") || lowerReason.Contains("high") || lowerReason.Contains("rapido"))
                     return FailureReason.SpeedTooHigh;
             }
 
-            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance"))
+            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance") || lowerReason.Contains("corto"))
                 return FailureReason.DistanceTooShort;
 
             if (lowerReason.Contains("direccion") || lowerReason.Contains("direction"))
             {
-                if (lowerReason.Contains("cambios") || lowerReason.Contains("changes"))
+                if (lowerReason.Contains("cambios") || lowerReason.Contains("changes") || lowerReason.Contains("insuficientes"))
                     return FailureReason.DirectionChangesInsufficient;
                 return FailureReason.DirectionWrong;
             }
 
-            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation"))
+            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation") || lowerReason.Contains("giro"))
                 return FailureReason.RotationInsufficient;
 
-            if (lowerReason.Contains("circular"))
+            if (lowerReason.Contains("circular") || lowerReason.Contains("circulo"))
                 return FailureReason.NotCircular;
 
-            if (lowerReason.Contains("timeout") || lowerReason.Contains("tiempo"))
+            if (lowerReason.Contains("timeout") || lowerReason.Contains("tiempo") || lowerReason.Contains("excedido"))
                 return FailureReason.Timeout;
 
-            if (lowerReason.Contains("tracking"))
+            if (lowerReason.Contains("tracking") || lowerReason.Contains("visible"))
                 return FailureReason.TrackingLost;
 
-            if (lowerReason.Contains("final") || lowerReason.Contains("end"))
+            if (lowerReason.Contains("zona") || lowerReason.Contains("espacial") || lowerReason.Contains("fuera"))
+                return FailureReason.OutOfZone;
+
+            if (lowerReason.Contains("final") || lowerReason.Contains("end") || lowerReason.Contains("requisitos"))
                 return FailureReason.EndPoseMismatch;
 
             return FailureReason.Unknown;
+        }
+
+        /// <summary>
+        /// Elimina tildes y diacríticos para matching robusto.
+        /// </summary>
+        private string RemoveAccents(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            return text
+                .Replace('á', 'a').Replace('à', 'a').Replace('ä', 'a').Replace('â', 'a')
+                .Replace('é', 'e').Replace('è', 'e').Replace('ë', 'e').Replace('ê', 'e')
+                .Replace('í', 'i').Replace('ì', 'i').Replace('ï', 'i').Replace('î', 'i')
+                .Replace('ó', 'o').Replace('ò', 'o').Replace('ö', 'o').Replace('ô', 'o')
+                .Replace('ú', 'u').Replace('ù', 'u').Replace('ü', 'u').Replace('û', 'u')
+                .Replace('ñ', 'n');
         }
 
         /// <summary>

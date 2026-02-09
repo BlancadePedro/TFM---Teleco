@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.XR.Hands;
 using ASL_LearnVR.Data;
+using ASL_LearnVR.LearningModule.GuideHand;
+using ASL_LearnVR.Feedback;
 
 namespace ASL_LearnVR.LearningModule
 {
     /// <summary>
     /// Controla las "ghost hands" que muestran visualmente cómo hacer un signo ASL.
-    /// Para gestos estáticos: muestra la pose directamente.
+    /// Para gestos estáticos: muestra la pose directamente usando GuideHandPoseApplier.
     /// Para gestos dinámicos (J, Z): reproduce una animación o grabación.
     /// IMPORTANTE: Las ghost hands están DESACOPLADAS del tracking real del usuario.
     /// Se posicionan en un punto fijo del espacio y solo reproducen la pose/animación del signo.
@@ -19,6 +21,13 @@ namespace ASL_LearnVR.LearningModule
 
         [Tooltip("Referencia al GameObject de la mano derecha fantasma")]
         [SerializeField] private GameObject rightGhostHand;
+
+        [Header("Pose Appliers")]
+        [Tooltip("Componente que aplica poses a la mano izquierda")]
+        [SerializeField] private GuideHandPoseApplier leftPoseApplier;
+
+        [Tooltip("Componente que aplica poses a la mano derecha")]
+        [SerializeField] private GuideHandPoseApplier rightPoseApplier;
 
         [Header("Positioning")]
         [Tooltip("Posición fija donde aparecen las ghost hands (relativa al XR Origin)")]
@@ -43,6 +52,10 @@ namespace ASL_LearnVR.LearningModule
 
         [Tooltip("Tiempo que las ghost hands permanecen visibles para gestos estáticos")]
         [SerializeField] private float staticPoseDisplayTime = 3f;
+
+        [Header("Auto Setup")]
+        [Tooltip("Intentar configurar automáticamente los pose appliers al iniciar")]
+        [SerializeField] private bool autoSetupPoseAppliers = true;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = false;
@@ -91,8 +104,49 @@ namespace ASL_LearnVR.LearningModule
             // Aplica el material fantasma
             ApplyGhostMaterial();
 
+            // Configurar pose appliers automáticamente si está habilitado
+            if (autoSetupPoseAppliers)
+            {
+                SetupPoseAppliers();
+            }
+
             // Oculta las ghost hands al inicio
             SetGhostHandsVisible(false);
+        }
+
+        /// <summary>
+        /// Configura los GuideHandPoseApplier automáticamente.
+        /// Intenta encontrar o crear los componentes y mapear los joints.
+        /// </summary>
+        private void SetupPoseAppliers()
+        {
+            // Left hand
+            if (leftGhostHand != null && leftPoseApplier == null)
+            {
+                leftPoseApplier = leftGhostHand.GetComponent<GuideHandPoseApplier>();
+                if (leftPoseApplier == null)
+                {
+                    leftPoseApplier = leftGhostHand.AddComponent<GuideHandPoseApplier>();
+                }
+                leftPoseApplier.AutoMapJointsFromHierarchy(leftGhostHand.transform);
+
+                if (showDebugLogs)
+                    Debug.Log("GhostHandPlayer: GuideHandPoseApplier configurado en LeftGhostHand");
+            }
+
+            // Right hand
+            if (rightGhostHand != null && rightPoseApplier == null)
+            {
+                rightPoseApplier = rightGhostHand.GetComponent<GuideHandPoseApplier>();
+                if (rightPoseApplier == null)
+                {
+                    rightPoseApplier = rightGhostHand.AddComponent<GuideHandPoseApplier>();
+                }
+                rightPoseApplier.AutoMapJointsFromHierarchy(rightGhostHand.transform);
+
+                if (showDebugLogs)
+                    Debug.Log("GhostHandPlayer: GuideHandPoseApplier configurado en RightGhostHand");
+            }
         }
 
         /// <summary>
@@ -244,6 +298,7 @@ namespace ASL_LearnVR.LearningModule
 
         /// <summary>
         /// Reproduce un gesto estático (muestra la pose durante un tiempo).
+        /// Usa GuideHandPoseApplier para aplicar la pose del signo a los joints.
         /// </summary>
         private void PlayStaticGesture()
         {
@@ -255,17 +310,105 @@ namespace ASL_LearnVR.LearningModule
             // Asegura que las ghost hands estén en su posición fija
             PositionGhostHands();
 
-            // TODO: Aquí aplicarías la pose del Hand Shape/Pose al skeleton de las ghost hands
-            // Por ahora, simplemente muestra las manos en su pose por defecto
-            // En una implementación completa, necesitarías:
-            // 1. Obtener los datos de joint positions del Hand Shape
-            // 2. Aplicar las rotaciones de los joints manualmente (sin XRHandSkeletonDriver)
-            // 3. Usar Animator o manipulación directa de transforms de los joints
+            // Aplicar la pose del signo usando GuideHandPoseApplier
+            ApplySignPose(currentSign);
 
             SetGhostHandsVisible(true);
 
             // Oculta después del tiempo especificado
             Invoke(nameof(StopPlaying), staticPoseDisplayTime);
+        }
+
+        /// <summary>
+        /// Aplica la pose del signo a las ghost hands usando los pose appliers.
+        /// </summary>
+        private void ApplySignPose(SignData sign)
+        {
+            if (sign == null)
+                return;
+
+            // Obtener la pose desde la biblioteca ASL
+            var pose = ASLPoseLibrary.GetPoseBySignName(sign.signName);
+
+            if (pose == null)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"GhostHandPlayer: No se encontró pose para '{sign.signName}'");
+                return;
+            }
+
+            // Aplicar a mano derecha (la más común para ASL)
+            if (rightPoseApplier != null)
+            {
+                rightPoseApplier.ApplyPose(pose);
+
+                if (showDebugLogs)
+                    Debug.Log($"GhostHandPlayer: Pose '{pose.poseName}' aplicada a RightGhostHand");
+            }
+
+            // Aplicar a mano izquierda también (espejada)
+            if (leftPoseApplier != null)
+            {
+                leftPoseApplier.ApplyPose(pose);
+
+                if (showDebugLogs)
+                    Debug.Log($"GhostHandPlayer: Pose '{pose.poseName}' aplicada a LeftGhostHand");
+            }
+        }
+
+        /// <summary>
+        /// Aplica una pose específica por nombre a las ghost hands.
+        /// Útil para mostrar poses sin necesidad de un SignData.
+        /// </summary>
+        public void ApplyPoseByName(string poseName)
+        {
+            var pose = ASLPoseLibrary.GetPoseBySignName(poseName);
+
+            if (pose == null)
+            {
+                if (showDebugLogs)
+                    Debug.LogWarning($"GhostHandPlayer: No se encontró pose para '{poseName}'");
+                return;
+            }
+
+            if (rightPoseApplier != null)
+                rightPoseApplier.ApplyPose(pose);
+
+            if (leftPoseApplier != null)
+                leftPoseApplier.ApplyPose(pose);
+        }
+
+        /// <summary>
+        /// Aplica una pose desde un FingerConstraintProfile.
+        /// Útil para mostrar exactamente la pose objetivo del feedback.
+        /// </summary>
+        public void ApplyPoseFromProfile(FingerConstraintProfile profile)
+        {
+            if (profile == null)
+                return;
+
+            var pose = ASLPoseLibrary.FromConstraintProfile(profile);
+
+            if (rightPoseApplier != null)
+                rightPoseApplier.ApplyPose(pose);
+
+            if (leftPoseApplier != null)
+                leftPoseApplier.ApplyPose(pose);
+
+            if (showDebugLogs)
+                Debug.Log($"GhostHandPlayer: Pose desde perfil '{profile.signName}' aplicada");
+        }
+
+        /// <summary>
+        /// Resetea las ghost hands a su pose original (mano abierta).
+        /// </summary>
+        public void ResetPose()
+        {
+            if (rightPoseApplier != null)
+                rightPoseApplier.ResetToOriginal();
+
+            if (leftPoseApplier != null)
+                leftPoseApplier.ResetToOriginal();
         }
 
         // NOTA: Método deshabilitado - gestos dinámicos no soportados
@@ -289,9 +432,69 @@ namespace ASL_LearnVR.LearningModule
             isPlaying = false;
             SetGhostHandsVisible(false);
 
+            // Resetear poses para la próxima vez
+            ResetPose();
+
             if (showDebugLogs)
                 Debug.Log("GhostHandPlayer: Reproducción detenida.");
         }
+
+        /// <summary>
+        /// Muestra las ghost hands con una pose específica sin límite de tiempo.
+        /// Útil para mostrar la pose guía durante toda la práctica.
+        /// </summary>
+        public void ShowPersistentGuide(SignData sign)
+        {
+            if (sign == null)
+            {
+                Debug.LogError("GhostHandPlayer: SignData es null.");
+                return;
+            }
+
+            currentSign = sign;
+            isPlaying = true;
+
+            // Cancelar cualquier auto-ocultación pendiente
+            CancelInvoke(nameof(StopPlaying));
+
+            PositionGhostHands();
+            ApplySignPose(sign);
+            SetGhostHandsVisible(true);
+
+            if (showDebugLogs)
+                Debug.Log($"GhostHandPlayer: Guía persistente mostrada para '{sign.signName}'");
+        }
+
+        /// <summary>
+        /// Oculta la guía persistente.
+        /// </summary>
+        public void HidePersistentGuide()
+        {
+            CancelInvoke(nameof(StopPlaying));
+            StopPlaying();
+        }
+
+        /// <summary>
+        /// Configura qué mano mostrar (solo derecha, solo izquierda, o ambas).
+        /// </summary>
+        public void SetHandsToShow(bool showLeft, bool showRight)
+        {
+            if (leftGhostHand != null && isPlaying)
+                leftGhostHand.SetActive(showLeft);
+
+            if (rightGhostHand != null && isPlaying)
+                rightGhostHand.SetActive(showRight);
+        }
+
+        /// <summary>
+        /// Obtiene el GuideHandPoseApplier de la mano derecha para configuración avanzada.
+        /// </summary>
+        public GuideHandPoseApplier RightPoseApplier => rightPoseApplier;
+
+        /// <summary>
+        /// Obtiene el GuideHandPoseApplier de la mano izquierda para configuración avanzada.
+        /// </summary>
+        public GuideHandPoseApplier LeftPoseApplier => leftPoseApplier;
 
         /// <summary>
         /// Muestra u oculta las ghost hands.

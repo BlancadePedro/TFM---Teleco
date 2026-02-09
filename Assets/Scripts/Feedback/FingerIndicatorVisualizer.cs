@@ -234,7 +234,7 @@ namespace ASL_LearnVR.Feedback
             GameObject prefab = severity switch
             {
                 Severity.Major => errorIndicatorPrefab,
-                Severity.Minor => warningIndicatorPrefab,
+                Severity.Minor => errorIndicatorPrefab, // Sin estado naranja: los menores tambiÃ©n usan rojo
                 Severity.None => correctIndicatorPrefab,
                 _ => null
             };

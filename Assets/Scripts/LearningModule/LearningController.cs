@@ -509,7 +509,7 @@ namespace ASL_LearnVR.LearningModule
                 // Solo si FeedbackSystem no está activo
                 if (feedbackSystem == null || !feedbackSystem.IsActive)
                 {
-                    UpdateFeedbackText("Initial pose detected, make the gesture.");
+                    UpdateFeedbackText("Pose inicial detectada, haz el movimiento.");
                 }
                 return;
             }
@@ -519,7 +519,7 @@ namespace ASL_LearnVR.LearningModule
                 // Gesto estático normal - solo si FeedbackSystem no está activo
                 if (feedbackSystem == null || !feedbackSystem.IsActive)
                 {
-                    UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
+                    UpdateFeedbackText($"¡Correcto! Signo '{sign.signName}' detectado.");
                 }
             }
             // Si no coincide con ningún caso, no mostrar nada
@@ -542,7 +542,7 @@ namespace ASL_LearnVR.LearningModule
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {
-                UpdateFeedbackText("Make the sign to practice...");
+                UpdateFeedbackText("Haz el signo para practicar...");
             }
         }
 
@@ -560,7 +560,7 @@ namespace ASL_LearnVR.LearningModule
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {
-                UpdateFeedbackText($"'{gestureName}' started! Keep moving...");
+                UpdateFeedbackText($"'{gestureName}' iniciado. ¡Sigue moviéndote!");
             }
         }
 
@@ -580,7 +580,7 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
-            UpdateFeedbackText($"Perfect! '{gestureName}' completed!");
+            UpdateFeedbackText($"¡Perfecto! '{gestureName}' completado.");
 
             // Marcar que estamos mostrando mensaje de éxito
             isShowingSuccessMessage = true;
@@ -604,7 +604,7 @@ namespace ASL_LearnVR.LearningModule
             // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
             {
-                UpdateFeedbackText($"Try again '{gestureName}'. {reason}");
+                UpdateFeedbackText($"Inténtalo de nuevo: '{gestureName}'. {reason}");
             }
         }
 
@@ -630,7 +630,7 @@ namespace ASL_LearnVR.LearningModule
         private void ClearSuccessMessage()
         {
             isShowingSuccessMessage = false;
-            UpdateFeedbackText("Make the sign to practice...");
+            UpdateFeedbackText("Haz el signo para practicar...");
         }
 
         /// <summary>

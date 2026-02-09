@@ -1221,22 +1221,27 @@ namespace ASL.DynamicGestures
             if (string.IsNullOrEmpty(reason))
                 return FailureReason.Unknown;
 
-            string lowerReason = reason.ToLower();
+            // Normalizar: minúsculas y quitar tildes para matching robusto
+            string lowerReason = RemoveAccents(reason.ToLower());
 
+            // Pose perdida (intermedia o inicial)
             if (lowerReason.Contains("pose") && (lowerReason.Contains("perdida") || lowerReason.Contains("lost")))
                 return FailureReason.PoseLost;
 
+            // Velocidad
             if (lowerReason.Contains("velocidad") || lowerReason.Contains("speed"))
             {
-                if (lowerReason.Contains("baja") || lowerReason.Contains("low"))
+                if (lowerReason.Contains("baja") || lowerReason.Contains("low") || lowerReason.Contains("lento"))
                     return FailureReason.SpeedTooLow;
-                if (lowerReason.Contains("alta") || lowerReason.Contains("high"))
+                if (lowerReason.Contains("alta") || lowerReason.Contains("high") || lowerReason.Contains("rapido"))
                     return FailureReason.SpeedTooHigh;
             }
 
-            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance"))
+            // Distancia
+            if (lowerReason.Contains("distancia") || lowerReason.Contains("distance") || lowerReason.Contains("corto"))
                 return FailureReason.DistanceTooShort;
 
+            // Dirección (ahora sin tilde por RemoveAccents)
             if (lowerReason.Contains("direccion") || lowerReason.Contains("direction"))
             {
                 if (lowerReason.Contains("cambios") || lowerReason.Contains("changes") || lowerReason.Contains("insuficientes"))
@@ -1244,22 +1249,49 @@ namespace ASL.DynamicGestures
                 return FailureReason.DirectionWrong;
             }
 
-            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation"))
+            // Rotación (ahora sin tilde por RemoveAccents)
+            if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation") || lowerReason.Contains("giro"))
                 return FailureReason.RotationInsufficient;
 
-            if (lowerReason.Contains("circular"))
+            // Circular
+            if (lowerReason.Contains("circular") || lowerReason.Contains("circulo"))
                 return FailureReason.NotCircular;
 
+            // Timeout
             if (lowerReason.Contains("timeout") || lowerReason.Contains("tiempo") || lowerReason.Contains("excedido"))
                 return FailureReason.Timeout;
 
-            if (lowerReason.Contains("tracking"))
+            // Tracking perdido
+            if (lowerReason.Contains("tracking") || lowerReason.Contains("visible"))
                 return FailureReason.TrackingLost;
 
-            if (lowerReason.Contains("final") || lowerReason.Contains("end"))
+            // Zona espacial (fuera de zona)
+            if (lowerReason.Contains("zona") || lowerReason.Contains("espacial") || lowerReason.Contains("fuera"))
+                return FailureReason.OutOfZone;
+
+            // Requisitos finales no cumplidos
+            if (lowerReason.Contains("final") || lowerReason.Contains("end") || lowerReason.Contains("requisitos"))
                 return FailureReason.EndPoseMismatch;
 
             return FailureReason.Unknown;
+        }
+
+        /// <summary>
+        /// Elimina tildes y diacríticos para matching robusto de strings.
+        /// </summary>
+        private string RemoveAccents(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            // Reemplazar caracteres acentuados comunes
+            return text
+                .Replace('á', 'a').Replace('à', 'a').Replace('ä', 'a').Replace('â', 'a')
+                .Replace('é', 'e').Replace('è', 'e').Replace('ë', 'e').Replace('ê', 'e')
+                .Replace('í', 'i').Replace('ì', 'i').Replace('ï', 'i').Replace('î', 'i')
+                .Replace('ó', 'o').Replace('ò', 'o').Replace('ö', 'o').Replace('ô', 'o')
+                .Replace('ú', 'u').Replace('ù', 'u').Replace('ü', 'u').Replace('û', 'u')
+                .Replace('ñ', 'n');
         }
 
         /// <summary>

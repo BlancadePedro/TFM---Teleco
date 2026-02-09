@@ -44,7 +44,7 @@ namespace ASL_LearnVR.Feedback
         [SerializeField] private Color colorSuccess = new Color(0.2f, 0.8f, 0.2f);
 
         [Tooltip("Color para advertencia")]
-        [SerializeField] private Color colorWarning = new Color(1f, 0.7f, 0f);
+        [SerializeField] private Color colorWarning = new Color(1f, 0.3f, 0.3f);
 
         [Tooltip("Color para error")]
         [SerializeField] private Color colorError = new Color(1f, 0.3f, 0.3f);
@@ -66,6 +66,10 @@ namespace ASL_LearnVR.Feedback
 
         void Awake()
         {
+            // Usar el propio GameObject como panel por defecto si no se asignÃ³
+            if (feedbackPanel == null)
+                feedbackPanel = gameObject;
+
             canvasGroup = GetComponent<CanvasGroup>();
             if (canvasGroup == null && feedbackPanel != null)
             {
@@ -75,8 +79,7 @@ namespace ASL_LearnVR.Feedback
 
         void Start()
         {
-            // Ocultar paneles al inicio
-            SetVisible(false);
+            // Solo ocultar el panel de éxito al inicio; el panel principal se controla desde FeedbackSystem.SetActive
             if (successPanel != null)
                 successPanel.SetActive(false);
         }
@@ -128,13 +131,14 @@ namespace ASL_LearnVR.Feedback
             }
             else if (result.minorErrorCount > 0)
             {
-                SetWarningState(result.summaryMessage);
+                // Sin color naranja: los ajustes menores tambiÃ©n se muestran en rojo
+                SetErrorState(result.summaryMessage);
             }
             else
             {
                 // Sin errores pero tampoco match global: usar mensaje generado (ej. "Hand not tracked")
                 SetWaitingState(string.IsNullOrEmpty(result.summaryMessage)
-                    ? "Make the sign to practice..."
+                    ? "Haz el signo para practicar..."
                     : result.summaryMessage);
             }
         }
@@ -149,7 +153,7 @@ namespace ASL_LearnVR.Feedback
 
             if (result.isSuccess)
             {
-                ShowSuccessMessage($"'{result.gestureName}' completed!");
+                ShowSuccessMessage($"¡'{result.gestureName}' completado!");
             }
             else
             {
@@ -162,13 +166,13 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         public void ShowDynamicProgress(string gestureName, float progress)
         {
-            SetProgressState($"'{gestureName}' in progress... {Mathf.RoundToInt(progress * 100)}%");
+            SetProgressState($"'{gestureName}' en progreso... {Mathf.RoundToInt(progress * 100)}%");
         }
 
         /// <summary>
         /// Establece estado de espera (neutral).
         /// </summary>
-        public void SetWaitingState(string message = "Make the sign to practice...")
+        public void SetWaitingState(string message = "Haz el signo para practicar...")
         {
             currentState = FeedbackState.Waiting;
             SetText(message);
@@ -178,7 +182,7 @@ namespace ASL_LearnVR.Feedback
         /// <summary>
         /// Establece estado de éxito.
         /// </summary>
-        public void SetSuccessState(string message = "Great! Position correct.")
+        public void SetSuccessState(string message = "¡Perfecto! Posición correcta.")
         {
             currentState = FeedbackState.Success;
             SetText(message);
@@ -190,9 +194,10 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         public void SetWarningState(string message)
         {
-            currentState = FeedbackState.PartialMatch;
+            // Se usa el mismo tratamiento visual que error (rojo) para simplificar feedback
+            currentState = FeedbackState.ShowingErrors;
             SetText(message);
-            SetStatusIcon(iconWarning, colorWarning);
+            SetStatusIcon(iconError != null ? iconError : iconWarning, colorError);
         }
 
         /// <summary>

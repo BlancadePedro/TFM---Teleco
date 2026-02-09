@@ -7,7 +7,7 @@ namespace ASL_LearnVR.Feedback
 {
     /// <summary>
     /// Status visual para los overlays de dedos.
-    /// Mapea a los colores: Correct=verde, Almost=amarillo, Wrong=rojo, None=transparente.
+    /// Mapea a los colores: Correct=verde, Almost=rojo (sin naranjas), Wrong=rojo, None=transparente.
     /// </summary>
     public enum FingerOverlayStatus
     {
@@ -44,7 +44,7 @@ namespace ASL_LearnVR.Feedback
         public Color correctColor = new Color(0.2f, 1f, 0.2f, 0.8f);
 
         [Tooltip("Color cuando el dedo está casi correcto")]
-        public Color almostColor = new Color(1f, 0.85f, 0.2f, 0.8f);
+        public Color almostColor = new Color(1f, 0.2f, 0.2f, 0.8f);
 
         [Tooltip("Color cuando el dedo está incorrecto")]
         public Color wrongColor = new Color(1f, 0.2f, 0.2f, 0.8f);
@@ -147,7 +147,7 @@ namespace ASL_LearnVR.Feedback
             return severity switch
             {
                 Severity.None => FingerOverlayStatus.Correct,  // Sin error = correcto
-                Severity.Minor => FingerOverlayStatus.Almost,  // Error menor = casi
+                Severity.Minor => FingerOverlayStatus.Wrong,   // Error menor = corregir (rojo)
                 Severity.Major => FingerOverlayStatus.Wrong,   // Error mayor = incorrecto
                 _ => FingerOverlayStatus.None
             };

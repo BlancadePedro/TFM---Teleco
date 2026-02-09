@@ -402,7 +402,8 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Analiza todos los dedos contra el perfil de constraints.
-        /// IMPORTANTE: Siempre genera feedback para CADA dedo, indicando su estado actual.
+        /// Usa la filosofía de TRES ESTADOS: Extendido, Curvado, Cerrado.
+        /// Genera errores semánticos que distinguen entre curvar y cerrar.
         /// </summary>
         private void AnalyzeAllFingers(FingerConstraintProfile profile)
         {
@@ -416,80 +417,121 @@ namespace ASL_LearnVR.Feedback
 
                 float currentCurl = currentCurlValues[i];
 
-                // Usar tolerancia reducida para feedback más preciso, pero con margen mínimo para evitar ruido
+                // === FILOSOFÍA DE TRES ESTADOS ===
+                // Determinar estado actual y esperado
+                FingerShapeState currentState = FeedbackMessages.GetFingerState(currentCurl);
+                FingerShapeState expectedState = constraint.expectedState;
+
+                // Usar tolerancia reducida para feedback más preciso
                 float effectiveTolerance = Mathf.Max(curlTolerance * 0.5f, 0.08f);
                 if (finger == Finger.Thumb)
                 {
-                    // Pulgar suele tener lecturas más ruidosas, ampliamos tolerancia para evitar falsos rojos.
                     effectiveTolerance = Mathf.Max(effectiveTolerance, 0.12f);
                 }
                 float minWithTolerance = Mathf.Max(0f, constraint.curl.minCurl - effectiveTolerance);
                 float maxWithTolerance = Mathf.Min(1f, constraint.curl.maxCurl + effectiveTolerance);
 
-                FingerErrorType errorType = FingerErrorType.None;
-                Severity severity = Severity.None;
-
-                // Calcular qué tan lejos está del rango correcto
+                // Calcular desviación del rango
                 float deviation = 0f;
+                bool outOfRange = false;
                 if (currentCurl < minWithTolerance)
                 {
-                    errorType = FingerErrorType.TooExtended;
                     deviation = minWithTolerance - currentCurl;
+                    outOfRange = true;
                 }
                 else if (currentCurl > maxWithTolerance)
                 {
-                    errorType = FingerErrorType.TooCurled;
                     deviation = currentCurl - maxWithTolerance;
+                    outOfRange = true;
                 }
 
-                if (errorType != FingerErrorType.None)
+                if (!outOfRange)
+                    continue;
+
+                // Determinar severidad basada en desviación
+                Severity severity = Severity.None;
+                if (deviation > 0.18f)
+                    severity = Severity.Major;
+                else if (deviation > 0.08f)
+                    severity = Severity.Minor;
+                else
+                    continue; // Dentro de tolerancia extendida
+
+                // === OBTENER TIPO DE ERROR SEMÁNTICO ===
+                FingerErrorType errorType = FeedbackMessages.GetSemanticErrorType(currentState, expectedState);
+
+                // Fallback a errores legacy si no hay diferencia semántica clara
+                if (errorType == FingerErrorType.None)
                 {
-                    // Determinar severidad basada en qué tan lejos está
-                    // Mayor = desviación > 0.18, Menor = desviación 0.08-0.18 (filtrando jitter)
-                    if (deviation > 0.18f)
-                        severity = Severity.Major;
-                    else if (deviation > 0.08f)
-                        severity = Severity.Minor;
-                    else
-                        severity = Severity.None; // Dentro de tolerancia extendida
+                    errorType = currentCurl < minWithTolerance
+                        ? FingerErrorType.TooExtended
+                        : FingerErrorType.TooCurled;
+                }
 
-                    // Relajar severidad en pulgar para evitar rojos persistentes
-                    if (finger == Finger.Thumb && severity == Severity.Major && deviation < 0.25f)
+                // Suavizar severidad en casos específicos
+                // Si está curvado y esperamos cerrado, reducir a Minor (está en camino)
+                if (currentState == FingerShapeState.Curved &&
+                    expectedState == FingerShapeState.Closed &&
+                    severity == Severity.Major)
+                {
+                    severity = Severity.Minor;
+                }
+
+                // Relajar severidad en pulgar
+                if (finger == Finger.Thumb && severity == Severity.Major && deviation < 0.25f)
+                {
+                    severity = Severity.Minor;
+                }
+
+                if (severity == Severity.None)
+                    continue;
+
+                // === GENERAR MENSAJE SEMÁNTICO ===
+                float expectedValue = (constraint.curl.minCurl + constraint.curl.maxCurl) / 2f;
+                string fingerName = FeedbackMessages.GetFingerName(finger);
+                string message;
+
+                // Intentar usar mensaje personalizado del constraint
+                string customMsg = constraint.GetMessage(errorType);
+                if (!string.IsNullOrEmpty(customMsg) && !customMsg.StartsWith("Ajusta"))
+                {
+                    message = customMsg;
+                }
+                else
+                {
+                    // Generar mensaje basado en el tipo de error semántico
+                    message = errorType switch
                     {
-                        severity = Severity.Minor;
-                    }
+                        FingerErrorType.NeedsCurve =>
+                            $"Curva el {fingerName} (sin cerrar puño)",
+                        FingerErrorType.NeedsFist =>
+                            $"Cierra el {fingerName} en puño",
+                        FingerErrorType.TooMuchCurl =>
+                            $"Suelta el {fingerName}, no cierres puño",
+                        FingerErrorType.NeedsExtend =>
+                            $"Estira el {fingerName}",
+                        FingerErrorType.TooExtended =>
+                            $"Flexiona el {fingerName}",
+                        FingerErrorType.TooCurled =>
+                            $"Abre el {fingerName}",
+                        _ => FeedbackMessages.GetCorrectionMessage(finger, errorType, severity)
+                    };
+                }
 
-                    if (severity != Severity.None)
-                    {
-                        float expectedValue = (constraint.curl.minCurl + constraint.curl.maxCurl) / 2f;
+                errorList.Add(new FingerError(
+                    finger,
+                    errorType,
+                    severity,
+                    currentCurl,
+                    expectedValue,
+                    message
+                ));
 
-                        // Generar mensaje específico con valores actuales
-                        string fingerName = FeedbackMessages.GetFingerName(finger);
-                        string message = errorType == FingerErrorType.TooExtended
-                            ? $"Curl your {fingerName} more ({Mathf.RoundToInt(currentCurl * 100)}% -> {Mathf.RoundToInt(constraint.curl.minCurl * 100)}%+)"
-                            : $"Extend your {fingerName} more ({Mathf.RoundToInt(currentCurl * 100)}% -> {Mathf.RoundToInt(constraint.curl.maxCurl * 100)}%-)";
-
-                        // Usar mensaje personalizado si está disponible
-                        string customMsg = constraint.GetMessage(errorType);
-                        if (!string.IsNullOrEmpty(customMsg) && !customMsg.StartsWith("Adjust"))
-                        {
-                            message = customMsg;
-                        }
-
-                        errorList.Add(new FingerError(
-                            finger,
-                            errorType,
-                            severity,
-                            currentCurl,
-                            expectedValue,
-                            message
-                        ));
-
-                        if (showDebugLogs)
-                        {
-                            Debug.Log($"[HandPoseAnalyzer] {finger}: {errorType} (actual={currentCurl:F2}, rango={minWithTolerance:F2}-{maxWithTolerance:F2}, desv={deviation:F2})");
-                        }
-                    }
+                if (showDebugLogs)
+                {
+                    Debug.Log($"[HandPoseAnalyzer] {finger}: {errorType} " +
+                             $"(estado={currentState}->{expectedState}, curl={currentCurl:F2}, " +
+                             $"rango={minWithTolerance:F2}-{maxWithTolerance:F2}, desv={deviation:F2})");
                 }
             }
 
@@ -668,11 +710,15 @@ namespace ASL_LearnVR.Feedback
             float angle = Vector3.Angle(palmForward.normalized, profile.expectedPalmDirection.normalized);
             if (angle > profile.orientationTolerance)
             {
+                string orientationMessage = !string.IsNullOrEmpty(profile.orientationHint)
+                    ? profile.orientationHint
+                    : "Gira la muneca hacia el lado del gesto";
+
                 errorList.Add(FingerError.Create(
                     Finger.Thumb,
                     FingerErrorType.RotationWrong,
                     Severity.Minor,
-                    "Gira la muñeca hacia el lado del gesto"
+                    orientationMessage
                 ));
             }
         }

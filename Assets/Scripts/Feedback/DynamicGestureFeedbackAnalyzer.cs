@@ -256,6 +256,9 @@ namespace ASL_LearnVR.Feedback
                 FailureReason.DirectionChangesInsufficient => DynamicMovementIssue.NeedMoreDirectionChanges,
                 FailureReason.RotationInsufficient => DynamicMovementIssue.RotationInsufficient,
                 FailureReason.NotCircular => DynamicMovementIssue.NotCircular,
+                FailureReason.OutOfZone => DynamicMovementIssue.DirectionWrong, // Similar a dirección incorrecta
+                FailureReason.PoseLost => DynamicMovementIssue.None, // Pose, no movimiento
+                FailureReason.Timeout => DynamicMovementIssue.TooSlow, // Si hay timeout, probablemente fue lento
                 _ => DynamicMovementIssue.None
             };
         }

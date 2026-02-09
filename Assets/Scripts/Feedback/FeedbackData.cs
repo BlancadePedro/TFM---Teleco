@@ -24,22 +24,86 @@ namespace ASL_LearnVR.Feedback
     {
         /// <summary>Sin error, el dedo está correcto.</summary>
         None = 0,
-        /// <summary>Ajuste menor requerido (naranja).</summary>
+        /// <summary>Ajuste menor requerido (se muestra en rojo).</summary>
         Minor = 1,
         /// <summary>Error mayor que impide el reconocimiento (rojo).</summary>
         Major = 2
     }
 
     /// <summary>
+    /// Estado semántico de la forma del dedo.
+    /// Distingue entre tres estados funcionales para ASL:
+    /// - Extendido: dedo recto, sin flexión
+    /// - Curvado: dedo flexionado con control, sin tocar la palma (para C, D, O, X, etc.)
+    /// - Cerrado: dedo completamente plegado formando puño (para A, S, T, etc.)
+    /// </summary>
+    public enum FingerShapeState
+    {
+        /// <summary>
+        /// Dedo extendido/recto. Sin intención de formar figura.
+        /// Ejemplo: "Deja el dedo recto, como señalando."
+        /// Rango típico de curl: 0.0 - 0.25
+        /// </summary>
+        Extended = 0,
+
+        /// <summary>
+        /// Dedo curvado con control. Flexionado pero sin cerrar contra la palma.
+        /// Hay espacio entre los dedos y la palma. Forma funcional controlada.
+        /// Ejemplo: "Dobla el dedo suavemente, como si rodearas una pelota pequeña."
+        /// Usado en signos como C, D, O, X (gancho), E, M, N.
+        /// Rango típico de curl: 0.25 - 0.75
+        /// </summary>
+        Curved,
+
+        /// <summary>
+        /// Dedo completamente cerrado/puño. Toca o presiona la palma.
+        /// Ejemplo: "Cierra el dedo del todo, formando un puño."
+        /// Usado en signos como A, S, T (con matices de posición del pulgar).
+        /// Rango típico de curl: 0.75 - 1.0
+        /// </summary>
+        Closed
+    }
+
+    /// <summary>
     /// Tipo de error específico por dedo.
+    /// Incluye errores semánticos que distinguen entre curvar y cerrar.
     /// </summary>
     public enum FingerErrorType
     {
         None = 0,
-        /// <summary>El dedo está demasiado extendido.</summary>
+
+        // === Errores clásicos (compatibilidad) ===
+        /// <summary>El dedo está demasiado extendido (genérico).</summary>
         TooExtended,
-        /// <summary>El dedo está demasiado cerrado/curvado.</summary>
+        /// <summary>El dedo está demasiado cerrado/curvado (genérico).</summary>
         TooCurled,
+
+        // === Errores semánticos de tres estados ===
+        /// <summary>
+        /// El dedo debe CURVAR (pasar de extendido a curvado).
+        /// "Curva el dedo suavemente, sin cerrar el puño."
+        /// </summary>
+        NeedsCurve,
+
+        /// <summary>
+        /// El dedo debe CERRAR completamente (pasar de curvado a puño).
+        /// "Cierra el dedo formando un puño."
+        /// </summary>
+        NeedsFist,
+
+        /// <summary>
+        /// El dedo cerró DEMASIADO (hizo puño cuando solo debía curvar).
+        /// "Suelta un poco el dedo, no formes puño."
+        /// </summary>
+        TooMuchCurl,
+
+        /// <summary>
+        /// El dedo debe EXTENDER (pasar de curvado/cerrado a recto).
+        /// "Estira el dedo completamente."
+        /// </summary>
+        NeedsExtend,
+
+        // === Errores de spread y posición ===
         /// <summary>Separación insuficiente entre dedos.</summary>
         SpreadTooNarrow,
         /// <summary>Demasiada separación entre dedos.</summary>
@@ -82,6 +146,8 @@ namespace ASL_LearnVR.Feedback
         EndPoseMismatch,
         /// <summary>Tracking de la mano perdido.</summary>
         TrackingLost,
+        /// <summary>La mano salió de la zona espacial requerida.</summary>
+        OutOfZone,
         /// <summary>Razón desconocida o no clasificada.</summary>
         Unknown
     }
@@ -540,6 +606,9 @@ namespace ASL_LearnVR.Feedback
         /// <summary>
         /// Obtiene el mensaje de corrección para un error de dedo.
         /// Usa tono menos imperativo para errores Minor.
+        /// Los mensajes distinguen semánticamente entre CURVAR y CERRAR:
+        /// - Curvar = flexionar con control, sin tocar la palma
+        /// - Cerrar = formar puño, dedo completamente plegado
         /// </summary>
         public static string GetCorrectionMessage(Finger finger, FingerErrorType errorType, Severity severity = Severity.Major)
         {
@@ -550,12 +619,37 @@ namespace ASL_LearnVR.Feedback
 
             return errorType switch
             {
+                // === Errores semánticos de tres estados (NUEVA FILOSOFÍA) ===
+
+                // CURVAR: de extendido a curvado (sin cerrar puño)
+                FingerErrorType.NeedsCurve => isMinor
+                    ? $"Curva un poco más el {fingerName}"
+                    : $"Curva el {fingerName} (sin cerrar)",
+
+                // CERRAR: de curvado a puño completo
+                FingerErrorType.NeedsFist => isMinor
+                    ? $"Cierra un poco más el {fingerName}"
+                    : $"Cierra el {fingerName} en puño",
+
+                // DEMASIADO CERRADO: hizo puño cuando solo debía curvar
+                FingerErrorType.TooMuchCurl => isMinor
+                    ? $"Suelta un poco el {fingerName}"
+                    : $"Suelta el {fingerName}, no cierres puño",
+
+                // EXTENDER: de curvado/cerrado a recto
+                FingerErrorType.NeedsExtend => isMinor
+                    ? $"Estira un poco el {fingerName}"
+                    : $"Estira el {fingerName} completamente",
+
+                // === Errores clásicos (compatibilidad) ===
                 FingerErrorType.TooExtended => isMinor
                     ? $"Flexiona un poco más el {fingerName}"
                     : $"Flexiona el {fingerName}",
                 FingerErrorType.TooCurled => isMinor
                     ? $"Estira un poco el {fingerName}"
                     : $"Estira el {fingerName}",
+
+                // === Errores de spread y posición ===
                 FingerErrorType.SpreadTooNarrow => isMinor
                     ? $"Separa un poco más los dedos"
                     : $"Separa los dedos",
@@ -581,6 +675,77 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
+        /// Determina el estado actual del dedo basándose en el valor de curl.
+        /// </summary>
+        /// <param name="curlValue">Valor de curl (0=extendido, 1=cerrado)</param>
+        /// <returns>Estado semántico del dedo</returns>
+        public static FingerShapeState GetFingerState(float curlValue)
+        {
+            // Umbrales basados en la filosofía de tres estados:
+            // - Extendido: 0.0 - 0.25 (dedo recto)
+            // - Curvado: 0.25 - 0.75 (forma controlada, sin tocar palma)
+            // - Cerrado: 0.75 - 1.0 (puño, toca palma)
+            if (curlValue < 0.25f)
+                return FingerShapeState.Extended;
+            if (curlValue < 0.75f)
+                return FingerShapeState.Curved;
+            return FingerShapeState.Closed;
+        }
+
+        /// <summary>
+        /// Determina el tipo de error semántico basándose en el estado actual y el esperado.
+        /// Esta es la función clave que implementa la filosofía de tres estados.
+        /// </summary>
+        /// <param name="currentState">Estado actual del dedo</param>
+        /// <param name="expectedState">Estado que debería tener</param>
+        /// <returns>Tipo de error semántico apropiado</returns>
+        public static FingerErrorType GetSemanticErrorType(FingerShapeState currentState, FingerShapeState expectedState)
+        {
+            if (currentState == expectedState)
+                return FingerErrorType.None;
+
+            return (currentState, expectedState) switch
+            {
+                // De extendido a curvado → NeedsCurve
+                (FingerShapeState.Extended, FingerShapeState.Curved) => FingerErrorType.NeedsCurve,
+
+                // De extendido a cerrado → NeedsFist (saltar curvado, ir a puño)
+                (FingerShapeState.Extended, FingerShapeState.Closed) => FingerErrorType.NeedsFist,
+
+                // De curvado a cerrado → NeedsFist
+                (FingerShapeState.Curved, FingerShapeState.Closed) => FingerErrorType.NeedsFist,
+
+                // De curvado a extendido → NeedsExtend
+                (FingerShapeState.Curved, FingerShapeState.Extended) => FingerErrorType.NeedsExtend,
+
+                // De cerrado a extendido → NeedsExtend
+                (FingerShapeState.Closed, FingerShapeState.Extended) => FingerErrorType.NeedsExtend,
+
+                // De cerrado a curvado → TooMuchCurl (cerró demasiado, debe soltar)
+                (FingerShapeState.Closed, FingerShapeState.Curved) => FingerErrorType.TooMuchCurl,
+
+                // Fallback
+                _ => FingerErrorType.None
+            };
+        }
+
+        /// <summary>
+        /// Obtiene una descripción amigable del estado esperado para un dedo.
+        /// Útil para feedback contextual.
+        /// </summary>
+        public static string GetStateDescription(FingerShapeState state, Finger finger)
+        {
+            string fingerName = GetFingerName(finger);
+            return state switch
+            {
+                FingerShapeState.Extended => $"{fingerName} recto, como señalando",
+                FingerShapeState.Curved => $"{fingerName} curvado, sin tocar la palma",
+                FingerShapeState.Closed => $"{fingerName} cerrado en puño",
+                _ => $"{fingerName} en posición"
+            };
+        }
+
+        /// <summary>
         /// Obtiene el mensaje de troubleshooting para un fallo de gesto dinámico.
         /// En castellano con tono constructivo.
         /// </summary>
@@ -602,13 +767,15 @@ namespace ASL_LearnVR.Feedback
                 FailureReason.SpeedTooHigh => "Muévete más lento y con control",
                 FailureReason.DistanceTooShort => $"Haz un movimiento más amplio ({metrics.totalDistance:F2}m)",
                 FailureReason.DirectionWrong => $"Muévete en la dirección correcta para '{gestureName}'",
-                FailureReason.DirectionChangesInsufficient => $"Haz más movimientos de vaivén ({metrics.directionChanges} detectados)",
+                FailureReason.DirectionChangesInsufficient => $"Haz más movimientos de sacudida ({metrics.directionChanges} detectados)",
                 FailureReason.RotationInsufficient => $"Gira más la muñeca ({metrics.totalRotation:F0}° detectados)",
                 FailureReason.NotCircular => $"Haz un movimiento más circular",
                 FailureReason.Timeout => "Completa el gesto más rápido",
                 FailureReason.EndPoseMismatch => "Termina con la forma de mano correcta",
                 FailureReason.TrackingLost => "Mantén la mano visible",
-                _ => "Inténtalo de nuevo"
+                FailureReason.OutOfZone => "Mantén la mano en la zona correcta frente a ti",
+                FailureReason.Unknown => $"Ajusta el movimiento para '{gestureName}'",
+                _ => $"Repite el gesto '{gestureName}'"
             };
         }
 
@@ -815,19 +982,21 @@ namespace ASL_LearnVR.Feedback
                 FailureReason.SpeedTooHigh => "El gesto fue demasiado rápido",
                 FailureReason.DistanceTooShort => "El movimiento fue muy corto",
                 FailureReason.DirectionWrong => "La dirección no fue correcta",
-                FailureReason.DirectionChangesInsufficient => "El movimiento no fue continuo",
+                FailureReason.DirectionChangesInsufficient => "Faltaron cambios de dirección",
                 FailureReason.RotationInsufficient => "Faltó rotación de muñeca",
                 FailureReason.NotCircular => "El movimiento no fue circular",
                 FailureReason.Timeout => "El gesto tomó demasiado tiempo",
                 FailureReason.PoseLost => phase == GesturePhase.Start
                     ? "Empezaste a moverte antes de tiempo"
-                    : "Perdiste la posición durante el movimiento",
+                    : "Perdiste la forma de la mano durante el movimiento",
                 FailureReason.EndPoseMismatch => "La pose final no fue correcta",
-                FailureReason.TrackingLost => "Mantén la mano visible",
-                _ => "Inténtalo de nuevo"
+                FailureReason.TrackingLost => "Mantén la mano visible para el sensor",
+                FailureReason.OutOfZone => "La mano salió de la zona de detección",
+                FailureReason.Unknown => $"El gesto '{gestureName}' no se completó",
+                _ => $"Repite el gesto '{gestureName}'"
             };
 
-            return $"{explanation}. Inténtalo de nuevo.";
+            return $"{explanation}. Repite manteniendo la forma de la mano.";
         }
 
         /// <summary>
