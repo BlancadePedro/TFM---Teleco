@@ -21,20 +21,20 @@ namespace ASL_LearnVR.Feedback
         private const float PARTIAL_MAX = 0.65f;
 
         // === CRITICAL DIFFERENTIATION: Full Curl vs Tip Curl ===
-        // Full Curl (A, S): Full fist completo - dedos enrollados hasta la palma
+        // Full Curl (A, S): Full fist — fingers curled all the way into the palm
         private const float FULL_CURL_MIN = 0.85f;
         private const float FULL_CURL_MAX = 1f;
 
-        // Tip Curl (E, M, N): Solo puntas curvadas hasta los nudillos - NO es puño cerrado
-        // Importante: maxCurl < FULL_CURL_MIN para evitar confusión con puño
+        // Tip Curl (E, M, N): Only fingertips curl toward the knuckles — NOT a closed fist
+        // Important: maxCurl < FULL_CURL_MIN to avoid confusion with a full fist
         private const float TIP_CURL_MIN = 0.55f;
         private const float TIP_CURL_MAX = 0.78f;
 
         /// <summary>
         /// Creates the profile for letter A.
-        /// Full fist COMPLETO (full curl) con thumb al lado de los dedos.
-        /// DIFERENCIA con E/M/N: Los dedos están completamente cerrados en puño,
-        /// NO solo las puntas curvadas.
+        /// FULL FIST (full curl) with the thumb beside the fingers.
+        /// DIFFERENCE vs E/M/N: fingers are fully closed into a fist,
+        /// NOT just fingertip curl.
         /// </summary>
         public static FingerConstraintProfile CreateLetterA()
         {
@@ -44,13 +44,13 @@ namespace ASL_LearnVR.Feedback
 
             profile.thumb = new ThumbConstraint
             {
-                // Pulgar extendido recto al costado del puño
+                // Thumb extended straight along the side of the fist
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = 0.35f, isEnabled = true, severityIfOutOfRange = Severity.Minor },
                 shouldBeBesideFingers = true,
                 customMessageGeneric = "Keep the thumb straight beside the fist (not over the fingers)."
             };
 
-            // FULL CURL: Fingers completamente cerrados formando puño
+            // FULL CURL: fingers fully closed into a fist
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
@@ -84,7 +84,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter B.
-        /// Fingers extendidos juntos, thumb cruzado sobre la palma.
+        /// Fingers extended together, thumb across the palm.
         /// </summary>
         public static FingerConstraintProfile CreateLetterB()
         {
@@ -137,7 +137,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter C.
-        /// Hand en forma de C (dedos curvados).
+        /// Hand in a C-shape (fingers curved).
         /// </summary>
         public static FingerConstraintProfile CreateLetterC()
         {
@@ -193,7 +193,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter D.
-        /// Index extendido, otros dedos tocan el thumb.
+        /// Index extended; other fingers curved toward the thumb.
         /// </summary>
         public static FingerConstraintProfile CreateLetterD()
         {
@@ -247,9 +247,9 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter E.
-        /// TIP CURL: Solo las puntas curvadas hasta los nudillos, NO puño cerrado.
-        /// DIFERENCIA con A/S: Los dedos NO están completamente cerrados,
-        /// solo las puntas tocan la palma superior.
+        /// TIP CURL: only the fingertips curl toward the knuckles, NOT a full fist.
+        /// DIFFERENCE vs A/S: fingers are NOT fully closed;
+        /// only the fingertips curl inward.
         /// </summary>
         public static FingerConstraintProfile CreateLetterE()
         {
@@ -301,7 +301,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter F.
-        /// Index y thumb forman círculo, resto extendidos.
+        /// Index and thumb form a circle; others extended.
         /// </summary>
         public static FingerConstraintProfile CreateLetterF()
         {
@@ -349,7 +349,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter G.
-        /// Pulgar e index apuntando hacia el lado.
+        /// Thumb and index pointing sideways (horizontal).
         /// </summary>
         public static FingerConstraintProfile CreateLetterG()
         {
@@ -399,7 +399,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter H.
-        /// Index y middle extendidos horizontally.
+        /// Index and middle extended sideways (horizontal).
         /// </summary>
         public static FingerConstraintProfile CreateLetterH()
         {
@@ -449,7 +449,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter I.
-        /// Solo pinky extendido.
+        /// Only pinky extended.
         /// </summary>
         public static FingerConstraintProfile CreateLetterI()
         {
@@ -495,8 +495,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Creates the profile for letter J (trajectory con index extendido).
-        /// Usamos la pose inicial con index extendido.
+        /// Creates the profile for letter J (trajectory with index extended).
+        /// Uses the starting pose with index extended.
         /// </summary>
         public static FingerConstraintProfile CreateLetterJ()
         {
@@ -543,7 +543,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter K.
-        /// Index y middle extendidos con thumb tocando middle (similar a V con thumb).
+        /// Index and middle extended, with thumb touching middle (like a V with the thumb).
         /// </summary>
         public static FingerConstraintProfile CreateLetterK()
         {
@@ -555,41 +555,41 @@ namespace ASL_LearnVR.Feedback
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 shouldTouchMiddle = true,
-                customMessageTooExtended = "Toca el pulgar con el dedo corazón",
-                customMessageTooCurled = "Toca el pulgar con el dedo corazón",
-                customMessageGeneric = "Toca el pulgar con el dedo corazón"
+                customMessageTooExtended = "Touch your thumb to your middle finger.",
+                customMessageTooCurled = "Touch your thumb to your middle finger.",
+                customMessageGeneric = "Touch your thumb to your middle finger."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el dedo índice",
+                customMessageTooCurled = "Extend your index finger.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Separa el índice y el corazón (en V)"
+                customMessageGeneric = "Separate the index and middle fingers to form a V."
             };
 
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el dedo corazón",
+                customMessageTooCurled = "Extend your middle finger.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Mantén separación entre índice y corazón"
+                customMessageGeneric = "Keep a gap between the index and middle fingers."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el dedo anular"
+                customMessageTooExtended = "Curl your ring finger."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Curl your pinky."
             };
 
             return profile;
@@ -597,10 +597,10 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter M.
-        /// TIP CURL: Pulgar debajo de TRES dedos (indice, middle, ring).
-        /// Menique tambien cerrado (no extendido).
-        /// DIFERENCIA con A/S: NO es fist cerrado, los 3 dedos usan tip curl sobre el thumb.
-        /// DIFERENCIA con N: M tiene 3 dedos sobre el thumb, N solo tiene 2.
+        /// TIP CURL: thumb under THREE fingers (index, middle, ring).
+        /// Pinky is also closed (not extended).
+        /// DIFFERENCE vs A/S: NOT a full fist; three fingers tip-curl over the thumb.
+        /// DIFFERENCE vs N: M has three fingers over the thumb; N has two.
         /// </summary>
         public static FingerConstraintProfile CreateLetterM()
         {
@@ -653,10 +653,10 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter N.
-        /// TIP CURL: Pulgar entre middle y ring (solo dos dedos lo cubren).
-        /// Anular y pinky cerrados (no extendidos).
-        /// DIFERENCIA con M: N tiene 2 dedos sobre el thumb, M tiene 3.
-        /// DIFERENCIA con A/S: NO es fist cerrado, los 2 dedos usan tip curl.
+        /// TIP CURL: thumb between middle and ring (only two fingers cover it).
+        /// Ring and pinky are closed (not extended).
+        /// DIFFERENCE vs M: N has two fingers over the thumb; M has three.
+        /// DIFFERENCE vs A/S: NOT a full fist; two fingers tip-curl.
         /// </summary>
         public static FingerConstraintProfile CreateLetterN()
         {
@@ -707,7 +707,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Creates the profile for letter P (similar a K, sin orientación).
+        /// Creates the profile for letter P (similar to K, with downward orientation).
         /// </summary>
         public static FingerConstraintProfile CreateLetterP()
         {
@@ -722,48 +722,48 @@ namespace ASL_LearnVR.Feedback
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 shouldTouchMiddle = true,
-                customMessageTooExtended = "Toca el pulgar con el dedo corazón",
-                customMessageTooCurled = "Toca el pulgar con el dedo corazón",
-                customMessageGeneric = "Toca el pulgar con el dedo corazón"
+                customMessageTooExtended = "Touch your thumb to your middle finger.",
+                customMessageTooCurled = "Touch your thumb to your middle finger.",
+                customMessageGeneric = "Touch your thumb to your middle finger."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el dedo índice",
+                customMessageTooCurled = "Extend your index finger.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Separa el índice y el corazón (en V)"
+                customMessageGeneric = "Separate the index and middle fingers to form a V."
             };
 
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el dedo corazón",
+                customMessageTooCurled = "Extend your middle finger.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Mantén separación entre índice y corazón"
+                customMessageGeneric = "Keep a gap between the index and middle fingers."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el dedo anular"
+                customMessageTooExtended = "Curl your ring finger."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Curl your pinky."
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Creates the profile for letter Q (similar a G, sin orientación).
+        /// Creates the profile for letter Q (like G, rotated downward).
         /// </summary>
         public static FingerConstraintProfile CreateLetterQ()
         {
@@ -813,7 +813,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter R.
-        /// Index y middle cruzados (aproximado con curvatura parcial).
+        /// Index and middle crossed (approximated with partial curl).
         /// </summary>
         public static FingerConstraintProfile CreateLetterR()
         {
@@ -860,9 +860,9 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter T.
-        /// CARACTERISTICA DISTINTIVA: Pulgar se apoya sobre el pinky (no sobre todos los dedos).
-        /// Fingers en fist sujetando el thumb en el costado.
-        /// DIFERENCIA con S: El thumb va al pinky, no encima del fist completo.
+        /// DISTINCTIVE FEATURE: the thumb rests on the pinky side (not over the whole fist).
+        /// Fingers form a fist holding the thumb on the side.
+        /// DIFFERENCE vs S: thumb goes to the pinky side, not across the full fist.
         /// </summary>
         public static FingerConstraintProfile CreateLetterT()
         {
@@ -910,7 +910,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter U.
-        /// Index y middle extendidos juntos; resto cerrados.
+        /// Index and middle extended together; others curled.
         /// </summary>
         public static FingerConstraintProfile CreateLetterU()
         {
@@ -957,7 +957,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter X.
-        /// Index en forma de gancho (CURVO, no cerrado); resto cerrados.
+        /// Index in a hook shape (CURVED, not closed); others curled.
         /// </summary>
         public static FingerConstraintProfile CreateLetterX()
         {
@@ -968,50 +968,50 @@ namespace ASL_LearnVR.Feedback
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Recoge el pulgar"
+                customMessageTooExtended = "Tuck your thumb in."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
-                // Hook/Gancho: CURVO (0.4-0.7) - NO cerrado, NO extendido
-                // Rango ajustado para que el sistema semántico lo reconozca como CURVED (midpoint ~0.55)
+                // Hook: CURVED (0.4–0.7) — NOT closed, NOT extended
+                // Range tuned so the semantic system recognizes it as CURVED (midpoint ~0.55)
                 curl = new CurlConstraint { minCurl = 0.4f, maxCurl = 0.7f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 expectedState = FingerShapeState.Curved,
-                customMessageTooExtended = "Curva el índice en forma de gancho (no lo dejes recto)",
-                customMessageTooCurled = "No cierres el índice del todo - debe estar CURVO, no cerrado",
-                customMessageNeedsCurve = "Curva el índice en forma de gancho",
-                customMessageNeedsFist = "El índice debe estar CURVO (gancho), no cerrado en puño",
-                customMessageGeneric = "El índice debe estar CURVO en forma de gancho (sin tocar la palma)"
+                customMessageTooExtended = "Curve your index into a hook (don't keep it straight).",
+                customMessageTooCurled = "Don't fully close the index—keep it CURVED, not a fist.",
+                customMessageNeedsCurve = "Curve your index into a hook shape.",
+                customMessageNeedsFist = "The index should be CURVED (hook), not closed into a fist.",
+                customMessageGeneric = "The index should be CURVED like a hook (without touching the palm)."
             };
 
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooExtended = "Cierra el dedo corazón (solo el índice va en gancho)",
-                customMessageGeneric = "Mantén el corazón cerrado; el gancho es solo para el índice"
+                customMessageTooExtended = "Curl your middle finger (only the index is hooked).",
+                customMessageGeneric = "Keep the middle finger curled; only the index is a hook."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el dedo anular"
+                customMessageTooExtended = "Curl your ring finger."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Curl your pinky."
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Creates the profile for letter Z (trajectory, usamos index extendido).
+        /// Creates the profile for letter Z (trajectory; uses index extended).
         /// </summary>
         public static FingerConstraintProfile CreateLetterZ()
         {
@@ -1058,7 +1058,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter L.
-        /// Forma de L con thumb e index extendidos.
+        /// L-shape with thumb and index extended.
         /// </summary>
         public static FingerConstraintProfile CreateLetterL()
         {
@@ -1069,14 +1069,14 @@ namespace ASL_LearnVR.Feedback
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = PARTIAL_MIN, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your thumb out to form L"
+                customMessageTooCurled = "Extend your thumb out to form an L."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your index finger straight"
+                customMessageTooCurled = "Extend your index finger straight."
             };
 
             profile.middle = new FingerConstraint
@@ -1105,7 +1105,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter O.
-        /// Forma de O: todos los dedos curvados formando círculo.
+        /// O-shape: all fingers curved to form a circle.
         /// </summary>
         public static FingerConstraintProfile CreateLetterO()
         {
@@ -1156,9 +1156,9 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter S.
-        /// Full fist COMPLETO (full curl) con thumb sobre los dedos.
-        /// DIFERENCIA con A: El thumb va ENCIMA de los dedos cerrados.
-        /// DIFERENCIA con E/M/N: Es puño completo, no tip curl.
+        /// FULL FIST (full curl) with the thumb over the fingers.
+        /// DIFFERENCE vs A: the thumb goes OVER the curled fingers.
+        /// DIFFERENCE vs E/M/N: full fist, not tip curl.
         /// </summary>
         public static FingerConstraintProfile CreateLetterS()
         {
@@ -1173,7 +1173,7 @@ namespace ASL_LearnVR.Feedback
                 customMessageGeneric = "Place the thumb OVER the curled fingers (full fist)."
             };
 
-            // FULL CURL: Full fist completo
+            // FULL CURL: full fist
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
@@ -1207,7 +1207,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter V.
-        /// Index y middle extendidos en forma de V.
+        /// Index and middle extended with a V gap.
         /// </summary>
         public static FingerConstraintProfile CreateLetterV()
         {
@@ -1258,7 +1258,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter W.
-        /// Index, middle y ring extendidos.
+        /// Index, middle and ring extended with separation.
         /// </summary>
         public static FingerConstraintProfile CreateLetterW()
         {
@@ -1311,7 +1311,7 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Creates the profile for letter Y.
-        /// Pulgar y pinky extendidos (hang loose).
+        /// Thumb and pinky extended (hang loose).
         /// </summary>
         public static FingerConstraintProfile CreateLetterY()
         {

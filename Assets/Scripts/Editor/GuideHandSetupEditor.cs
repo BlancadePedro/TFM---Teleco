@@ -308,6 +308,30 @@ namespace ASL_LearnVR.Editor
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Debug Rotation Test", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Usa esto para probar qué eje de rotación produce qué movimiento.\n" +
+                "Finger: 0=Thumb, 1=Index, 2=Middle, 3=Ring, 4=Pinky\n" +
+                "Joint: 0=Metacarpal, 1=Proximal, 2=Intermediate, 3=Distal\n" +
+                "Axis: 0=X(right), 1=Y(up), 2=Z(forward)",
+                MessageType.Info);
+
+            EditorGUI.BeginDisabledGroup(!Application.isPlaying);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Test Rotation"))
+            {
+                applier.TestDirectRotation();
+            }
+            if (GUILayout.Button("Reset Joint"))
+            {
+                applier.ResetDebugJoint();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField($"Current Pose: {applier.CurrentPoseName}", EditorStyles.helpBox);
         }
     }

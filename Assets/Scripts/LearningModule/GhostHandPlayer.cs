@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Hands;
 using ASL_LearnVR.Data;
@@ -8,10 +9,12 @@ namespace ASL_LearnVR.LearningModule
 {
     /// <summary>
     /// Controla las "ghost hands" que muestran visualmente cómo hacer un signo ASL.
-    /// Para gestos estáticos: muestra la pose directamente usando GuideHandPoseApplier.
-    /// Para gestos dinámicos (J, Z): reproduce una animación o grabación.
-    /// IMPORTANTE: Las ghost hands están DESACOPLADAS del tracking real del usuario.
-    /// Se posicionan en un punto fijo del espacio y solo reproducen la pose/animación del signo.
+    ///
+    /// PROTOTIPO V1:
+    /// - Solo la mano DERECHA hace el gesto
+    /// - Mano izquierda permanece en estado neutro sobre la mesa
+    /// - Secuencia: Neutro → Esperar 1.5s → Gesto → Mantener → Volver a Neutro
+    /// - El usuario puede repetir la animación
     /// </summary>
     public class GhostHandPlayer : MonoBehaviour
     {
@@ -29,13 +32,21 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Componente que aplica poses a la mano derecha")]
         [SerializeField] private GuideHandPoseApplier rightPoseApplier;
 
-        [Header("Positioning")]
-        [Tooltip("Posición fija donde aparecen las ghost hands (relativa al XR Origin)")]
-        [SerializeField] private Vector3 ghostHandsPosition = new Vector3(0f, 1.2f, 0.5f);
+        [Header("Right Hand Positioning (Active Hand)")]
+        [Tooltip("Posición de la mano derecha (preparada para hacer el gesto)")]
+        [SerializeField] private Vector3 rightHandPosition = new Vector3(-0.07f, 0.85f, 0.5f);
 
-        [Tooltip("Rotación fija de las ghost hands")]
-        [SerializeField] private Vector3 ghostHandsRotation = new Vector3(0f, 180f, 0f);
+        [Tooltip("Rotación de la mano derecha (preparada para el gesto)")]
+        [SerializeField] private Vector3 rightHandNeutralRotation = new Vector3(-90f, -180f, 0f);
 
+        [Header("Left Hand Positioning (Resting Hand)")]
+        [Tooltip("Posición de la mano izquierda (posada en la mesa)")]
+        [SerializeField] private Vector3 leftHandPosition = new Vector3(-0.07f, 0.8f, 0.5f);
+
+        [Tooltip("Rotación de la mano izquierda (posada en la mesa)")]
+        [SerializeField] private Vector3 leftHandRestingRotation = new Vector3(0f, -180f, 0f);
+
+        [Header("Scale")]
         [Tooltip("Escala de las ghost hands")]
         [SerializeField] private float ghostHandsScale = 1.0f;
 
@@ -46,77 +57,111 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Color de las ghost hands")]
         [SerializeField] private Color ghostHandColor = new Color(0f, 0.627451f, 1f, 0.5f);
 
-        [Header("Animation Settings")]
-        [Tooltip("Duración de la animación de aparición/desaparición")]
-        [SerializeField] private float fadeInDuration = 0.3f;
+        [Header("Animation Timing")]
+        [Tooltip("Tiempo en estado neutro antes de mostrar el gesto (segundos)")]
+        [SerializeField] private float delayBeforeGesture = 0.5f;
 
-        [Tooltip("Tiempo que las ghost hands permanecen visibles para gestos estáticos")]
-        [SerializeField] private float staticPoseDisplayTime = 3f;
+        [Tooltip("Tiempo que se muestra el gesto antes de volver a neutro (segundos)")]
+        [SerializeField] private float gestureDisplayTime = 3f;
+
+        [Tooltip("Tiempo en neutro después del gesto antes de ocultar (segundos)")]
+        [SerializeField] private float neutralAfterGestureTime = 1f;
 
         [Header("Auto Setup")]
         [Tooltip("Intentar configurar automáticamente los pose appliers al iniciar")]
         [SerializeField] private bool autoSetupPoseAppliers = true;
 
         [Header("Debug")]
-        [SerializeField] private bool showDebugLogs = false;
+        [SerializeField] private bool showDebugLogs = true;
 
+        [Tooltip("Si está activo, las manos se muestran visibles al iniciar (para testing)")]
+        [SerializeField] private bool showOnStart = true;
+
+        // Estado interno
         private SignData currentSign;
         private bool isPlaying = false;
+        private bool isShowingGesture = false;
+        private Coroutine currentAnimation;
         private SkinnedMeshRenderer[] leftHandRenderers;
         private SkinnedMeshRenderer[] rightHandRenderers;
-        private Vector3 originalLeftPosition;
-        private Quaternion originalLeftRotation;
-        private Vector3 originalRightPosition;
-        private Quaternion originalRightRotation;
 
         /// <summary>
         /// True si las ghost hands están reproduciendo actualmente.
         /// </summary>
         public bool IsPlaying => isPlaying;
 
+        /// <summary>
+        /// True si está mostrando el gesto (no el estado neutro).
+        /// </summary>
+        public bool IsShowingGesture => isShowingGesture;
+
         void Awake()
         {
-            // CRÍTICO: Desacopla las ghost hands del tracking XR
-            // Elimina cualquier componente XRHandSkeletonDriver que pudiera seguir el tracking
-            DisableHandTracking();
+            Debug.Log($"[GhostHandPlayer] Awake - Left: {(leftGhostHand != null ? leftGhostHand.name : "NULL")}, Right: {(rightGhostHand != null ? rightGhostHand.name : "NULL")}");
 
-            // CRÍTICO: DESPARENTA las ghost hands del XR Origin para que NO sigan el tracking
-            DetachFromXROrigin();
-
-            // Guarda las posiciones originales
-            if (leftGhostHand != null)
+            // SEGURIDAD: Solo procesar si las ghost hands son objetos separados
+            // NO desactivar tracking si son las manos reales del usuario
+            if (IsValidGhostHand(leftGhostHand) && IsValidGhostHand(rightGhostHand))
             {
-                originalLeftPosition = leftGhostHand.transform.position;
-                originalLeftRotation = leftGhostHand.transform.rotation;
-                leftHandRenderers = leftGhostHand.GetComponentsInChildren<SkinnedMeshRenderer>();
+                Debug.Log("[GhostHandPlayer] Manos guía VÁLIDAS detectadas. Desactivando tracking...");
+                // Desacopla las ghost hands del tracking XR
+                DisableHandTracking();
+
+                // DESPARENTA las ghost hands del XR Origin
+                DetachFromXROrigin();
             }
+            else
+            {
+                Debug.LogError("[GhostHandPlayer] ADVERTENCIA: Las ghost hands NO son válidas (deben contener 'Guide' en el nombre). NO se procesarán correctamente.");
+            }
+
+            // Obtener renderers
+            if (leftGhostHand != null)
+                leftHandRenderers = leftGhostHand.GetComponentsInChildren<SkinnedMeshRenderer>();
 
             if (rightGhostHand != null)
-            {
-                originalRightPosition = rightGhostHand.transform.position;
-                originalRightRotation = rightGhostHand.transform.rotation;
                 rightHandRenderers = rightGhostHand.GetComponentsInChildren<SkinnedMeshRenderer>();
-            }
-
-            // Posiciona las ghost hands en su ubicación fija en WORLD SPACE
-            PositionGhostHands();
 
             // Aplica el material fantasma
             ApplyGhostMaterial();
 
-            // Configurar pose appliers automáticamente si está habilitado
+            // Configurar pose appliers automáticamente
             if (autoSetupPoseAppliers)
             {
                 SetupPoseAppliers();
             }
 
-            // Oculta las ghost hands al inicio
-            SetGhostHandsVisible(false);
+            // Posicionar las manos
+            PositionHands();
+
+            // Mostrar u ocultar según configuración
+            if (showOnStart)
+            {
+                // PROTOTIPO: Mostrar las manos visibles al iniciar
+                SetGhostHandsVisible(true);
+                Debug.Log("[GhostHandPlayer] Manos VISIBLES al inicio (showOnStart=true)");
+            }
+            else
+            {
+                SetGhostHandsVisible(false);
+            }
+
+            Debug.Log("[GhostHandPlayer] Inicializado - Prototipo V1 (solo mano derecha)");
+        }
+
+        void Start()
+        {
+            // Aplicar pose neutra después de que todo esté inicializado
+            if (showOnStart)
+            {
+                ApplyNeutralPose(rightPoseApplier);
+                ApplyNeutralPose(leftPoseApplier);
+                Debug.Log("[GhostHandPlayer] Pose neutra aplicada en Start()");
+            }
         }
 
         /// <summary>
         /// Configura los GuideHandPoseApplier automáticamente.
-        /// Intenta encontrar o crear los componentes y mapear los joints.
         /// </summary>
         private void SetupPoseAppliers()
         {
@@ -127,11 +172,13 @@ namespace ASL_LearnVR.LearningModule
                 if (leftPoseApplier == null)
                 {
                     leftPoseApplier = leftGhostHand.AddComponent<GuideHandPoseApplier>();
+                    Debug.Log("[GhostHandPlayer] Añadido GuideHandPoseApplier a LeftGhostHand");
                 }
                 leftPoseApplier.AutoMapJointsFromHierarchy(leftGhostHand.transform);
 
-                if (showDebugLogs)
-                    Debug.Log("GhostHandPlayer: GuideHandPoseApplier configurado en LeftGhostHand");
+                // Validar que los joints se mapearon correctamente
+                bool isValid = leftPoseApplier.ValidateJointMapping();
+                Debug.Log($"[GhostHandPlayer] LeftHand joints mapeados. Válido: {isValid}");
             }
 
             // Right hand
@@ -141,328 +188,307 @@ namespace ASL_LearnVR.LearningModule
                 if (rightPoseApplier == null)
                 {
                     rightPoseApplier = rightGhostHand.AddComponent<GuideHandPoseApplier>();
+                    Debug.Log("[GhostHandPlayer] Añadido GuideHandPoseApplier a RightGhostHand");
                 }
                 rightPoseApplier.AutoMapJointsFromHierarchy(rightGhostHand.transform);
 
-                if (showDebugLogs)
-                    Debug.Log("GhostHandPlayer: GuideHandPoseApplier configurado en RightGhostHand");
+                // Validar que los joints se mapearon correctamente
+                bool isValid = rightPoseApplier.ValidateJointMapping();
+                Debug.Log($"[GhostHandPlayer] RightHand joints mapeados. Válido: {isValid}");
             }
         }
 
         /// <summary>
-        /// CRÍTICO: Desparenta las ghost hands del XR Origin.
-        /// Esto evita que sigan el movimiento del headset/tracking.
+        /// Verifica si un objeto es una mano guía válida (no las manos reales del usuario).
+        /// Las manos guía válidas deben tener "Guide" en su nombre (no "Ghost" que son las del usuario).
+        /// </summary>
+        private bool IsValidGhostHand(GameObject hand)
+        {
+            if (hand == null) return false;
+
+            string name = hand.name.ToLower();
+            // SOLO aceptar si tiene "guide" - las "ghost" son las manos del usuario
+            bool isValid = name.Contains("guide");
+
+            if (!isValid)
+            {
+                Debug.LogWarning($"[GhostHandPlayer] '{hand.name}' NO es una mano guía válida. " +
+                    "El nombre debe contener 'Guide' para ser procesado. NO se desactivará tracking.");
+            }
+
+            return isValid;
+        }
+
+        /// <summary>
+        /// Desparenta las ghost hands del XR Origin.
         /// </summary>
         private void DetachFromXROrigin()
         {
             if (leftGhostHand != null)
             {
-                // Desparenta del XR Origin, convirtiéndola en un objeto independiente en la escena
                 leftGhostHand.transform.SetParent(null, true);
-                if (showDebugLogs)
-                    Debug.Log("GhostHandPlayer: LeftGhostHand desparentada del XR Origin.");
             }
 
             if (rightGhostHand != null)
             {
-                // Desparenta del XR Origin, convirtiéndola en un objeto independiente en la escena
                 rightGhostHand.transform.SetParent(null, true);
-                if (showDebugLogs)
-                    Debug.Log("GhostHandPlayer: RightGhostHand desparentada del XR Origin.");
             }
         }
 
         /// <summary>
-        /// CRÍTICO: Desactiva cualquier componente que haga seguir el tracking de manos reales.
+        /// Desactiva cualquier componente de tracking de manos reales.
         /// </summary>
         private void DisableHandTracking()
         {
-            if (leftGhostHand != null)
-            {
-                // Desactiva XRHandSkeletonDriver si existe
-                var leftDriver = leftGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandSkeletonDriver>();
-                if (leftDriver != null)
-                {
-                    leftDriver.enabled = false;
-                    if (showDebugLogs)
-                        Debug.Log("GhostHandPlayer: XRHandSkeletonDriver desactivado en LeftGhostHand.");
-                }
+            DisableTrackingOnHand(leftGhostHand);
+            DisableTrackingOnHand(rightGhostHand);
+        }
 
-                // Desactiva XRHandTrackingEvents si existe
-                var leftTracking = leftGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandTrackingEvents>();
-                if (leftTracking != null)
-                {
-                    leftTracking.enabled = false;
-                    if (showDebugLogs)
-                        Debug.Log("GhostHandPlayer: XRHandTrackingEvents desactivado en LeftGhostHand.");
-                }
-            }
+        private void DisableTrackingOnHand(GameObject hand)
+        {
+            if (hand == null) return;
 
-            if (rightGhostHand != null)
-            {
-                // Desactiva XRHandSkeletonDriver si existe
-                var rightDriver = rightGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandSkeletonDriver>();
-                if (rightDriver != null)
-                {
-                    rightDriver.enabled = false;
-                    if (showDebugLogs)
-                        Debug.Log("GhostHandPlayer: XRHandSkeletonDriver desactivado en RightGhostHand.");
-                }
+            var driver = hand.GetComponent<XRHandSkeletonDriver>();
+            if (driver != null) driver.enabled = false;
 
-                // Desactiva XRHandTrackingEvents si existe
-                var rightTracking = rightGhostHand.GetComponent<UnityEngine.XR.Hands.XRHandTrackingEvents>();
-                if (rightTracking != null)
-                {
-                    rightTracking.enabled = false;
-                    if (showDebugLogs)
-                        Debug.Log("GhostHandPlayer: XRHandTrackingEvents desactivado en RightGhostHand.");
-                }
-            }
+            var tracking = hand.GetComponent<XRHandTrackingEvents>();
+            if (tracking != null) tracking.enabled = false;
         }
 
         /// <summary>
-        /// Posiciona las ghost hands en su ubicación fija en el espacio.
+        /// Posiciona las manos en sus ubicaciones fijas.
+        /// - Mano derecha: vertical, frente al usuario
+        /// - Mano izquierda: posada sobre la mesa
         /// </summary>
-        private void PositionGhostHands()
+        private void PositionHands()
         {
-            Quaternion targetRotation = Quaternion.Euler(ghostHandsRotation);
-
-            if (leftGhostHand != null)
-            {
-                leftGhostHand.transform.position = ghostHandsPosition + new Vector3(-0.1f, 0f, 0f);
-                leftGhostHand.transform.rotation = targetRotation;
-                leftGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
-            }
-
+            // Mano derecha: vertical, palma hacia el usuario
             if (rightGhostHand != null)
             {
-                rightGhostHand.transform.position = ghostHandsPosition + new Vector3(0.1f, 0f, 0f);
-                rightGhostHand.transform.rotation = targetRotation;
+                rightGhostHand.transform.position = rightHandPosition;
+                rightGhostHand.transform.rotation = Quaternion.Euler(rightHandNeutralRotation);
                 rightGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
             }
 
+            // Mano izquierda: posada sobre la mesa
+            if (leftGhostHand != null)
+            {
+                leftGhostHand.transform.position = leftHandPosition;
+                leftGhostHand.transform.rotation = Quaternion.Euler(leftHandRestingRotation);
+                leftGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
+            }
+
             if (showDebugLogs)
-                Debug.Log($"GhostHandPlayer: Posicionadas en {ghostHandsPosition} con rotación {ghostHandsRotation}.");
+                Debug.Log($"[GhostHandPlayer] Manos posicionadas - Derecha: {rightHandPosition}, Izquierda: {leftHandPosition}");
         }
 
         /// <summary>
-        /// Aplica el material y color fantasma a las manos.
+        /// Aplica el material fantasma a las manos.
         /// </summary>
         private void ApplyGhostMaterial()
         {
-            if (ghostHandMaterial != null)
+            if (ghostHandMaterial == null) return;
+
+            ghostHandMaterial.color = ghostHandColor;
+
+            if (leftHandRenderers != null)
             {
-                ghostHandMaterial.color = ghostHandColor;
-
                 foreach (var renderer in leftHandRenderers)
-                    renderer.material = ghostHandMaterial;
+                    if (renderer != null) renderer.material = ghostHandMaterial;
+            }
 
+            if (rightHandRenderers != null)
+            {
                 foreach (var renderer in rightHandRenderers)
-                    renderer.material = ghostHandMaterial;
+                    if (renderer != null) renderer.material = ghostHandMaterial;
             }
         }
 
         /// <summary>
-        /// Muestra las ghost hands ejecutando el signo especificado.
+        /// Aplica la pose neutra (mano abierta) a una mano.
+        /// </summary>
+        private void ApplyNeutralPose(GuideHandPoseApplier applier)
+        {
+            if (applier == null) return;
+
+            // Pose neutra = mano abierta (5)
+            var neutralPose = ASLPoseLibrary.GetPoseBySignName("5");
+            if (neutralPose != null)
+            {
+                applier.ApplyPose(neutralPose);
+            }
+            else
+            {
+                applier.ResetToOriginal();
+            }
+        }
+
+        /// <summary>
+        /// MÉTODO PRINCIPAL: Reproduce el signo con la secuencia completa.
+        /// Neutro → Esperar 1.5s → Gesto → Mantener → Volver a Neutro
         /// </summary>
         public void PlaySign(SignData sign)
         {
             if (sign == null)
             {
-                Debug.LogError("GhostHandPlayer: SignData es null.");
+                Debug.LogError("[GhostHandPlayer] SignData es null.");
                 return;
             }
 
-            if (isPlaying)
+            // Si ya está reproduciendo, detener primero
+            if (currentAnimation != null)
             {
-                if (showDebugLogs)
-                    Debug.LogWarning("GhostHandPlayer: Ya hay una reproducción en curso.");
-                return;
+                StopCoroutine(currentAnimation);
             }
 
             currentSign = sign;
+            currentAnimation = StartCoroutine(PlaySignSequence(sign));
 
-            if (currentSign.requiresMovement)
+            Debug.Log($"[GhostHandPlayer] Iniciando secuencia para '{sign.signName}'");
+        }
+
+        /// <summary>
+        /// Repite la animación del signo actual.
+        /// </summary>
+        public void RepeatSign()
+        {
+            if (currentSign != null)
             {
-                // NOTA: Gestos dinámicos no soportados actualmente
-                Debug.LogWarning($"GhostHandPlayer: El signo '{currentSign.signName}' requiere movimiento pero no está soportado actualmente.");
-                isPlaying = false;
-                SetGhostHandsVisible(false);
+                PlaySign(currentSign);
             }
             else
             {
-                // Gestos estáticos (A, B, C, etc.)
-                PlayStaticGesture();
+                Debug.LogWarning("[GhostHandPlayer] No hay signo actual para repetir.");
             }
         }
 
         /// <summary>
-        /// Reproduce un gesto estático (muestra la pose durante un tiempo).
-        /// Usa GuideHandPoseApplier para aplicar la pose del signo a los joints.
+        /// Corrutina principal: secuencia de animación del gesto.
         /// </summary>
-        private void PlayStaticGesture()
+        private IEnumerator PlaySignSequence(SignData sign)
         {
-            if (showDebugLogs)
-                Debug.Log($"GhostHandPlayer: Mostrando gesto estático '{currentSign.signName}'");
+            Debug.Log($"[GhostHandPlayer] ========== INICIANDO SECUENCIA para '{sign.signName}' ==========");
 
             isPlaying = true;
+            isShowingGesture = false;
 
-            // Asegura que las ghost hands estén en su posición fija
-            PositionGhostHands();
-
-            // Aplicar la pose del signo usando GuideHandPoseApplier
-            ApplySignPose(currentSign);
-
+            // 1. Mostrar manos y posicionarlas
+            Debug.Log("[GhostHandPlayer] Paso 1: Posicionando manos...");
+            PositionHands();
             SetGhostHandsVisible(true);
 
-            // Oculta después del tiempo especificado
-            Invoke(nameof(StopPlaying), staticPoseDisplayTime);
-        }
+            // 2. Aplicar pose NEUTRA a ambas manos
+            Debug.Log("[GhostHandPlayer] Paso 2: Aplicando pose NEUTRA...");
+            ApplyNeutralPose(rightPoseApplier);
+            ApplyNeutralPose(leftPoseApplier);
 
-        /// <summary>
-        /// Aplica la pose del signo a las ghost hands usando los pose appliers.
-        /// </summary>
-        private void ApplySignPose(SignData sign)
-        {
-            if (sign == null)
-                return;
+            Debug.Log($"[GhostHandPlayer] Paso 3: Esperando {delayBeforeGesture}s antes de mostrar gesto...");
 
-            // Obtener la pose desde la biblioteca ASL
+            // 3. Esperar antes de mostrar el gesto
+            yield return new WaitForSeconds(delayBeforeGesture);
+
+            Debug.Log("[GhostHandPlayer] Paso 4: Delay completado, aplicando GESTO...");
+
+            // 4. Aplicar el GESTO solo a la mano DERECHA
+            isShowingGesture = true;
+            Debug.Log($"[GhostHandPlayer] Buscando pose para '{sign.signName}' en ASLPoseLibrary...");
             var pose = ASLPoseLibrary.GetPoseBySignName(sign.signName);
 
-            if (pose == null)
+            if (pose != null && rightPoseApplier != null)
             {
-                if (showDebugLogs)
-                    Debug.LogWarning($"GhostHandPlayer: No se encontró pose para '{sign.signName}'");
-                return;
-            }
-
-            // Aplicar a mano derecha (la más común para ASL)
-            if (rightPoseApplier != null)
-            {
+                Debug.Log($"[GhostHandPlayer] Pose '{pose.poseName}' encontrada. Aplicando a mano derecha...");
                 rightPoseApplier.ApplyPose(pose);
-
-                if (showDebugLogs)
-                    Debug.Log($"GhostHandPlayer: Pose '{pose.poseName}' aplicada a RightGhostHand");
+                Debug.Log($"[GhostHandPlayer] ¡GESTO '{sign.signName}' APLICADO!");
             }
-
-            // Aplicar a mano izquierda también (espejada)
-            if (leftPoseApplier != null)
+            else
             {
-                leftPoseApplier.ApplyPose(pose);
-
-                if (showDebugLogs)
-                    Debug.Log($"GhostHandPlayer: Pose '{pose.poseName}' aplicada a LeftGhostHand");
-            }
-        }
-
-        /// <summary>
-        /// Aplica una pose específica por nombre a las ghost hands.
-        /// Útil para mostrar poses sin necesidad de un SignData.
-        /// </summary>
-        public void ApplyPoseByName(string poseName)
-        {
-            var pose = ASLPoseLibrary.GetPoseBySignName(poseName);
-
-            if (pose == null)
-            {
-                if (showDebugLogs)
-                    Debug.LogWarning($"GhostHandPlayer: No se encontró pose para '{poseName}'");
-                return;
+                Debug.LogError($"[GhostHandPlayer] ERROR: No se encontró pose para '{sign.signName}'. " +
+                    $"pose={pose}, rightPoseApplier={rightPoseApplier}");
             }
 
-            if (rightPoseApplier != null)
-                rightPoseApplier.ApplyPose(pose);
+            // La mano izquierda sigue en neutro (no hacemos nada)
 
-            if (leftPoseApplier != null)
-                leftPoseApplier.ApplyPose(pose);
-        }
+            // 5. Mantener el gesto visible
+            yield return new WaitForSeconds(gestureDisplayTime);
 
-        /// <summary>
-        /// Aplica una pose desde un FingerConstraintProfile.
-        /// Útil para mostrar exactamente la pose objetivo del feedback.
-        /// </summary>
-        public void ApplyPoseFromProfile(FingerConstraintProfile profile)
-        {
-            if (profile == null)
-                return;
-
-            var pose = ASLPoseLibrary.FromConstraintProfile(profile);
-
-            if (rightPoseApplier != null)
-                rightPoseApplier.ApplyPose(pose);
-
-            if (leftPoseApplier != null)
-                leftPoseApplier.ApplyPose(pose);
+            // 6. Volver a NEUTRO (mano derecha)
+            isShowingGesture = false;
+            ApplyNeutralPose(rightPoseApplier);
 
             if (showDebugLogs)
-                Debug.Log($"GhostHandPlayer: Pose desde perfil '{profile.signName}' aplicada");
+                Debug.Log("[GhostHandPlayer] Volviendo a estado NEUTRO");
+
+            // 7. Esperar un momento en neutro
+            yield return new WaitForSeconds(neutralAfterGestureTime);
+
+            // 8. Fin de la secuencia (las manos siguen visibles en neutro)
+            isPlaying = false;
+            currentAnimation = null;
+
+            Debug.Log($"[GhostHandPlayer] ========== SECUENCIA COMPLETADA para '{sign.signName}' ==========");
         }
 
         /// <summary>
-        /// Resetea las ghost hands a su pose original (mano abierta).
+        /// Muestra la guía persistente (sin auto-ocultar).
+        /// Útil para el modo de práctica continua.
         /// </summary>
-        public void ResetPose()
+        public void ShowPersistentGuide(SignData sign)
         {
-            if (rightPoseApplier != null)
-                rightPoseApplier.ResetToOriginal();
+            if (sign == null)
+            {
+                Debug.LogError("[GhostHandPlayer] SignData es null.");
+                return;
+            }
 
-            if (leftPoseApplier != null)
-                leftPoseApplier.ResetToOriginal();
-        }
+            // Detener cualquier animación en curso
+            if (currentAnimation != null)
+            {
+                StopCoroutine(currentAnimation);
+                currentAnimation = null;
+            }
 
-        // NOTA: Método deshabilitado - gestos dinámicos no soportados
-        /*
-        private void PlayDynamicGesture()
-        {
-            if (showDebugLogs)
-                Debug.Log($"GhostHandPlayer: Reproduciendo gesto dinámico '{currentSign.signName}'");
-
+            currentSign = sign;
             isPlaying = true;
-            PositionGhostHands();
-            Debug.LogWarning("GhostHandPlayer: Gestos dinámicos no soportados actualmente.");
+
+            // Posicionar y mostrar
+            PositionHands();
+            SetGhostHandsVisible(true);
+
+            // Mano izquierda siempre en neutro
+            ApplyNeutralPose(leftPoseApplier);
+
+            // Iniciar la secuencia
+            currentAnimation = StartCoroutine(PlaySignSequence(sign));
+
+            if (showDebugLogs)
+                Debug.Log($"[GhostHandPlayer] Guía persistente para '{sign.signName}'");
         }
-        */
+
+        /// <summary>
+        /// Oculta las ghost hands y detiene la reproducción.
+        /// </summary>
+        public void Hide()
+        {
+            if (currentAnimation != null)
+            {
+                StopCoroutine(currentAnimation);
+                currentAnimation = null;
+            }
+
+            isPlaying = false;
+            isShowingGesture = false;
+            SetGhostHandsVisible(false);
+
+            if (showDebugLogs)
+                Debug.Log("[GhostHandPlayer] Oculto");
+        }
 
         /// <summary>
         /// Detiene la reproducción y oculta las ghost hands.
         /// </summary>
         public void StopPlaying()
         {
-            isPlaying = false;
-            SetGhostHandsVisible(false);
-
-            // Resetear poses para la próxima vez
-            ResetPose();
-
-            if (showDebugLogs)
-                Debug.Log("GhostHandPlayer: Reproducción detenida.");
-        }
-
-        /// <summary>
-        /// Muestra las ghost hands con una pose específica sin límite de tiempo.
-        /// Útil para mostrar la pose guía durante toda la práctica.
-        /// </summary>
-        public void ShowPersistentGuide(SignData sign)
-        {
-            if (sign == null)
-            {
-                Debug.LogError("GhostHandPlayer: SignData es null.");
-                return;
-            }
-
-            currentSign = sign;
-            isPlaying = true;
-
-            // Cancelar cualquier auto-ocultación pendiente
-            CancelInvoke(nameof(StopPlaying));
-
-            PositionGhostHands();
-            ApplySignPose(sign);
-            SetGhostHandsVisible(true);
-
-            if (showDebugLogs)
-                Debug.Log($"GhostHandPlayer: Guía persistente mostrada para '{sign.signName}'");
+            Hide();
         }
 
         /// <summary>
@@ -470,31 +496,8 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         public void HidePersistentGuide()
         {
-            CancelInvoke(nameof(StopPlaying));
-            StopPlaying();
+            Hide();
         }
-
-        /// <summary>
-        /// Configura qué mano mostrar (solo derecha, solo izquierda, o ambas).
-        /// </summary>
-        public void SetHandsToShow(bool showLeft, bool showRight)
-        {
-            if (leftGhostHand != null && isPlaying)
-                leftGhostHand.SetActive(showLeft);
-
-            if (rightGhostHand != null && isPlaying)
-                rightGhostHand.SetActive(showRight);
-        }
-
-        /// <summary>
-        /// Obtiene el GuideHandPoseApplier de la mano derecha para configuración avanzada.
-        /// </summary>
-        public GuideHandPoseApplier RightPoseApplier => rightPoseApplier;
-
-        /// <summary>
-        /// Obtiene el GuideHandPoseApplier de la mano izquierda para configuración avanzada.
-        /// </summary>
-        public GuideHandPoseApplier LeftPoseApplier => leftPoseApplier;
 
         /// <summary>
         /// Muestra u oculta las ghost hands.
@@ -509,21 +512,64 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Configura qué mano(s) mostrar según el signo.
-        /// Algunos signos solo requieren una mano.
+        /// Aplica una pose por nombre (para testing).
         /// </summary>
-        private void ConfigureHandsVisibility()
+        public void ApplyPoseByName(string poseName)
         {
-            // Por defecto, muestra ambas manos
-            // En una implementación avanzada, podrías configurar esto en SignData
-            bool showLeft = true;
-            bool showRight = true;
+            var pose = ASLPoseLibrary.GetPoseBySignName(poseName);
 
+            if (pose == null)
+            {
+                Debug.LogWarning($"[GhostHandPlayer] No se encontró pose para '{poseName}'");
+                return;
+            }
+
+            // Solo mano derecha muestra el gesto
+            if (rightPoseApplier != null)
+                rightPoseApplier.ApplyPose(pose);
+
+            // Mano izquierda siempre en neutro
+            ApplyNeutralPose(leftPoseApplier);
+        }
+
+        /// <summary>
+        /// Resetea ambas manos a pose neutra.
+        /// </summary>
+        public void ResetPose()
+        {
+            ApplyNeutralPose(rightPoseApplier);
+            ApplyNeutralPose(leftPoseApplier);
+        }
+
+        /// <summary>
+        /// Obtiene el GuideHandPoseApplier de la mano derecha.
+        /// </summary>
+        public GuideHandPoseApplier RightPoseApplier => rightPoseApplier;
+
+        /// <summary>
+        /// Obtiene el GuideHandPoseApplier de la mano izquierda.
+        /// </summary>
+        public GuideHandPoseApplier LeftPoseApplier => leftPoseApplier;
+
+        /// <summary>
+        /// Configura qué mano mostrar.
+        /// </summary>
+        public void SetHandsToShow(bool showLeft, bool showRight)
+        {
             if (leftGhostHand != null)
                 leftGhostHand.SetActive(showLeft);
 
             if (rightGhostHand != null)
                 rightGhostHand.SetActive(showRight);
+        }
+
+        // Métodos legacy para compatibilidad
+        public void ApplyPoseFromProfile(FingerConstraintProfile profile)
+        {
+            if (profile == null) return;
+            var pose = ASLPoseLibrary.FromConstraintProfile(profile);
+            if (rightPoseApplier != null)
+                rightPoseApplier.ApplyPose(pose);
         }
     }
 }

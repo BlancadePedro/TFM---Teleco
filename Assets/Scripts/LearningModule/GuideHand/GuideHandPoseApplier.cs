@@ -70,6 +70,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [Tooltip("Eje de rotación para abducción/spread (local)")]
         [SerializeField] private Vector3 fingerSpreadAxis = Vector3.up;
 
+        [Tooltip("Eje de rotación para abducción del pulgar (local)")]
+        [SerializeField] private Vector3 thumbAbductionAxis = Vector3.forward;
+
         [Header("Animation")]
         [Tooltip("Velocidad de transición entre poses")]
         [SerializeField] private float transitionSpeed = 5f;
@@ -82,7 +85,20 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [SerializeField] private Handedness handedness = Handedness.Right;
 
         [Header("Debug")]
-        [SerializeField] private bool showDebugLogs = false;
+        [SerializeField] private bool showDebugLogs = true;
+
+        [Header("Debug Rotation Test")]
+        [Tooltip("Ángulo para test de rotación directa")]
+        [SerializeField] private float debugRotationAngle = 45f;
+
+        [Tooltip("Dedo para test (0=thumb, 1=index, 2=middle, 3=ring, 4=pinky)")]
+        [SerializeField] private int debugFingerIndex = 0;
+
+        [Tooltip("Joint para test (0=metacarpal, 1=proximal, 2=intermediate, 3=distal)")]
+        [SerializeField] private int debugJointIndex = 0;
+
+        [Tooltip("Eje para test (0=X, 1=Y, 2=Z)")]
+        [SerializeField] private int debugAxisIndex = 0;
 
         // Estado actual
         private HandPoseData currentPose;
@@ -105,16 +121,26 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         void Awake()
         {
-            Initialize();
+            // NO inicializamos aquí - esperamos a que los joints estén mapeados
+            // La inicialización se hace en Initialize() cuando se llama ApplyPose
+            // o después de AutoMapJointsFromHierarchy()
         }
 
         /// <summary>
         /// Inicializa el componente guardando las rotaciones originales.
+        /// Puede llamarse múltiples veces con forceReinitialize para actualizar después de mapear joints.
         /// </summary>
-        public void Initialize()
+        public void Initialize(bool forceReinitialize = false)
         {
-            if (isInitialized)
+            if (isInitialized && !forceReinitialize)
                 return;
+
+            // Limpiar cache anterior si estamos reinicializando
+            if (forceReinitialize)
+            {
+                originalRotations.Clear();
+                isInitialized = false;
+            }
 
             // Guardar rotaciones originales de todos los joints
             CacheOriginalRotation(wristTransform);
@@ -194,16 +220,30 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public void ApplyPose(HandPoseData pose)
         {
             if (pose == null)
+            {
+                Debug.LogWarning("[GuideHandPoseApplier] ApplyPose llamado con pose null");
                 return;
+            }
 
             if (!isInitialized)
-                Initialize();
+            {
+                Debug.Log("[GuideHandPoseApplier] No inicializado, inicializando ahora...");
+                Initialize(forceReinitialize: false);
+            }
+
+            // Verificar que tenemos rotaciones cacheadas
+            if (originalRotations.Count == 0)
+            {
+                Debug.LogError($"[GuideHandPoseApplier] ERROR: No hay rotaciones originales cacheadas. " +
+                    $"Joints mapeados: {CountMappedJoints()}. La pose NO se aplicará correctamente.");
+            }
 
             targetPose = pose;
 
             if (smoothTransitions)
             {
                 transitionProgress = 0f;
+                Debug.Log($"[GuideHandPoseApplier] Iniciando transición suave hacia pose: {pose.poseName}");
             }
             else
             {
@@ -213,7 +253,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             }
 
             if (showDebugLogs)
-                Debug.Log($"[GuideHandPoseApplier] Aplicando pose: {pose.poseName}");
+                Debug.Log($"[GuideHandPoseApplier] Aplicando pose: {pose.poseName} " +
+                    $"(joints: {CountMappedJoints()}, rotaciones cacheadas: {originalRotations.Count})");
         }
 
         /// <summary>
@@ -336,7 +377,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 float abductAngle = thumbPose.abductionAngle;
 
                 Quaternion flexRot = Quaternion.AngleAxis(flexAngle, fingerFlexAxis);
-                Quaternion abductRot = Quaternion.AngleAxis(abductAngle, Vector3.forward);
+                Quaternion abductRot = Quaternion.AngleAxis(abductAngle, thumbAbductionAxis);
 
                 thumbMetacarpal.localRotation = metaOriginal * abductRot * flexRot;
             }
@@ -484,6 +525,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 int mappedCount = CountMappedJoints();
                 Debug.Log($"[GuideHandPoseApplier] Auto-mapeados {mappedCount} joints desde {root.name}");
             }
+
+            // IMPORTANTE: Reinicializar para cachear las rotaciones originales de los joints recién mapeados
+            Initialize(forceReinitialize: true);
+
+            if (showDebugLogs)
+            {
+                Debug.Log($"[GuideHandPoseApplier] Rotaciones originales cacheadas: {originalRotations.Count}");
+            }
         }
 
         private int CountMappedJoints()
@@ -511,6 +560,87 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (pinkyIntermediate != null) count++;
             if (pinkyDistal != null) count++;
             return count;
+        }
+
+        /// <summary>
+        /// TEST: Aplica rotación directa a un joint específico para debug.
+        /// Útil para determinar qué eje produce qué movimiento.
+        /// </summary>
+        public void TestDirectRotation()
+        {
+            Transform joint = GetDebugJoint();
+            if (joint == null)
+            {
+                Debug.LogWarning("[GuideHandPoseApplier] Joint de debug no encontrado");
+                return;
+            }
+
+            Vector3 axis = debugAxisIndex switch
+            {
+                0 => Vector3.right,
+                1 => Vector3.up,
+                2 => Vector3.forward,
+                _ => Vector3.right
+            };
+
+            string axisName = debugAxisIndex switch
+            {
+                0 => "X (right)",
+                1 => "Y (up)",
+                2 => "Z (forward)",
+                _ => "?"
+            };
+
+            if (originalRotations.TryGetValue(joint, out Quaternion original))
+            {
+                Quaternion rot = Quaternion.AngleAxis(debugRotationAngle, axis);
+                joint.localRotation = original * rot;
+                Debug.Log($"[DEBUG] Rotando {joint.name} en eje {axisName} por {debugRotationAngle}°");
+            }
+            else
+            {
+                Debug.LogWarning($"[DEBUG] No hay rotación original cacheada para {joint.name}");
+            }
+        }
+
+        /// <summary>
+        /// TEST: Resetea el joint de debug a su rotación original.
+        /// </summary>
+        public void ResetDebugJoint()
+        {
+            Transform joint = GetDebugJoint();
+            if (joint != null && originalRotations.TryGetValue(joint, out Quaternion original))
+            {
+                joint.localRotation = original;
+                Debug.Log($"[DEBUG] {joint.name} reseteado a rotación original");
+            }
+        }
+
+        private Transform GetDebugJoint()
+        {
+            return (debugFingerIndex, debugJointIndex) switch
+            {
+                (0, 0) => thumbMetacarpal,
+                (0, 1) => thumbProximal,
+                (0, 3) => thumbDistal,
+                (1, 0) => indexMetacarpal,
+                (1, 1) => indexProximal,
+                (1, 2) => indexIntermediate,
+                (1, 3) => indexDistal,
+                (2, 0) => middleMetacarpal,
+                (2, 1) => middleProximal,
+                (2, 2) => middleIntermediate,
+                (2, 3) => middleDistal,
+                (3, 0) => ringMetacarpal,
+                (3, 1) => ringProximal,
+                (3, 2) => ringIntermediate,
+                (3, 3) => ringDistal,
+                (4, 0) => pinkyMetacarpal,
+                (4, 1) => pinkyProximal,
+                (4, 2) => pinkyIntermediate,
+                (4, 3) => pinkyDistal,
+                _ => null
+            };
         }
 
         /// <summary>

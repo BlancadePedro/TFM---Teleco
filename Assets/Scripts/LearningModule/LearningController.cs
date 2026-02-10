@@ -245,6 +245,13 @@ namespace ASL_LearnVR.LearningModule
                     monthPracticeController.OnSignChanged();
                 }
             }
+
+            // AUTOMÁTICAMENTE mostrar el gesto con las manos guía al cargar un nuevo signo
+            if (ghostHandPlayer != null && !(sign is ASL_LearnVR.Data.MonthSequenceData))
+            {
+                Debug.Log($"[LearningController] Mostrando automáticamente el gesto '{sign.signName}' con manos guía");
+                ghostHandPlayer.PlaySign(sign);
+            }
         }
 
         /// <summary>
@@ -264,13 +271,19 @@ namespace ASL_LearnVR.LearningModule
         /// </summary>
         private void OnRepeatButtonClicked()
         {
+            Debug.Log($"[LearningController] REPETIR clicked. ghostHandPlayer={ghostHandPlayer != null}, " +
+                $"CurrentSign={GameManager.Instance?.CurrentSign?.signName ?? "NULL"}");
+
             if (ghostHandPlayer != null && GameManager.Instance != null && GameManager.Instance.CurrentSign != null)
             {
+                Debug.Log($"[LearningController] Llamando PlaySign con signo: '{GameManager.Instance.CurrentSign.signName}'");
                 ghostHandPlayer.PlaySign(GameManager.Instance.CurrentSign);
             }
             else
             {
-                Debug.LogError("LearningController: No se puede reproducir el signo.");
+                Debug.LogError($"[LearningController] No se puede reproducir el signo. " +
+                    $"ghostHandPlayer={ghostHandPlayer != null}, GameManager={GameManager.Instance != null}, " +
+                    $"CurrentSign={GameManager.Instance?.CurrentSign != null}");
             }
         }
 

@@ -46,23 +46,51 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         public static HandPoseData GetPoseBySignName(string signName)
         {
-            if (string.IsNullOrEmpty(signName))
-                return HandPoseData.OpenHand();
+            Debug.Log($"[ASLPoseLibrary] GetPoseBySignName llamado con: '{signName}'");
 
-            // Intentar obtener del perfil de constraints
+            if (string.IsNullOrEmpty(signName))
+            {
+                Debug.LogWarning("[ASLPoseLibrary] signName vacío, retornando OpenHand");
+                return HandPoseData.OpenHand();
+            }
+
+            // PRIMERO: Buscar en poses predefinidas (tienen prioridad porque están ajustadas manualmente)
+            var predefinedPose = GetPredefinedPose(signName.ToUpper());
+            if (predefinedPose != null)
+            {
+                Debug.Log($"[ASLPoseLibrary] Usando pose PREDEFINIDA para '{signName}'");
+                return predefinedPose;
+            }
+
+            // SEGUNDO: Intentar obtener del perfil de constraints (para letras sin pose predefinida)
             var profile = AlphabetConstraintProfiles.GetLetterProfile(signName);
             if (profile != null)
+            {
+                Debug.Log($"[ASLPoseLibrary] Usando perfil de AlphabetConstraintProfiles para '{signName}'");
                 return FromConstraintProfile(profile);
+            }
 
+            // TERCERO: Dígitos
             if (int.TryParse(signName, out int digit))
             {
                 profile = DigitConstraintProfiles.GetDigitProfile(digit);
                 if (profile != null)
+                {
+                    Debug.Log($"[ASLPoseLibrary] Usando perfil de DigitConstraintProfiles para '{digit}'");
                     return FromConstraintProfile(profile);
+                }
             }
 
-            // Poses especiales predefinidas
-            return signName.ToUpper() switch
+            Debug.LogWarning($"[ASLPoseLibrary] No se encontró pose para '{signName}', usando OpenHand");
+            return HandPoseData.OpenHand();
+        }
+
+        /// <summary>
+        /// Obtiene una pose predefinida si existe.
+        /// </summary>
+        private static HandPoseData GetPredefinedPose(string signName)
+        {
+            return signName switch
             {
                 "A" => CreateLetterA(),
                 "B" => CreateLetterB(),
@@ -82,7 +110,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 "3" => CreateDigit3(),
                 "4" => CreateDigit4(),
                 "5" => CreateDigit5(),
-                _ => HandPoseData.OpenHand()
+                _ => null  // No hay pose predefinida para esta letra
             };
         }
 
@@ -182,18 +210,28 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra B: Dedos extendidos, pulgar cruzado en palma.
+        /// Letra B: Dedos extendidos y juntos (tocándose), pulgar cruzado en palma.
         /// </summary>
         public static HandPoseData CreateLetterB()
         {
+            // Todos los dedos con spread = 0 para que estén juntos tocándose
+            var fingersTogether = new FingerPoseData
+            {
+                metacarpalCurl = 0f,
+                proximalCurl = 0f,
+                intermediateCurl = 0f,
+                distalCurl = 0f,
+                spreadAngle = 0f  // Sin separación - dedos tocándose
+            };
+
             return new HandPoseData
             {
                 poseName = "B",
                 thumb = ThumbPoseData.AcrossPalm,
-                index = FingerPoseData.Extended,
-                middle = FingerPoseData.Extended,
-                ring = FingerPoseData.Extended,
-                pinky = FingerPoseData.Extended
+                index = fingersTogether,
+                middle = fingersTogether,
+                ring = fingersTogether,
+                pinky = fingersTogether
             };
         }
 
@@ -202,21 +240,33 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         public static HandPoseData CreateLetterC()
         {
+            // Dedos curvados formando la C
+            var cCurve = new FingerPoseData
+            {
+                metacarpalCurl = 0.1f,
+                proximalCurl = 0.4f,
+                intermediateCurl = 0.45f,
+                distalCurl = 0.4f,
+                spreadAngle = 0f
+            };
+
             return new HandPoseData
             {
                 poseName = "C",
+                // Rotar la mano para verla de lado y apreciar la forma de C
+                wristRotationOffset = new Vector3(0f, -60f, 0f),  // Girar 60° para vista lateral
                 thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.2f,
-                    proximalCurl = 0.35f,
-                    distalCurl = 0.3f,
-                    abductionAngle = 30f,
-                    oppositionAngle = 10f
+                    metacarpalCurl = 0.25f,
+                    proximalCurl = 0.4f,
+                    distalCurl = 0.35f,
+                    abductionAngle = 40f,   // Pulgar más abierto
+                    oppositionAngle = 15f
                 },
-                index = FingerPoseData.PartiallyCurled,
-                middle = FingerPoseData.PartiallyCurled,
-                ring = FingerPoseData.PartiallyCurled,
-                pinky = FingerPoseData.PartiallyCurled
+                index = cCurve,
+                middle = cCurve,
+                ring = cCurve,
+                pinky = cCurve
             };
         }
 
@@ -321,6 +371,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Letra L: Pulgar e índice extendidos en forma de L.
+        /// Pulgar más horizontal para formar una L más marcada.
         /// </summary>
         public static HandPoseData CreateLetterL()
         {
@@ -329,11 +380,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = "L",
                 thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.1f,
-                    proximalCurl = 0.1f,
-                    distalCurl = 0.1f,
-                    abductionAngle = 45f,
-                    oppositionAngle = 0f
+                    metacarpalCurl = 0.05f,   // Menos curl para más extensión
+                    proximalCurl = 0.05f,
+                    distalCurl = 0.05f,
+                    abductionAngle = 75f,     // Más horizontal (antes 45°)
+                    oppositionAngle = -5f     // Ligeramente hacia abajo para alinearse
                 },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.FullyCurled,

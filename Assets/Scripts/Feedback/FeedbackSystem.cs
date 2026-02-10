@@ -9,138 +9,132 @@ using ASL.DynamicGestures;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Sistema principal de feedback pedagógico.
-    /// Orquesta visual, UI y audio para proporcionar feedback explicable al usuario.
+    /// Main pedagogical feedback system.
+    /// Orchestrates visual, UI and audio feedback to provide explainable guidance to the user.
     ///
-    /// Responsabilidades:
-    /// - Coordinar HandPoseAnalyzer, FeedbackUI, FeedbackAudio y FingerIndicatorVisualizer
-    /// - Aplicar debounce (200ms) para evitar parpadeos
-    /// - Escuchar eventos de GestureRecognizer y DynamicGestureRecognizer
-    /// - Activar/desactivar feedback según el modo de práctica
+    /// Responsibilities:
+    /// - Coordinate HandPoseAnalyzer, FeedbackUI, FeedbackAudio and FingerIndicatorVisualizer
+    /// - Apply debounce (200ms) to avoid flickering
+    /// - Listen to GestureRecognizer and DynamicGestureRecognizer events
+    /// - Enable/disable feedback depending on practice mode
     /// </summary>
     public class FeedbackSystem : MonoBehaviour
     {
         [Header("Components")]
-        [Tooltip("Analizador de pose de mano")]
+        [Tooltip("Hand pose analyzer")]
         [SerializeField] private HandPoseAnalyzer handPoseAnalyzer;
 
-        [Tooltip("UI de feedback textual (opcional si usas Direct Text)")]
+        [Tooltip("Textual feedback UI (optional if using Direct Text)")]
         [SerializeField] private FeedbackUI feedbackUI;
 
-        [Tooltip("Audio de feedback")]
+        [Tooltip("Feedback audio")]
         [SerializeField] private FeedbackAudio feedbackAudio;
 
-        [Tooltip("Visualizador de indicadores por dedo (puntos en fingertips)")]
+        [Tooltip("Finger indicator visualizer (fingertip dots)")]
         [SerializeField] private FingerIndicatorVisualizer fingerIndicatorVisualizer;
 
-        [Tooltip("Renderizador de overlays por dedo (cápsulas a lo largo del dedo)")]
+        [Tooltip("Finger overlay renderer (capsules along the fingers)")]
         [SerializeField] private XRFingerOverlayRenderer fingerOverlayRenderer;
 
-        [Header("Direct Text Output (Alternativa a FeedbackUI)")]
-        [Tooltip("Si se asigna, el feedback se escribe directamente aquí (ej: feedbackText de LearningController)")]
+        [Header("Direct Text Output (Alternative to FeedbackUI)")]
+        [Tooltip("If assigned, feedback is written directly here (e.g. LearningController feedbackText)")]
         [SerializeField] private TextMeshProUGUI directFeedbackText;
 
-        [Tooltip("Usar texto directo en lugar de FeedbackUI")]
+        [Tooltip("Use direct text instead of FeedbackUI")]
         [SerializeField] private bool useDirectText = true;
 
         [Header("Gesture Recognizers")]
-        [Tooltip("GestureRecognizer para mano derecha")]
+        [Tooltip("GestureRecognizer for right hand")]
         [SerializeField] private GestureRecognizer rightHandRecognizer;
 
-        [Tooltip("GestureRecognizer para mano izquierda (opcional)")]
+        [Tooltip("GestureRecognizer for left hand (optional)")]
         [SerializeField] private GestureRecognizer leftHandRecognizer;
 
-        [Tooltip("DynamicGestureRecognizer para gestos con movimiento")]
-        [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
+        [Tooltip("DynamicGestureRecognizer for motion-based gestures")]
+        [SerializeField] private DynamicGestureRecognizer dynamicGestureRecognizer;
 
         [Header("Sampling Settings")]
-        [Tooltip("Intervalo de análisis en segundos (debounce)")]
+        [Tooltip("Analysis interval in seconds (debounce)")]
         [SerializeField] private float analysisInterval = 0.2f;
 
-        [Tooltip("Tiempo que se muestra el feedback de éxito antes de volver a analizar (3s para éxito)")]
+        [Tooltip("Time success feedback is shown before resuming analysis (seconds)")]
         [SerializeField] private float successDisplayDuration = 3f;
 
-        [Header("Message Latch Settings (Dinámicos)")]
-        [Tooltip("Tiempo mínimo de hold para mensajes de error (1.0-1.3s)")]
+        [Header("Dynamic Message Latch")]
+        [Tooltip("Minimum hold time for error messages (seconds)")]
         [SerializeField] private float errorMessageHoldMin = 1.0f;
 
-        [Tooltip("Tiempo máximo de hold para mensajes de error (1.0-1.3s)")]
+        [Tooltip("Maximum hold time for error messages (seconds)")]
         [SerializeField] private float errorMessageHoldMax = 1.3f;
 
-        [Tooltip("Tiempo de hold para mensaje de éxito dinámico (3s)")]
+        [Tooltip("Hold time for dynamic success message (seconds)")]
         [SerializeField] private float dynamicSuccessHoldDuration = 3f;
 
         [Header("Feedback Stability")]
-        [Tooltip("Tiempo mínimo que un error debe persistir antes de mostrarse (para evitar parpadeos)")]
+        [Tooltip("Minimum time an error must persist before being shown")]
         [SerializeField] private float messageEnterDelay = 0.25f;
 
-        [Tooltip("Tiempo mínimo corregido antes de ocultar un mensaje (para evitar parpadeos)")]
+        [Tooltip("Minimum corrected time before hiding a message")]
         [SerializeField] private float messageExitDelay = 0.45f;
 
         [Header("Current Sign")]
-        [Tooltip("Signo actual que se está practicando")]
+        [Tooltip("Currently practiced sign")]
         [SerializeField] private SignData currentSign;
 
         [Header("Events")]
-        [Tooltip("Se invoca cuando el feedback cambia de estado")]
+        [Tooltip("Invoked when feedback state changes")]
         public UnityEvent<FeedbackState> onFeedbackStateChanged;
 
-        [Tooltip("Se invoca cuando se detecta éxito en un gesto")]
+        [Tooltip("Invoked when a gesture is successfully detected")]
         public UnityEvent<SignData> onGestureSuccess;
 
-        [Tooltip("Se invoca cuando cambia el mensaje de feedback (útil para integración externa)")]
+        [Tooltip("Invoked when the feedback message changes")]
         public UnityEvent<string> onFeedbackMessageChanged;
 
-        // Estado interno
+        // Internal state
         private bool isActive = false;
         private float lastAnalysisTime = 0f;
         private float successEndTime = 0f;
         private FeedbackState currentState = FeedbackState.Inactive;
         private StaticGestureResult lastResult;
 
-        // Cache para métricas de gesto dinámico
+        // Dynamic gesture cache
         private DynamicGestureResult lastDynamicResult;
         private bool directTextValidated = false;
 
-        // Analizador de feedback por fases para gestos dinámicos
+        // Dynamic feedback analyzer
         private DynamicGestureFeedbackAnalyzer dynamicFeedbackAnalyzer;
 
-        // Estabilidad de mensajes para evitar parpadeos
-        private readonly Dictionary<string, MessageWindow> messageWindows = new Dictionary<string, MessageWindow>();
-        private List<string> lastStableMessages = new List<string>();
+        // Message stability (anti-flicker)
+        private readonly Dictionary<string, MessageWindow> messageWindows = new();
+        private List<string> lastStableMessages = new();
 
-        // Hints específicos para gestos dinámicos (J, Z, etc.)
-        private readonly Dictionary<string, string> dynamicHints = new Dictionary<string, string>()
+        // Dynamic gesture hints (J, Z, etc.)
+        private readonly Dictionary<string, string> dynamicHints = new()
         {
-            { "J", "Dibuja una J con el índice: sale hacia afuera y termina abajo" },
-            { "Z", "Dibuja una Z con el índice: tres trazos rápidos" }
+            { "J", "Draw a J with your index finger: move outward and finish down" },
+            { "Z", "Draw a Z with your index finger: three quick strokes" }
         };
 
-        private readonly Dictionary<string, DynamicGestureDefinition> gestureDefinitionCache = new Dictionary<string, DynamicGestureDefinition>();
+        private readonly Dictionary<string, DynamicGestureDefinition> gestureDefinitionCache = new();
 
-        // === MESSAGE LATCH para gestos dinámicos ===
-        // Bloquea la emisión de mensajes nuevos hasta que pase el tiempo de hold
+        // === MESSAGE LATCH (dynamic gestures) ===
         private float messageLatchUntil = 0f;
         private bool lastDynamicMessageWasError = false;
         private bool pendingResetToIdle = false;
 
-        // === Control de overlay según fase dinámica ===
-        // Si dynamicPhase != Idle => overlay OFF
-        // Si dynamicPhase == Idle => overlay ON
+        // === Overlay control based on dynamic phase ===
         private bool isDynamicGestureActive = false;
 
         void Start()
         {
-            // Validar componentes
             ValidateComponents();
             EnsureDirectTextMode();
 
-            // Inicializar analizador de feedback dinámico
             dynamicFeedbackAnalyzer = new DynamicGestureFeedbackAnalyzer();
             dynamicFeedbackAnalyzer.OnPhaseChanged += OnDynamicPhaseChanged;
             dynamicFeedbackAnalyzer.OnFeedbackMessage += OnDynamicFeedbackMessage;
 
-            // Desactivar feedback al inicio
             SetActive(false);
         }
 
