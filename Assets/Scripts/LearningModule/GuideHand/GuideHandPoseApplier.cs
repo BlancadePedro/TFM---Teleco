@@ -370,16 +370,20 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         private void ApplyThumbPose(ThumbPoseData thumbPose)
         {
             // El pulgar tiene una estructura diferente y ejes de rotación más complejos
-            // Metacarpal: principalmente abducción
+            // Metacarpal: abducción + twist (rotación axial de todo el dedo)
             if (thumbMetacarpal != null && originalRotations.TryGetValue(thumbMetacarpal, out Quaternion metaOriginal))
             {
                 float flexAngle = thumbPose.metacarpalCurl * maxThumbFlexAngle * 0.5f;
                 float abductAngle = thumbPose.abductionAngle;
+                float twistAngle = thumbPose.distalTwist;
+                float pitchAngle = thumbPose.thumbPitch;
 
                 Quaternion flexRot = Quaternion.AngleAxis(flexAngle, fingerFlexAxis);
                 Quaternion abductRot = Quaternion.AngleAxis(abductAngle, thumbAbductionAxis);
+                Quaternion twistRot = Quaternion.AngleAxis(twistAngle, Vector3.forward);
+                Quaternion pitchRot = Quaternion.AngleAxis(pitchAngle, Vector3.right); // Hacia/desde usuario
 
-                thumbMetacarpal.localRotation = metaOriginal * abductRot * flexRot;
+                thumbMetacarpal.localRotation = metaOriginal * abductRot * pitchRot * twistRot * flexRot;
             }
 
             // Proximal: flexión + oposición
@@ -394,7 +398,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 thumbProximal.localRotation = proxOriginal * oppRot * flexRot;
             }
 
-            // Distal: solo flexión
+            // Distal: solo flexión (el twist se aplica en metacarpal para rotar todo el dedo)
             if (thumbDistal != null && originalRotations.TryGetValue(thumbDistal, out Quaternion distOriginal))
             {
                 float flexAngle = thumbPose.distalCurl * maxThumbFlexAngle;

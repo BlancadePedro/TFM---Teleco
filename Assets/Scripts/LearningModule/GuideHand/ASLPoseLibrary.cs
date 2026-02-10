@@ -98,10 +98,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 "D" => CreateLetterD(),
                 "E" => CreateLetterE(),
                 "F" => CreateLetterF(),
+                "H" => CreateLetterH(),
                 "I" => CreateLetterI(),
                 "L" => CreateLetterL(),
                 "O" => CreateLetterO(),
                 "S" => CreateLetterS(),
+                "U" => CreateLetterU(),
                 "V" => CreateLetterV(),
                 "W" => CreateLetterW(),
                 "Y" => CreateLetterY(),
@@ -214,54 +216,79 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         public static HandPoseData CreateLetterB()
         {
-            // Todos los dedos con spread = 0 para que estén juntos tocándose
-            var fingersTogether = new FingerPoseData
-            {
-                metacarpalCurl = 0f,
-                proximalCurl = 0f,
-                intermediateCurl = 0f,
-                distalCurl = 0f,
-                spreadAngle = 0f  // Sin separación - dedos tocándose
-            };
-
             return new HandPoseData
             {
                 poseName = "B",
                 thumb = ThumbPoseData.AcrossPalm,
-                index = fingersTogether,
-                middle = fingersTogether,
-                ring = fingersTogether,
-                pinky = fingersTogether
+                // Dedos hacia el centro para que se junten y se toquen
+                // INVERTIDO: positivo = hacia centro para índice, negativo = hacia centro para meñique
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 8f  // Índice hacia el centro (hacia meñique)
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 2f// Corazón ligeramente hacia el centro
+                },
+                ring = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -2f // Anular ligeramente hacia el centro
+                },
+                pinky = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -8f  // Meñique hacia el centro (hacia índice)
+                }
             };
         }
 
         /// <summary>
         /// Letra C: Mano curvada en forma de C.
+        /// Pulgar curvado hacia el índice pero sin llegar a tocar.
         /// </summary>
         public static HandPoseData CreateLetterC()
         {
-            // Dedos curvados formando la C
+            // Dedos curvados formando la parte superior de la C
             var cCurve = new FingerPoseData
             {
                 metacarpalCurl = 0.1f,
-                proximalCurl = 0.4f,
-                intermediateCurl = 0.45f,
-                distalCurl = 0.4f,
+                proximalCurl = 0.35f,
+                intermediateCurl = 0.4f,
+                distalCurl = 0.35f,
                 spreadAngle = 0f
             };
 
             return new HandPoseData
             {
                 poseName = "C",
-                // Rotar la mano para verla de lado y apreciar la forma de C
-                wristRotationOffset = new Vector3(0f, -60f, 0f),  // Girar 60° para vista lateral
+                // Rotación para ver la C desde el lado
+                wristRotationOffset = new Vector3(0f, 0f, 60f),
+                // Pulgar curvado formando la parte INFERIOR de la C
+                // Debe estar bien separado del índice para formar la apertura de la C
                 thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.25f,
+                    metacarpalCurl = 0.35f,
                     proximalCurl = 0.4f,
-                    distalCurl = 0.35f,
-                    abductionAngle = 40f,   // Pulgar más abierto
-                    oppositionAngle = 15f
+                    distalCurl = 0.2f,
+                    abductionAngle = 25f,
+                    oppositionAngle = 15f,
+                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    thumbPitch =-15f       // Hacia el usuario
                 },
                 index = cCurve,
                 middle = cCurve,
@@ -331,25 +358,72 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra F: Índice y pulgar forman círculo, otros extendidos.
+        /// Letra F: Índice y pulgar forman círculo (OK sign), otros extendidos.
         /// </summary>
         public static HandPoseData CreateLetterF()
         {
             return new HandPoseData
             {
                 poseName = "F",
-                thumb = ThumbPoseData.TouchingFinger,
+                // Pulgar curvado tocando el índice
+                wristRotationOffset = new Vector3(0f, 0f,-60f),
+                // RANGOS: abductionAngle [-45,45], oppositionAngle [-30,30]
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.35f,
+                    proximalCurl = 0.4f,
+                    distalCurl = 0.2f,
+                    abductionAngle = 25f,
+                    oppositionAngle = 15f,
+                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    thumbPitch =-15f       // Hacia el usuario
+                },
+                // Índice curvado para tocar el pulgar
                 index = new FingerPoseData
                 {
-                    metacarpalCurl = 0.1f,
-                    proximalCurl = 0.45f,
-                    intermediateCurl = 0.5f,
-                    distalCurl = 0.4f,
+                    metacarpalCurl = 0.15f,
+                    proximalCurl = 0.55f,
+                    intermediateCurl = 0.6f,
+                    distalCurl = 0.5f,
                     spreadAngle = 0f
                 },
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
                 pinky = FingerPoseData.Extended
+            };
+        }
+
+        /// <summary>
+        /// Letra H: Índice y corazón extendidos y juntos, horizontales.
+        /// </summary>
+        public static HandPoseData CreateLetterH()
+        {
+            return new HandPoseData
+            {
+                poseName = "H",
+                wristRotationOffset = new Vector3(-90f, -90f, 0f),
+                thumb = ThumbPoseData.AcrossPalm,
+
+                // Índice y corazón MUY juntos
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 10f   // Más hacia el corazón
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -10f  // Más hacia el índice
+                },
+
+                ring = FingerPoseData.FullyCurled,
+                pinky = FingerPoseData.FullyCurled
             };
         }
 
@@ -378,13 +452,17 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "L",
+                wristRotationOffset = new Vector3(0f, 0f,-15f),
+                // Pulgar extendido y perpendicular al índice
                 thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.05f,   // Menos curl para más extensión
-                    proximalCurl = 0.05f,
-                    distalCurl = 0.05f,
-                    abductionAngle = 75f,     // Más horizontal (antes 45°)
-                    oppositionAngle = -5f     // Ligeramente hacia abajo para alinearse
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle =-60f,
+                    oppositionAngle = -10f,
+                    distalTwist = 50f, 
+                    thumbPitch = 0f
                 },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.FullyCurled,
@@ -394,10 +472,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra O: Dedos formando círculo.
+        /// Letra O: Pulgar tocando índice formando un círculo.
         /// </summary>
         public static HandPoseData CreateLetterO()
         {
+            // Dedos curvados acompañando la O
             var partiallyCurled = new FingerPoseData
             {
                 metacarpalCurl = 0.15f,
@@ -410,8 +489,28 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "O",
-                thumb = ThumbPoseData.TouchingFinger,
-                index = partiallyCurled,
+                // Pulgar curvado tocando el índice - forma círculo
+                wristRotationOffset = new Vector3(0f, 0f, 60f),
+                // RANGOS: abductionAngle [-45,45], oppositionAngle [-30,30]
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.35f,
+                    proximalCurl = 0.4f,
+                    distalCurl = 0.2f,
+                    abductionAngle = 25f,
+                    oppositionAngle = 15f,
+                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    thumbPitch =-15f       // Hacia el usuario
+                },
+                // Índice más curvado para tocar el pulgar
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0.15f,
+                    proximalCurl = 0.55f,
+                    intermediateCurl = 0.6f,
+                    distalCurl = 0.5f,
+                    spreadAngle = 0f
+                },
                 middle = partiallyCurled,
                 ring = partiallyCurled,
                 pinky = partiallyCurled
@@ -432,7 +531,39 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 ring = FingerPoseData.FullyCurled,
                 pinky = FingerPoseData.FullyCurled
             };
+                }
+
+        public static HandPoseData CreateLetterU()
+        {
+            return new HandPoseData
+            {
+                poseName = "U",
+                thumb = ThumbPoseData.AcrossPalm,
+
+                // Índice y corazón juntos
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 0f   // hacia el centro
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -5f  // hacia el centro
+                },
+
+                // Resto cerrados
+                ring = FingerPoseData.FullyCurled,
+                pinky = FingerPoseData.FullyCurled
+            };
         }
+
 
         /// <summary>
         /// Letra V: Índice y medio extendidos en V.
@@ -443,22 +574,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "V",
                 thumb = ThumbPoseData.AcrossPalm,
-                index = new FingerPoseData
-                {
-                    metacarpalCurl = 0f,
-                    proximalCurl = 0f,
-                    intermediateCurl = 0f,
-                    distalCurl = 0f,
-                    spreadAngle = 15f
-                },
-                middle = new FingerPoseData
-                {
-                    metacarpalCurl = 0f,
-                    proximalCurl = 0f,
-                    intermediateCurl = 0f,
-                    distalCurl = 0f,
-                    spreadAngle = -15f
-                },
+                index = FingerPoseData.Extended,
+                middle = FingerPoseData.Extended,
                 ring = FingerPoseData.FullyCurled,
                 pinky = FingerPoseData.FullyCurled
             };
@@ -473,23 +590,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "W",
                 thumb = ThumbPoseData.AcrossPalm,
-                index = new FingerPoseData
-                {
-                    metacarpalCurl = 0f,
-                    proximalCurl = 0f,
-                    intermediateCurl = 0f,
-                    distalCurl = 0f,
-                    spreadAngle = 10f
-                },
+                index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
-                ring = new FingerPoseData
-                {
-                    metacarpalCurl = 0f,
-                    proximalCurl = 0f,
-                    intermediateCurl = 0f,
-                    distalCurl = 0f,
-                    spreadAngle = -10f
-                },
+                ring = FingerPoseData.Extended,
                 pinky = FingerPoseData.FullyCurled
             };
         }
@@ -502,13 +605,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "Y",
-                thumb = new ThumbPoseData
+                 thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.1f,
-                    proximalCurl = 0.1f,
-                    distalCurl = 0.1f,
-                    abductionAngle = 45f,
-                    oppositionAngle = -10f
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle =-60f,
+                    oppositionAngle = -10f,
+                    distalTwist = 50f, 
+                    thumbPitch = 0f
                 },
                 index = FingerPoseData.FullyCurled,
                 middle = FingerPoseData.FullyCurled,
@@ -593,14 +698,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         public static HandPoseData CreateDigit5()
         {
+            // Mano abierta con dedos separados naturalmente
             return new HandPoseData
             {
                 poseName = "5",
                 thumb = ThumbPoseData.ExtendedBeside,
-                index = new FingerPoseData { spreadAngle = 10f },
+                index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
-                pinky = new FingerPoseData { spreadAngle = -10f }
+                pinky = FingerPoseData.Extended
             };
         }
 

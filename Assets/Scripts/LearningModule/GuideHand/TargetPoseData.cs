@@ -136,6 +136,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [Tooltip("Oposición del pulgar (cruzar hacia otros dedos)")]
         public float oppositionAngle;
 
+        [Range(-90f, 90f)]
+        [Tooltip("Rotación axial del pulgar (twist) para orientar la uña")]
+        public float distalTwist;
+
+        [Range(-45f, 45f)]
+        [Tooltip("Inclinación del pulgar hacia/desde el usuario (pitch)")]
+        public float thumbPitch;
+
         /// <summary>
         /// Crea una pose de pulgar extendido al lado.
         /// </summary>
@@ -210,7 +218,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 proximalCurl = Mathf.Lerp(a.proximalCurl, b.proximalCurl, t),
                 distalCurl = Mathf.Lerp(a.distalCurl, b.distalCurl, t),
                 abductionAngle = Mathf.Lerp(a.abductionAngle, b.abductionAngle, t),
-                oppositionAngle = Mathf.Lerp(a.oppositionAngle, b.oppositionAngle, t)
+                oppositionAngle = Mathf.Lerp(a.oppositionAngle, b.oppositionAngle, t),
+                distalTwist = Mathf.Lerp(a.distalTwist, b.distalTwist, t),
+                thumbPitch = Mathf.Lerp(a.thumbPitch, b.thumbPitch, t)
             };
         }
     }
