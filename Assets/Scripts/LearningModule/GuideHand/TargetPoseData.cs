@@ -295,4 +295,71 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             };
         }
     }
+
+    /// <summary>
+    /// Un keyframe de pose: pose completa en un instante de tiempo.
+    /// </summary>
+    [Serializable]
+    public struct PoseKeyframe
+    {
+        [Tooltip("Tiempo en segundos desde el inicio de la animación")]
+        public float time;
+
+        [Tooltip("Pose completa en este keyframe")]
+        public HandPoseData pose;
+
+        public PoseKeyframe(float time, HandPoseData pose)
+        {
+            this.time = time;
+            this.pose = pose;
+        }
+    }
+
+    /// <summary>
+    /// Secuencia animada de poses (para letras como J y Z que requieren movimiento).
+    /// </summary>
+    [Serializable]
+    public class AnimatedPoseSequence
+    {
+        public string poseName;
+        public PoseKeyframe[] keyframes;
+        public bool loop;
+
+        /// <summary>
+        /// Duración total de la secuencia (tiempo del último keyframe).
+        /// </summary>
+        public float Duration => keyframes != null && keyframes.Length > 0
+            ? keyframes[keyframes.Length - 1].time
+            : 0f;
+
+        /// <summary>
+        /// Muestrea la secuencia en un instante dado, interpolando entre keyframes.
+        /// </summary>
+        public HandPoseData SampleAtTime(float t)
+        {
+            if (keyframes == null || keyframes.Length == 0)
+                return HandPoseData.OpenHand();
+
+            // Antes del primer keyframe
+            if (t <= keyframes[0].time)
+                return keyframes[0].pose;
+
+            // Después del último keyframe
+            if (t >= keyframes[keyframes.Length - 1].time)
+                return keyframes[keyframes.Length - 1].pose;
+
+            // Buscar los dos keyframes que rodean t
+            for (int i = 0; i < keyframes.Length - 1; i++)
+            {
+                if (t >= keyframes[i].time && t <= keyframes[i + 1].time)
+                {
+                    float segmentDuration = keyframes[i + 1].time - keyframes[i].time;
+                    float localT = (t - keyframes[i].time) / segmentDuration;
+                    return HandPoseData.Lerp(keyframes[i].pose, keyframes[i + 1].pose, localT);
+                }
+            }
+
+            return keyframes[keyframes.Length - 1].pose;
+        }
+    }
 }

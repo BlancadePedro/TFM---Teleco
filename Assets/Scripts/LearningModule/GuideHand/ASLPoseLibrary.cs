@@ -411,7 +411,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "G",
                 // Dedos apuntando a la izquierda (-90 Z) + girada sobre muñeca (-90 X) para ver pulgar-índice paralelos
-                wristRotationOffset = new Vector3(10f, 90f, 90f),
+                wristRotationOffset = new Vector3(0f, 90f, 90f),
                 wristPositionOffset = new Vector3(-0.08f, 0f, 0.12f), // Subir para no meter en la mesa
 
                 // Pulgar extendido en paralelo al índice
@@ -560,14 +560,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "M",
-                // Pulgar lo más cruzado posible, metido debajo de los dedos
-                thumb = new ThumbPoseData
+                // Pulgar cruzado pero más estirado
+             thumb = new ThumbPoseData
                 {
-                    metacarpalCurl = 0.5f,
-                    proximalCurl = 0.7f,
-                    distalCurl = 0.6f,
-                    abductionAngle = -30f,     // Muy hacia dentro
-                    oppositionAngle = 30f,     // Máxima oposición para cruzar
+                    metacarpalCurl = 0.4f,
+                    proximalCurl = 0.6f,
+                    distalCurl = 0.5f,
+                    abductionAngle = -20f,     // Hacia dentro
+                    oppositionAngle = 25f,     // Cruzado hacia dedos
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
@@ -660,8 +660,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "P",
                 // Como K pero apuntando abajo
-                wristRotationOffset = new Vector3(0f, 180f, 30f),
-                wristPositionOffset = new Vector3(-0.05f, 0f, 0.2f),
+                wristRotationOffset = new Vector3(0f, 180f, 10f),
+                wristPositionOffset = new Vector3(0f, 0f, 0.2f),
                 // Pulgar recto, paralelo al índice, pegado a él
                 thumb = new ThumbPoseData
                 {
@@ -697,8 +697,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "Q",
                 // Mano girada para que índice apunte hacia abajo
-                wristRotationOffset = new Vector3(0f, 180f, 70f),
-                wristPositionOffset = new Vector3(-0.05f, 0f, 0.2f),
+                wristRotationOffset = new Vector3(0f, 180f, 40f),
+                wristPositionOffset = new Vector3(0f, 0f, 0.2f),
 
                 // Pulgar extendido en paralelo al índice
                 thumb = new ThumbPoseData
@@ -1019,6 +1019,187 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
                 pinky = FingerPoseData.Extended
+            };
+        }
+
+        #endregion
+
+        #region Animated Poses (J, Z)
+
+        /// <summary>
+        /// Obtiene una secuencia animada si la letra la requiere (J, Z).
+        /// Retorna null si la letra no necesita animación.
+        /// </summary>
+        public static AnimatedPoseSequence GetAnimatedPose(string signName)
+        {
+            if (string.IsNullOrEmpty(signName))
+                return null;
+
+            return signName.ToUpper() switch
+            {
+                "J" => CreateLetterJ(),
+                "Z" => CreateLetterZ(),
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// Letra J: Pose de I (meñique extendido) + muñeca dibuja una J.
+        /// Movimiento: abajo + curva hacia la izquierda.
+        /// </summary>
+        private static AnimatedPoseSequence CreateLetterJ()
+        {
+            // Pose base: igual que I (meñique extendido)
+            var basePose = CreateLetterI();
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "J",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Ejes locales: X=izquierda/derecha, Y=profundidad (NO TOCAR), Z=arriba/abajo (+ = arriba)
+                    // Inicio: pose I bien arriba para no meter en la mesa
+                    new PoseKeyframe(0f, new HandPoseData
+                    {
+                        poseName = "J_start",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(0f, 0f, 0.12f)
+                    }),
+                    // Bajar recto (Z negativo = abajo)
+                    new PoseKeyframe(0.4f, new HandPoseData
+                    {
+                        poseName = "J_down",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(0f, 0f, 0f)
+                    }),
+                    // Curva hacia la izquierda (X negativo = izquierda)
+                    new PoseKeyframe(0.7f, new HandPoseData
+                    {
+                        poseName = "J_curve",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.06f, 0f, 0.02f)
+                    }),
+                    // Final curva: más a la izquierda, subiendo un poco
+                    new PoseKeyframe(1.0f, new HandPoseData
+                    {
+                        poseName = "J_end",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.08f, 0f, 0.06f)
+                    }),
+                    // Mantener pose final
+                    new PoseKeyframe(1.5f, new HandPoseData
+                    {
+                        poseName = "J_hold",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.08f, 0f, 0.06f)
+                    })
+                }
+            };
+        }
+
+        /// <summary>
+        /// Letra Z: Pose de 1 (índice extendido) + muñeca dibuja una Z.
+        /// Movimiento: derecha + diagonal abajo-izquierda + derecha.
+        /// </summary>
+        private static AnimatedPoseSequence CreateLetterZ()
+        {
+            // Pose base: igual que 1 (índice extendido)
+            var basePose = CreateDigit1();
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "Z",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Ejes locales: X=izquierda/derecha, Y=profundidad (NO TOCAR), Z=arriba/abajo (+ = arriba)
+                    // Inicio: arriba-derecha (invertido: izq→der primero)
+                    new PoseKeyframe(0f, new HandPoseData
+                    {
+                        poseName = "Z_start",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(0.04f, 0f, 0.04f)
+                    }),
+                    // Trazo horizontal: arriba-izquierda (primera línea de la Z: der→izq)
+                    new PoseKeyframe(0.5f, new HandPoseData
+                    {
+                        poseName = "Z_left",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.04f, 0f, 0.04f)
+                    }),
+                    // Diagonal: abajo-derecha (en el mismo plano X-Z, izq→der diagonal)
+                    new PoseKeyframe(1.0f, new HandPoseData
+                    {
+                        poseName = "Z_diag",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(0.04f, 0f, -0.04f)
+                    }),
+                    // Trazo horizontal: abajo-izquierda (última línea de la Z: der→izq)
+                    new PoseKeyframe(1.5f, new HandPoseData
+                    {
+                        poseName = "Z_end",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.04f, 0f, -0.04f)
+                    }),
+                    // Mantener pose final
+                    new PoseKeyframe(2.0f, new HandPoseData
+                    {
+                        poseName = "Z_hold",
+                        thumb = basePose.thumb,
+                        index = basePose.index,
+                        middle = basePose.middle,
+                        ring = basePose.ring,
+                        pinky = basePose.pinky,
+                        wristRotationOffset = Vector3.zero,
+                        wristPositionOffset = new Vector3(-0.04f, 0f, -0.04f)
+                    })
+                }
             };
         }
 

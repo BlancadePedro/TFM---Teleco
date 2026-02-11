@@ -391,25 +391,35 @@ namespace ASL_LearnVR.LearningModule
 
             // 4. Aplicar el GESTO solo a la mano DERECHA
             isShowingGesture = true;
-            Debug.Log($"[GhostHandPlayer] Buscando pose para '{sign.signName}' en ASLPoseLibrary...");
-            var pose = ASLPoseLibrary.GetPoseBySignName(sign.signName);
 
-            if (pose != null && rightPoseApplier != null)
+            // Comprobar si es una pose animada (J, Z)
+            var animatedPose = ASLPoseLibrary.GetAnimatedPose(sign.signName);
+            if (animatedPose != null && rightPoseApplier != null)
             {
-                Debug.Log($"[GhostHandPlayer] Pose '{pose.poseName}' encontrada. Aplicando a mano derecha...");
-                rightPoseApplier.ApplyPose(pose);
-                Debug.Log($"[GhostHandPlayer] ¡GESTO '{sign.signName}' APLICADO!");
+                Debug.Log($"[GhostHandPlayer] Pose ANIMADA '{animatedPose.poseName}' encontrada. Reproduciendo secuencia...");
+                yield return PlayAnimatedPoseSequence(animatedPose, rightPoseApplier);
             }
             else
             {
-                Debug.LogError($"[GhostHandPlayer] ERROR: No se encontró pose para '{sign.signName}'. " +
-                    $"pose={pose}, rightPoseApplier={rightPoseApplier}");
+                // Pose estática normal
+                Debug.Log($"[GhostHandPlayer] Buscando pose para '{sign.signName}' en ASLPoseLibrary...");
+                var pose = ASLPoseLibrary.GetPoseBySignName(sign.signName);
+
+                if (pose != null && rightPoseApplier != null)
+                {
+                    Debug.Log($"[GhostHandPlayer] Pose '{pose.poseName}' encontrada. Aplicando a mano derecha...");
+                    rightPoseApplier.ApplyPose(pose);
+                    Debug.Log($"[GhostHandPlayer] ¡GESTO '{sign.signName}' APLICADO!");
+                }
+                else
+                {
+                    Debug.LogError($"[GhostHandPlayer] ERROR: No se encontró pose para '{sign.signName}'. " +
+                        $"pose={pose}, rightPoseApplier={rightPoseApplier}");
+                }
+
+                // 5. Mantener el gesto visible (solo para poses estáticas)
+                yield return new WaitForSeconds(gestureDisplayTime);
             }
-
-            // La mano izquierda sigue en neutro (no hacemos nada)
-
-            // 5. Mantener el gesto visible
-            yield return new WaitForSeconds(gestureDisplayTime);
 
             // 6. Volver a NEUTRO (mano derecha)
             isShowingGesture = false;
@@ -426,6 +436,35 @@ namespace ASL_LearnVR.LearningModule
             currentAnimation = null;
 
             Debug.Log($"[GhostHandPlayer] ========== SECUENCIA COMPLETADA para '{sign.signName}' ==========");
+        }
+
+        /// <summary>
+        /// Corrutina para reproducir una secuencia animada de poses (J, Z).
+        /// Interpola entre keyframes frame a frame y mantiene la pose final.
+        /// </summary>
+        private IEnumerator PlayAnimatedPoseSequence(AnimatedPoseSequence sequence, GuideHandPoseApplier applier)
+        {
+            float elapsed = 0f;
+            float totalDuration = sequence.Duration;
+
+            Debug.Log($"[GhostHandPlayer] Reproduciendo secuencia animada '{sequence.poseName}' ({totalDuration}s, {sequence.keyframes.Length} keyframes)");
+
+            // Reproducir la secuencia interpolando entre keyframes
+            while (elapsed < totalDuration)
+            {
+                var pose = sequence.SampleAtTime(elapsed);
+                applier.ApplyPoseImmediate(pose);
+                elapsed += Time.deltaTime;
+                yield return null; // Esperar un frame
+            }
+
+            // Aplicar pose final exacta
+            applier.ApplyPoseImmediate(sequence.SampleAtTime(totalDuration));
+
+            // Mantener la pose final visible
+            yield return new WaitForSeconds(gestureDisplayTime);
+
+            Debug.Log($"[GhostHandPlayer] Secuencia animada '{sequence.poseName}' completada.");
         }
 
         /// <summary>
