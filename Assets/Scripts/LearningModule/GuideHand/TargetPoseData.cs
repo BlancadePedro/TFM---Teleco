@@ -242,6 +242,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [Tooltip("Rotación del wrist respecto a su pose neutral")]
         public Vector3 wristRotationOffset = Vector3.zero;
 
+        [Tooltip("Offset de posición local del wrist (para subir/bajar la mano)")]
+        public Vector3 wristPositionOffset = Vector3.zero;
+
         /// <summary>
         /// Crea una pose de mano abierta (todos los dedos extendidos).
         /// </summary>
@@ -287,7 +290,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 middle = FingerPoseData.Lerp(a.middle, b.middle, t),
                 ring = FingerPoseData.Lerp(a.ring, b.ring, t),
                 pinky = FingerPoseData.Lerp(a.pinky, b.pinky, t),
-                wristRotationOffset = Vector3.Lerp(a.wristRotationOffset, b.wristRotationOffset, t)
+                wristRotationOffset = Vector3.Lerp(a.wristRotationOffset, b.wristRotationOffset, t),
+                wristPositionOffset = Vector3.Lerp(a.wristPositionOffset, b.wristPositionOffset, t)
             };
         }
     }

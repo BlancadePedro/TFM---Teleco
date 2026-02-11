@@ -106,8 +106,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         private float transitionProgress = 1f;
         private bool isInitialized = false;
 
-        // Cache de rotaciones originales
+        // Cache de rotaciones y posición originales
         private Dictionary<Transform, Quaternion> originalRotations = new Dictionary<Transform, Quaternion>();
+        private Vector3 originalWristPosition;
 
         /// <summary>
         /// True si la mano guía está en transición entre poses.
@@ -142,7 +143,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 isInitialized = false;
             }
 
-            // Guardar rotaciones originales de todos los joints
+            // Guardar posición y rotaciones originales de todos los joints
+            if (wristTransform != null)
+                originalWristPosition = wristTransform.localPosition;
             CacheOriginalRotation(wristTransform);
             CacheOriginalRotation(palmTransform);
 
@@ -298,8 +301,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (pose == null)
                 return;
 
-            // Aplicar rotación de muñeca
+            // Aplicar rotación y posición de muñeca
             ApplyWristRotation(pose.wristRotationOffset);
+            ApplyWristPosition(pose.wristPositionOffset);
 
             // Aplicar pose del pulgar
             ApplyThumbPose(pose.thumb);
@@ -351,6 +355,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 }
             }
 
+            if (wristTransform != null)
+                wristTransform.localPosition = originalWristPosition;
+
             currentPose = HandPoseData.OpenHand();
             targetPose = currentPose;
             transitionProgress = 1f;
@@ -365,6 +372,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 wristTransform.localRotation = originalRot * Quaternion.Euler(rotationOffset);
             }
+        }
+
+        private void ApplyWristPosition(Vector3 positionOffset)
+        {
+            if (wristTransform == null)
+                return;
+
+            wristTransform.localPosition = originalWristPosition + positionOffset;
         }
 
         private void ApplyThumbPose(ThumbPoseData thumbPose)
