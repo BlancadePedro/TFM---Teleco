@@ -121,6 +121,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 "3" => CreateDigit3(),
                 "4" => CreateDigit4(),
                 "5" => CreateDigit5(),
+                "6" => CreateDigit6(),
+                "7" => CreateDigit7(),
+                "8" => CreateDigit8(),
+                "9" => CreateDigit9(),
+                "0" => CreateDigit0(),
                 _ => null  // No hay pose predefinida para esta letra
             };
         }
@@ -660,7 +665,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "P",
                 // Como K pero apuntando abajo
-                wristRotationOffset = new Vector3(0f, 180f, 10f),
+                wristRotationOffset = new Vector3(0f, 180f, 30f),
                 wristPositionOffset = new Vector3(0f, 0f, 0.2f),
                 // Pulgar recto, paralelo al índice, pegado a él
                 thumb = new ThumbPoseData
@@ -668,8 +673,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     distalCurl = 0f,
-                    abductionAngle = 10f,          // Ligeramente hacia el índice
-                    oppositionAngle = 15f,         // Cruzar hacia el índice para tocarlo
+                    abductionAngle = 20f,          // Más hacia el índice
+                    oppositionAngle = 25f,         // Cruzar más hacia el índice
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
@@ -681,7 +686,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -5f  // Separado del índice
+                    spreadAngle = 5f  // Separado del índice
                 },
                 ring = FingerPoseData.FullyCurled,
                 pinky = FingerPoseData.FullyCurled
@@ -697,7 +702,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "Q",
                 // Mano girada para que índice apunte hacia abajo
-                wristRotationOffset = new Vector3(0f, 180f, 40f),
+                wristRotationOffset = new Vector3(0f, 180f, 90f),
                 wristPositionOffset = new Vector3(0f, 0f, 0.2f),
 
                 // Pulgar extendido en paralelo al índice
@@ -981,7 +986,16 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "3",
-                thumb = ThumbPoseData.ExtendedBeside,
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle =-60f,
+                    oppositionAngle = -10f,
+                    distalTwist = 50f, 
+                    thumbPitch = 0f
+                },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.FullyCurled,
@@ -1010,25 +1024,212 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         public static HandPoseData CreateDigit5()
         {
-            // Mano abierta con dedos separados naturalmente
+            // Mano abierta con dedos separados entre sí
             return new HandPoseData
             {
                 poseName = "5",
-                thumb = ThumbPoseData.ExtendedBeside,
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle =-60f,
+                    oppositionAngle = -10f,
+                    distalTwist = 50f,
+                    thumbPitch = 0f
+                },
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -5f  // Separar del medio (hacia el pulgar)
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = -2f  // Ligeramente hacia el índice
+                },
+                ring = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 2f   // Ligeramente hacia el meñique
+                },
+                pinky = new FingerPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    intermediateCurl = 0f,
+                    distalCurl = 0f,
+                    spreadAngle = 5f   // Separar del anular (hacia fuera)
+                }
+            };
+        }
+
+        /// <summary>
+        /// Dígito 6: Pulgar toca meñique (tip curl), resto extendidos.
+        /// </summary>
+        public static HandPoseData CreateDigit6()
+        {
+            return new HandPoseData
+            {
+                poseName = "6",
+                // Pulgar cruzado hacia meñique
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.4f,
+                    proximalCurl = 0.6f,
+                    distalCurl = 0.5f,
+                    abductionAngle = -25f,     // Hacia dentro (meñique)
+                    oppositionAngle = 30f,     // Máximo cruce hacia meñique
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
                 index = FingerPoseData.Extended,
+                middle = FingerPoseData.Extended,
+                ring = FingerPoseData.Extended,
+                // Meñique en tip curl para tocar el pulgar
+                pinky = FingerPoseData.TipCurl
+            };
+        }
+
+        /// <summary>
+        /// Dígito 7: Pulgar toca anular (tip curl), índice+corazón+meñique extendidos.
+        /// </summary>
+        public static HandPoseData CreateDigit7()
+        {
+            return new HandPoseData
+            {
+                poseName = "7",
+                // Pulgar cruzado hacia anular
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.35f,
+                    proximalCurl = 0.55f,
+                    distalCurl = 0.45f,
+                    abductionAngle = -15f,     // Hacia dentro (anular)
+                    oppositionAngle = 25f,     // Cruce hacia anular
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = FingerPoseData.Extended,
+                middle = FingerPoseData.Extended,
+                // Anular en tip curl para tocar el pulgar
+                ring = FingerPoseData.TipCurl,
+                pinky = FingerPoseData.Extended
+            };
+        }
+
+        /// <summary>
+        /// Dígito 8: Pulgar toca corazón (tip curl), índice+anular+meñique extendidos.
+        /// </summary>
+        public static HandPoseData CreateDigit8()
+        {
+            return new HandPoseData
+            {
+                poseName = "8",
+                // Pulgar cruzado hacia corazón
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.3f,
+                    proximalCurl = 0.45f,
+                    distalCurl = 0.4f,
+                    abductionAngle = -5f,      // Ligeramente hacia dentro
+                    oppositionAngle = 20f,     // Cruce hacia corazón
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = FingerPoseData.Extended,
+                // Corazón en tip curl para tocar el pulgar
+                middle = FingerPoseData.TipCurl,
+                ring = FingerPoseData.Extended,
+                pinky = FingerPoseData.Extended
+            };
+        }
+
+        /// <summary>
+        /// Dígito 9: Pulgar toca índice (tip curl), corazón+anular+meñique extendidos.
+        /// </summary>
+        public static HandPoseData CreateDigit9()
+        {
+            return new HandPoseData
+            {
+                poseName = "9",
+                // Pulgar hacia índice (similar a F/O)
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.3f,
+                    proximalCurl = 0.4f,
+                    distalCurl = 0.35f,
+                    abductionAngle = 10f,      // Hacia el índice
+                    oppositionAngle = 15f,     // Cruce hacia índice
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                // Índice en tip curl para tocar el pulgar
+                index = FingerPoseData.TipCurl,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
                 pinky = FingerPoseData.Extended
             };
         }
 
+        /// <summary>
+        /// Dígito 0: Igual que la letra O (pulgar toca índice formando círculo).
+        /// </summary>
+        public static HandPoseData CreateDigit0()
+        {
+            var partiallyCurled = new FingerPoseData
+            {
+                metacarpalCurl = 0.15f,
+                proximalCurl = 0.5f,
+                intermediateCurl = 0.55f,
+                distalCurl = 0.5f,
+                spreadAngle = 0f
+            };
+
+            return new HandPoseData
+            {
+                poseName = "0",
+                wristRotationOffset = new Vector3(0f, 0f, 90f),
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.35f,
+                    proximalCurl = 0.4f,
+                    distalCurl = 0.2f,
+                    abductionAngle = 25f,
+                    oppositionAngle = 15f,
+                    distalTwist = -50f,
+                    thumbPitch = -15f
+                },
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0.15f,
+                    proximalCurl = 0.55f,
+                    intermediateCurl = 0.6f,
+                    distalCurl = 0.5f,
+                    spreadAngle = 0f
+                },
+                middle = partiallyCurled,
+                ring = partiallyCurled,
+                pinky = partiallyCurled
+            };
+        }
+
         #endregion
 
-        #region Animated Poses (J, Z)
+        #region Animated Poses (J, Z, Basic Communication)
 
         /// <summary>
-        /// Obtiene una secuencia animada si la letra la requiere (J, Z).
-        /// Retorna null si la letra no necesita animación.
+        /// Obtiene una secuencia animada si el signo la requiere.
+        /// Retorna null si el signo no necesita animación.
         /// </summary>
         public static AnimatedPoseSequence GetAnimatedPose(string signName)
         {
@@ -1039,6 +1240,41 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 "J" => CreateLetterJ(),
                 "Z" => CreateLetterZ(),
+                "HELLO" => CreateSignHello(),
+                "BYE" => CreateSignBye(),
+                "YES" => CreateSignYes(),
+                "NO" => CreateSignNo(),
+                "THANK YOU" => CreateSignThankYou(),
+                "PLEASE" => CreateSignPlease(),
+                "GOOD" => CreateSignGood(),
+                "BAD" => CreateSignBad(),
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// Indica si un signo requiere animación de ambas manos.
+        /// </summary>
+        public static bool IsDoubleHandedSign(string signName)
+        {
+            if (string.IsNullOrEmpty(signName)) return false;
+            return signName.ToUpper() switch
+            {
+                "THANK YOU" => true,
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// Obtiene la secuencia animada para la mano IZQUIERDA si el signo es de dos manos.
+        /// Retorna null si el signo no necesita mano izquierda.
+        /// </summary>
+        public static AnimatedPoseSequence GetAnimatedPoseLeftHand(string signName)
+        {
+            if (string.IsNullOrEmpty(signName)) return null;
+            return signName.ToUpper() switch
+            {
+                "THANK YOU" => CreateSignThankYouLeftHand(), // Animación espejada (Z invertido)
                 _ => null
             };
         }
@@ -1072,7 +1308,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristPositionOffset = new Vector3(0f, 0f, 0.12f)
                     }),
                     // Bajar recto (Z negativo = abajo)
-                    new PoseKeyframe(0.4f, new HandPoseData
+                    new PoseKeyframe(0.15f, new HandPoseData
                     {
                         poseName = "J_down",
                         thumb = basePose.thumb,
@@ -1084,7 +1320,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristPositionOffset = new Vector3(0f, 0f, 0f)
                     }),
                     // Curva hacia la izquierda (X negativo = izquierda)
-                    new PoseKeyframe(0.7f, new HandPoseData
+                    new PoseKeyframe(0.3f, new HandPoseData
                     {
                         poseName = "J_curve",
                         thumb = basePose.thumb,
@@ -1096,7 +1332,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristPositionOffset = new Vector3(-0.06f, 0f, 0.02f)
                     }),
                     // Final curva: más a la izquierda, subiendo un poco
-                    new PoseKeyframe(1.0f, new HandPoseData
+                    new PoseKeyframe(0.5f, new HandPoseData
                     {
                         poseName = "J_end",
                         thumb = basePose.thumb,
@@ -1108,7 +1344,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristPositionOffset = new Vector3(-0.08f, 0f, 0.06f)
                     }),
                     // Mantener pose final
-                    new PoseKeyframe(1.5f, new HandPoseData
+                    new PoseKeyframe(1.0f, new HandPoseData
                     {
                         poseName = "J_hold",
                         thumb = basePose.thumb,
@@ -1149,7 +1385,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         ring = basePose.ring,
                         pinky = basePose.pinky,
                         wristRotationOffset = Vector3.zero,
-                        wristPositionOffset = new Vector3(0.04f, 0f, 0.04f)
+                        wristPositionOffset = new Vector3(0.04f, 0f, 0.08f)
                     }),
                     // Trazo horizontal: arriba-izquierda (primera línea de la Z: der→izq)
                     new PoseKeyframe(0.5f, new HandPoseData
@@ -1161,9 +1397,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         ring = basePose.ring,
                         pinky = basePose.pinky,
                         wristRotationOffset = Vector3.zero,
-                        wristPositionOffset = new Vector3(-0.04f, 0f, 0.04f)
+                        wristPositionOffset = new Vector3(-0.04f, 0f, 0.08f)
                     }),
-                    // Diagonal: abajo-derecha (en el mismo plano X-Z, izq→der diagonal)
+                    // Diagonal: abajo-derecha (en el mismo plano X-Z, diagonal más corta)
                     new PoseKeyframe(1.0f, new HandPoseData
                     {
                         poseName = "Z_diag",
@@ -1173,7 +1409,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         ring = basePose.ring,
                         pinky = basePose.pinky,
                         wristRotationOffset = Vector3.zero,
-                        wristPositionOffset = new Vector3(0.04f, 0f, -0.04f)
+                        wristPositionOffset = new Vector3(0.04f, 0f, 0.02f)
                     }),
                     // Trazo horizontal: abajo-izquierda (última línea de la Z: der→izq)
                     new PoseKeyframe(1.5f, new HandPoseData
@@ -1185,7 +1421,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         ring = basePose.ring,
                         pinky = basePose.pinky,
                         wristRotationOffset = Vector3.zero,
-                        wristPositionOffset = new Vector3(-0.04f, 0f, -0.04f)
+                        wristPositionOffset = new Vector3(-0.04f, 0f, 0.02f)
                     }),
                     // Mantener pose final
                     new PoseKeyframe(2.0f, new HandPoseData
@@ -1197,11 +1433,401 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         ring = basePose.ring,
                         pinky = basePose.pinky,
                         wristRotationOffset = Vector3.zero,
-                        wristPositionOffset = new Vector3(-0.04f, 0f, -0.04f)
+                        wristPositionOffset = new Vector3(-0.04f, 0f, 0.02f)
                     })
                 }
             };
         }
+
+        #region Basic Communication Signs
+
+        /// <summary>
+        /// Pose base de pulgar arriba (para "Good").
+        /// Rotación Y+90 para que el pulgar apunte hacia arriba.
+        /// </summary>
+        private static HandPoseData CreateThumbsUpPose(Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = "ThumbsUp",
+                wristRotationOffset = new Vector3(0f, 90f, 0f), // Y+90: pulgar apunta arriba
+                wristPositionOffset = wristPos,
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle = 30f,
+                    oppositionAngle = 0f,
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = FingerPoseData.FullyCurled,
+                middle = FingerPoseData.FullyCurled,
+                ring = FingerPoseData.FullyCurled,
+                pinky = FingerPoseData.FullyCurled
+            };
+        }
+
+        /// <summary>
+        /// Pose base de pulgar abajo (para "Bad").
+        /// Rotación Y-90 para que el pulgar apunte hacia abajo.
+        /// </summary>
+        private static HandPoseData CreateThumbsDownPose(Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = "ThumbsDown",
+                wristRotationOffset = new Vector3(0f, -90f, 0f), // Y-90: pulgar apunta abajo
+                wristPositionOffset = wristPos,
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0f,
+                    proximalCurl = 0f,
+                    distalCurl = 0f,
+                    abductionAngle = 30f,
+                    oppositionAngle = 0f,
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = FingerPoseData.FullyCurled,
+                middle = FingerPoseData.FullyCurled,
+                ring = FingerPoseData.FullyCurled,
+                pinky = FingerPoseData.FullyCurled
+            };
+        }
+
+        /// <summary>
+        /// Pose de mano para Hello/ThankYou: dedos juntos (como B), pulgar extendido pegado al índice.
+        /// </summary>
+        private static HandPoseData CreateHelloHandPose(string name, Vector3 wristPos, Vector3 wristRot)
+        {
+            return new HandPoseData
+            {
+                poseName = name,
+                wristRotationOffset = wristRot,
+                wristPositionOffset = wristPos,
+                // Pulgar extendido pero pegado al índice
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.1f,
+                    proximalCurl = 0.15f,
+                    distalCurl = 0.1f,
+                    abductionAngle = 15f,   // Cerca del índice
+                    oppositionAngle = 0f,
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                // Dedos juntos como B
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 3f   // Ligeramente hacia el centro
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 1f
+                },
+                ring = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -1f
+                },
+                pinky = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -3f  // Ligeramente hacia el centro
+                }
+            };
+        }
+
+        /// <summary>
+        /// Pose de mano para Please: dedos juntos y estirados (como B), pulgar cruzado.
+        /// </summary>
+        private static HandPoseData CreatePleaseHandPose(string name, Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = name,
+                wristRotationOffset = Vector3.zero,
+                wristPositionOffset = wristPos,
+                // Pulgar extendido pegado al índice (no doblado)
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.1f,
+                    proximalCurl = 0.15f,
+                    distalCurl = 0.1f,
+                    abductionAngle = 15f,
+                    oppositionAngle = 0f,
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 3f
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 1f
+                },
+                ring = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -1f
+                },
+                pinky = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -3f
+                }
+            };
+        }
+
+        /// <summary>
+        /// Hello: Palma abierta con ola desde la muñeca (rotación Z oscilante).
+        /// Dedos juntos, pulgar pegado al índice.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignHello()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "Hello",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Ola: rotación Z oscila (muñeca como eje)
+                    new PoseKeyframe(0f, CreateHelloHandPose("Hello_center", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, 0f))),
+                    new PoseKeyframe(0.15f, CreateHelloHandPose("Hello_right", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, -20f))),
+                    new PoseKeyframe(0.35f, CreateHelloHandPose("Hello_left", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, 20f))),
+                    new PoseKeyframe(0.55f, CreateHelloHandPose("Hello_right2", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, -20f))),
+                    new PoseKeyframe(0.75f, CreateHelloHandPose("Hello_center2", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, 0f))),
+                    new PoseKeyframe(1.5f, CreateHelloHandPose("Hello_hold", new Vector3(0f, 0f, 0.1f), new Vector3(0f, 0f, 0f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Bye: Palma abierta que se cierra (como A) repetidamente.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignBye()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "Bye",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Alternar entre palma abierta y puño A
+                    new PoseKeyframe(0f, CreateHelloHandPose("Bye_open1", new Vector3(0f, 0f, 0.1f), Vector3.zero)),
+                    new PoseKeyframe(0.3f, WithWristOffset(CreateLetterA(), "Bye_close1", new Vector3(0f, 0f, 0.1f))),
+                    new PoseKeyframe(0.6f, CreateHelloHandPose("Bye_open2", new Vector3(0f, 0f, 0.1f), Vector3.zero)),
+                    new PoseKeyframe(0.9f, WithWristOffset(CreateLetterA(), "Bye_close2", new Vector3(0f, 0f, 0.1f))),
+                    new PoseKeyframe(1.2f, CreateHelloHandPose("Bye_open3", new Vector3(0f, 0f, 0.1f), Vector3.zero)),
+                    new PoseKeyframe(1.8f, CreateHelloHandPose("Bye_hold", new Vector3(0f, 0f, 0.1f), Vector3.zero))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Yes: Puño (S) con movimiento de llamar a la puerta (Y oscila: adelante-atrás).
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignYes()
+        {
+            var fist = CreateLetterS();
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "Yes",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Knocking: oscilación en Y (profundidad) - como tocar una puerta
+                    new PoseKeyframe(0f, WithWristOffset(fist, "Yes_back", new Vector3(0.04f, 0f, 0.12f))),
+                    new PoseKeyframe(0.12f, WithWristOffset(fist, "Yes_knock1", new Vector3(0.04f, 0.05f, 0.12f))),
+                    new PoseKeyframe(0.22f, WithWristOffset(fist, "Yes_back2", new Vector3(0.04f, 0f, 0.12f))),
+                    new PoseKeyframe(0.34f, WithWristOffset(fist, "Yes_knock2", new Vector3(0.04f, 0.05f, 0.12f))),
+                    new PoseKeyframe(0.44f, WithWristOffset(fist, "Yes_back3", new Vector3(0.04f, 0f, 0.12f))),
+                    new PoseKeyframe(1.0f, WithWristOffset(fist, "Yes_hold", new Vector3(0.04f, 0f, 0.12f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// No: Pose H (índice y corazón horizontales) oscilando lado a lado.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignNo()
+        {
+            var hPose = CreateLetterH();
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "No",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // H ya tiene wristRotationOffset=(0,90,0) → dedos horizontales
+                    // Más arriba y a la derecha para no superponerse con la otra mano
+                    new PoseKeyframe(0f, WithWristOffset(hPose, "No_center", new Vector3(0f, 0f, 0.16f))),
+                    new PoseKeyframe(0.12f, WithWristOffset(hPose, "No_right", new Vector3(0.04f, 0f, 0.16f))),
+                    new PoseKeyframe(0.3f, WithWristOffset(hPose, "No_left", new Vector3(-0.04f, 0f, 0.16f))),
+                    new PoseKeyframe(0.48f, WithWristOffset(hPose, "No_right2", new Vector3(0.04f, 0f, 0.16f))),
+                    new PoseKeyframe(0.6f, WithWristOffset(hPose, "No_center2", new Vector3(0f, 0f, 0.16f))),
+                    new PoseKeyframe(1.2f, WithWristOffset(hPose, "No_hold", new Vector3(0f, 0f, 0.16f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Thank You (mano derecha): Empieza en posición default, manos ladeadas formando pico,
+        /// luego se abren hacia adelante y horizontal.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignThankYou()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "ThankYou",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Inicio: posición default (sin offset), mano ladeada con dedos hacia el centro (pico)
+                    new PoseKeyframe(0f, CreateHelloHandPose("TY_start", Vector3.zero, new Vector3(0f, 0f, 30f))),
+                    // Intermedio: avanza, se va aplanando
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.06f, 0f), new Vector3(-30f, 0f, 20f))),
+                    // Final: prácticamente horizontal, alejada
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TY_end", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, 10f))),
+                    // Mantener
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TY_hold", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, 10f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Thank You (mano izquierda): Igual pero con rotación Z invertida (espejo).
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignThankYouLeftHand()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "ThankYou_Left",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // Inicio: pico invertido (Z negativo = dedos hacia la derecha = centro)
+                    new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", Vector3.zero, new Vector3(0f, 0f, -30f))),
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.06f, 0f), new Vector3(-30f, 0f, -20f))),
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, -10f))),
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TYL_hold", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, -10f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Please: Movimiento circular bien definido, dedos juntos y estirados (como B).
+        /// 8 puntos en el círculo para suavidad, rápido.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignPlease()
+        {
+            float r = 0.04f;  // Radio del círculo
+            float cz = 0.06f; // Centro Z
+            float d = r * 0.707f; // cos(45°) para puntos diagonales
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "Please",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    // 8 puntos en el círculo (cada 45°) para movimiento suave
+                    new PoseKeyframe(0f,    CreatePleaseHandPose("Pl_0", new Vector3(0f, 0f, cz + r))),     // arriba
+                    new PoseKeyframe(0.07f, CreatePleaseHandPose("Pl_1", new Vector3(d, 0f, cz + d))),      // arriba-derecha
+                    new PoseKeyframe(0.14f, CreatePleaseHandPose("Pl_2", new Vector3(r, 0f, cz))),           // derecha
+                    new PoseKeyframe(0.21f, CreatePleaseHandPose("Pl_3", new Vector3(d, 0f, cz - d))),      // abajo-derecha
+                    new PoseKeyframe(0.28f, CreatePleaseHandPose("Pl_4", new Vector3(0f, 0f, cz - r))),     // abajo
+                    new PoseKeyframe(0.35f, CreatePleaseHandPose("Pl_5", new Vector3(-d, 0f, cz - d))),     // abajo-izquierda
+                    new PoseKeyframe(0.42f, CreatePleaseHandPose("Pl_6", new Vector3(-r, 0f, cz))),          // izquierda
+                    new PoseKeyframe(0.49f, CreatePleaseHandPose("Pl_7", new Vector3(-d, 0f, cz + d))),     // arriba-izquierda
+                    new PoseKeyframe(0.56f, CreatePleaseHandPose("Pl_8", new Vector3(0f, 0f, cz + r))),     // arriba (cierra)
+                    new PoseKeyframe(1.2f,  CreatePleaseHandPose("Pl_hold", new Vector3(0f, 0f, cz + r)))   // mantener
+                }
+            };
+        }
+
+        /// <summary>
+        /// Good: Pulgar arriba con pequeño movimiento hacia arriba.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignGood()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "Good",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    new PoseKeyframe(0f, CreateThumbsUpPose(new Vector3(0.04f, 0f, 0.1f))),
+                    new PoseKeyframe(0.3f, CreateThumbsUpPose(new Vector3(0.04f, 0f, 0.16f))),
+                    new PoseKeyframe(1.0f, CreateThumbsUpPose(new Vector3(0.04f, 0f, 0.16f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Bad: Pulgar abajo con pequeño movimiento hacia abajo.
+        /// </summary>
+        private static AnimatedPoseSequence CreateSignBad()
+        {
+            return new AnimatedPoseSequence
+            {
+                poseName = "Bad",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    new PoseKeyframe(0f, CreateThumbsDownPose(new Vector3(0.04f, 0f, 0.18f))),
+                    new PoseKeyframe(0.3f, CreateThumbsDownPose(new Vector3(0.04f, 0f, 0.12f))),
+                    new PoseKeyframe(1.0f, CreateThumbsDownPose(new Vector3(0.04f, 0f, 0.12f)))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Helper: crea una copia de una pose con wristPositionOffset modificado.
+        /// </summary>
+        private static HandPoseData WithWristOffset(HandPoseData basePose, string name, Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = name,
+                thumb = basePose.thumb,
+                index = basePose.index,
+                middle = basePose.middle,
+                ring = basePose.ring,
+                pinky = basePose.pinky,
+                wristRotationOffset = basePose.wristRotationOffset,
+                wristPositionOffset = wristPos
+            };
+        }
+
+        /// <summary>
+        /// Helper: crea una copia de una pose con wristRotationOffset y wristPositionOffset modificados.
+        /// </summary>
+        private static HandPoseData WithWristTransform(HandPoseData basePose, string name, Vector3 wristRot, Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = name,
+                thumb = basePose.thumb,
+                index = basePose.index,
+                middle = basePose.middle,
+                ring = basePose.ring,
+                pinky = basePose.pinky,
+                wristRotationOffset = wristRot,
+                wristPositionOffset = wristPos
+            };
+        }
+
+        #endregion
 
         #endregion
     }

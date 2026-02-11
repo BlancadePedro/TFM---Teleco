@@ -392,12 +392,29 @@ namespace ASL_LearnVR.LearningModule
             // 4. Aplicar el GESTO solo a la mano DERECHA
             isShowingGesture = true;
 
-            // Comprobar si es una pose animada (J, Z)
+            // Comprobar si es una pose animada (J, Z, comunicación básica)
             var animatedPose = ASLPoseLibrary.GetAnimatedPose(sign.signName);
             if (animatedPose != null && rightPoseApplier != null)
             {
-                Debug.Log($"[GhostHandPlayer] Pose ANIMADA '{animatedPose.poseName}' encontrada. Reproduciendo secuencia...");
-                yield return PlayAnimatedPoseSequence(animatedPose, rightPoseApplier);
+                // Comprobar si requiere ambas manos
+                bool isDoubleHanded = ASLPoseLibrary.IsDoubleHandedSign(sign.signName);
+
+                if (isDoubleHanded && leftPoseApplier != null)
+                {
+                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA DOBLE MANO '{animatedPose.poseName}' encontrada.");
+                    var leftAnimatedPose = ASLPoseLibrary.GetAnimatedPoseLeftHand(sign.signName) ?? animatedPose;
+
+                    // Posicionar mano izquierda en posición activa (vertical)
+                    PositionLeftHandActive();
+                    yield return PlayDualAnimatedPoseSequence(animatedPose, rightPoseApplier, leftAnimatedPose, leftPoseApplier);
+                    // Devolver mano izquierda a posición de descanso
+                    PositionLeftHandResting();
+                }
+                else
+                {
+                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA '{animatedPose.poseName}' encontrada. Reproduciendo secuencia...");
+                    yield return PlayAnimatedPoseSequence(animatedPose, rightPoseApplier);
+                }
             }
             else
             {
@@ -421,9 +438,10 @@ namespace ASL_LearnVR.LearningModule
                 yield return new WaitForSeconds(gestureDisplayTime);
             }
 
-            // 6. Volver a NEUTRO (mano derecha)
+            // 6. Volver a NEUTRO (ambas manos)
             isShowingGesture = false;
             ApplyNeutralPose(rightPoseApplier);
+            ApplyNeutralPose(leftPoseApplier);
 
             if (showDebugLogs)
                 Debug.Log("[GhostHandPlayer] Volviendo a estado NEUTRO");
@@ -465,6 +483,68 @@ namespace ASL_LearnVR.LearningModule
             yield return new WaitForSeconds(gestureDisplayTime);
 
             Debug.Log($"[GhostHandPlayer] Secuencia animada '{sequence.poseName}' completada.");
+        }
+
+        /// <summary>
+        /// Corrutina para reproducir secuencias animadas en AMBAS manos simultáneamente.
+        /// </summary>
+        private IEnumerator PlayDualAnimatedPoseSequence(
+            AnimatedPoseSequence rightSequence, GuideHandPoseApplier rightApplier,
+            AnimatedPoseSequence leftSequence, GuideHandPoseApplier leftApplier)
+        {
+            float elapsed = 0f;
+            float totalDuration = Mathf.Max(rightSequence.Duration, leftSequence.Duration);
+
+            Debug.Log($"[GhostHandPlayer] Reproduciendo secuencia DOBLE MANO '{rightSequence.poseName}' ({totalDuration}s)");
+
+            while (elapsed < totalDuration)
+            {
+                rightApplier.ApplyPoseImmediate(rightSequence.SampleAtTime(elapsed));
+                leftApplier.ApplyPoseImmediate(leftSequence.SampleAtTime(elapsed));
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Aplicar poses finales exactas
+            rightApplier.ApplyPoseImmediate(rightSequence.SampleAtTime(rightSequence.Duration));
+            leftApplier.ApplyPoseImmediate(leftSequence.SampleAtTime(leftSequence.Duration));
+
+            yield return new WaitForSeconds(gestureDisplayTime);
+
+            Debug.Log($"[GhostHandPlayer] Secuencia doble mano '{rightSequence.poseName}' completada.");
+        }
+
+        /// <summary>
+        /// Posiciona la mano izquierda en posición activa (vertical, junto a la derecha).
+        /// </summary>
+        private void PositionLeftHandActive()
+        {
+            if (leftGhostHand == null) return;
+
+            // Posicionar junto a la mano derecha pero en el lado opuesto
+            leftGhostHand.transform.position = new Vector3(
+                rightHandPosition.x + 0.14f,  // Offset hacia la izquierda del usuario
+                rightHandPosition.y,
+                rightHandPosition.z
+            );
+            leftGhostHand.transform.rotation = Quaternion.Euler(rightHandNeutralRotation);
+
+            if (showDebugLogs)
+                Debug.Log($"[GhostHandPlayer] Mano izquierda posicionada ACTIVA en {leftGhostHand.transform.position}");
+        }
+
+        /// <summary>
+        /// Devuelve la mano izquierda a su posición de descanso (sobre la mesa).
+        /// </summary>
+        private void PositionLeftHandResting()
+        {
+            if (leftGhostHand == null) return;
+
+            leftGhostHand.transform.position = leftHandPosition;
+            leftGhostHand.transform.rotation = Quaternion.Euler(leftHandRestingRotation);
+
+            if (showDebugLogs)
+                Debug.Log("[GhostHandPlayer] Mano izquierda devuelta a posición de DESCANSO");
         }
 
         /// <summary>
