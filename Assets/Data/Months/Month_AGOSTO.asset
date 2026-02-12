@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d01ae6ca00d6a84b962b8e4b6926bd7, type: 3}
-  m_Name: Month_01_ENERO
+  m_Name: Month_AGOSTO
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.MonthSequenceData
-  signName: ENERO
-  description: "Fingerspelling for JANUARY: J \u2192 A \u2192 N"
+  signName: AGOSTO
+  description: "Fingerspelling for AUGUST: A \u2192 U \u2192 G"
   handShapeOrPose: {fileID: 0}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 0}
   letters:
-  - {fileID: 11400000, guid: 7b59cae75d8d03641864aeadcf0b0899, type: 2}
   - {fileID: 11400000, guid: afd09e55fe62fac4cb5cb2a65b044097, type: 2}
-  - {fileID: 11400000, guid: 1ab4464bac070c84f95d87cf095227aa, type: 2}
+  - {fileID: 11400000, guid: 174e6454201b3de49ac67c6544a5c1df, type: 2}
+  - {fileID: 11400000, guid: 75fbe2c64e6ae4e46b3acec2002c6159, type: 2}
   guideClipLeft: {fileID: 0}
   guideClipRight: {fileID: 0}

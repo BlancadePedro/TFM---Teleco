@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d01ae6ca00d6a84b962b8e4b6926bd7, type: 3}
-  m_Name: Month_05_MAYO
+  m_Name: Month_JULIO
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.MonthSequenceData
-  signName: MAYO
-  description: "Fingerspelling for MAY: M \u2192 A \u2192 Y"
+  signName: JULIO
+  description: "Fingerspelling for JULY: J \u2192 U \u2192 L"
   handShapeOrPose: {fileID: 0}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 0}
   letters:
-  - {fileID: 11400000, guid: a7a99ca29a145754dafbf6e00f335845, type: 2}
-  - {fileID: 11400000, guid: afd09e55fe62fac4cb5cb2a65b044097, type: 2}
-  - {fileID: 11400000, guid: f69bb8058e2a72e4c96304554653562f, type: 2}
+  - {fileID: 11400000, guid: 7b59cae75d8d03641864aeadcf0b0899, type: 2}
+  - {fileID: 11400000, guid: 174e6454201b3de49ac67c6544a5c1df, type: 2}
+  - {fileID: 11400000, guid: ef250db3a3fd5e74796295740a529cf5, type: 2}
   guideClipLeft: {fileID: 0}
   guideClipRight: {fileID: 0}

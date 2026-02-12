@@ -1,5 +1,6 @@
 using UnityEngine;
 using ASL_LearnVR.Feedback;
+using System.Collections.Generic;
 
 namespace ASL_LearnVR.LearningModule.GuideHand
 {
@@ -1236,7 +1237,17 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (string.IsNullOrEmpty(signName))
                 return null;
 
-            return signName.ToUpper() switch
+            signName = signName.Trim();
+
+            // Normalizar nombres de meses venidos de assets tipo "Month_01_ENERO"
+            string normalized = signName.ToUpper();
+            if (normalized.StartsWith("MONTH_"))
+            {
+                var parts = normalized.Split('_');
+                normalized = parts[^1]; // última parte (e.g., ENERO)
+            }
+
+            return normalized switch
             {
                 "J" => CreateLetterJ(),
                 "Z" => CreateLetterZ(),
@@ -1265,7 +1276,44 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 "BROWN" => CreateSignBrown(),
                 "BLACK" => CreateSignBlack(),
                 "GREY" => CreateSignGrey(),
+                "GRAY" => CreateSignGrey(), // alias
                 "WHITE" => CreateSignWhite(),
+                "JANUARY" => CreateSignJanuary(),
+                "JAN" => CreateSignJanuary(),
+                "ENERO" => CreateSignJanuary(),
+                "FEBRUARY" => CreateSignFebruary(),
+                "FEB" => CreateSignFebruary(),
+                "FEBRERO" => CreateSignFebruary(),
+                "MARCH" => CreateSignMarch(),
+                "MAR" => CreateSignMarch(),
+                "MARZO" => CreateSignMarch(),
+                "APRIL" => CreateSignApril(),
+                "APR" => CreateSignApril(),
+                "ABRIL" => CreateSignApril(),
+                "MAY" => CreateSignMay(),
+                "MAYO" => CreateSignMay(),
+                "JUNE" => CreateSignJune(),
+                "JUN" => CreateSignJune(),
+                "JUNIO" => CreateSignJune(),
+                "JULY" => CreateSignJuly(),
+                "JUL" => CreateSignJuly(),
+                "JULIO" => CreateSignJuly(),
+                "AUGUST" => CreateSignAugust(),
+                "AUG" => CreateSignAugust(),
+                "AGOSTO" => CreateSignAugust(),
+                "SEPTEMBER" => CreateSignSeptember(),
+                "SEP" => CreateSignSeptember(),
+                "SEPT" => CreateSignSeptember(),
+                "SEPTIEMBRE" => CreateSignSeptember(),
+                "OCTOBER" => CreateSignOctober(),
+                "OCT" => CreateSignOctober(),
+                "OCTUBRE" => CreateSignOctober(),
+                "NOVEMBER" => CreateSignNovember(),
+                "NOV" => CreateSignNovember(),
+                "NOVIEMBRE" => CreateSignNovember(),
+                "DECEMBER" => CreateSignDecember(),
+                "DEC" => CreateSignDecember(),
+                "DICIEMBRE" => CreateSignDecember(),
                 _ => null
             };
         }
@@ -1276,11 +1324,20 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public static bool IsDoubleHandedSign(string signName)
         {
             if (string.IsNullOrEmpty(signName)) return false;
-            return signName.ToUpper() switch
+            signName = signName.Trim();
+            string normalized = signName.ToUpper();
+            if (normalized.StartsWith("MONTH_"))
+            {
+                var parts = normalized.Split('_');
+                normalized = parts[^1];
+            }
+
+            return normalized switch
             {
                 "THANK YOU" => true,
                 "SUNDAY" => true,
                 "GREY" => true,
+                "GRAY" => true,
                 _ => false
             };
         }
@@ -1292,11 +1349,20 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public static AnimatedPoseSequence GetAnimatedPoseLeftHand(string signName)
         {
             if (string.IsNullOrEmpty(signName)) return null;
-            return signName.ToUpper() switch
+            signName = signName.Trim();
+            string normalized = signName.ToUpper();
+            if (normalized.StartsWith("MONTH_"))
+            {
+                var parts = normalized.Split('_');
+                normalized = parts[^1];
+            }
+
+            return normalized switch
             {
                 "THANK YOU" => CreateSignThankYouLeftHand(),
                 "SUNDAY" => CreateSignSundayLeftHand(),
                 "GREY" => CreateSignGreyLeftHand(),
+                "GRAY" => CreateSignGreyLeftHand(),
                 _ => null
             };
         }
@@ -1703,13 +1769,13 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 keyframes = new PoseKeyframe[]
                 {
                     // Inicio: posición de referencia, inclinada 45° (meñique hacia el centro)
-                    new PoseKeyframe(0f, CreateHelloHandPose("TY_start", Vector3.zero, new Vector3(0f, 0f, 45f))),
+                    new PoseKeyframe(0f, CreateHelloHandPose("TY_start", new Vector3(0f, 0.05f, 0f), new Vector3(0f, 0f, -45f))),
                     // Intermedio: avanza hacia adelante, se va aplanando
-                    new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.06f, 0f), new Vector3(-30f, 0f, 30f))),
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.10f, 0f), new Vector3(-30f, 0f, -30f))),
                     // Final: prácticamente horizontal, alejada del cuerpo
-                    new PoseKeyframe(0.7f, CreateHelloHandPose("TY_end", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, 15f))),
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TY_end", new Vector3(0f, 0.18f, -0.05f), new Vector3(-70f, 0f, -15f))),
                     // Mantener
-                    new PoseKeyframe(1.4f, CreateHelloHandPose("TY_hold", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, 15f)))
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TY_hold", new Vector3(0f, 0.18f, -0.05f), new Vector3(-70f, 0f, -15f)))
                 }
             };
         }
@@ -1726,10 +1792,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 keyframes = new PoseKeyframe[]
                 {
                     // Mano IZQUIERDA: meñique hacia el centro → Z positivo (espejo a 45°)
-                    new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", Vector3.zero, new Vector3(0f, 0f, -45f))),
-                    new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.06f, 0f), new Vector3(-30f, 0f, -30f))),
-                    new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, -15f))),
-                    new PoseKeyframe(1.4f, CreateHelloHandPose("TYL_hold", new Vector3(0f, 0.14f, -0.05f), new Vector3(-70f, 0f, -15f)))
+                    new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", new Vector3(0f, 0.05f, 0f), new Vector3(0f, 0f, 45f))),
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.10f, 0f), new Vector3(-30f, 0f, 30f))),
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.18f, -0.05f), new Vector3(-70f, 0f, 15f))),
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TYL_hold", new Vector3(0f, 0.18f, -0.05f), new Vector3(-70f, 0f, 15f)))
                 }
             };
         }
@@ -1854,6 +1920,65 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 pinky = basePose.pinky,
                 wristRotationOffset = basePose.wristRotationOffset + addedRot,
                 wristPositionOffset = wristPos
+            };
+        }
+
+        /// <summary>
+        /// Crea una copia de la pose con un nombre distinto (para keyframes).
+        /// </summary>
+        private static HandPoseData ClonePoseWithName(HandPoseData pose, string name)
+        {
+            if (pose == null) return HandPoseData.OpenHand();
+            return new HandPoseData
+            {
+                poseName = name,
+                thumb = pose.thumb,
+                index = pose.index,
+                middle = pose.middle,
+                ring = pose.ring,
+                pinky = pose.pinky,
+                wristRotationOffset = pose.wristRotationOffset,
+                wristPositionOffset = pose.wristPositionOffset
+            };
+        }
+
+        /// <summary>
+        /// Helper: secuencia de letras en serie, usando las poses ya definidas.
+        /// initialDelay: espera antes de empezar; betweenHold: pausa entre letras; finalHold: pausa al final.
+        /// </summary>
+        private static AnimatedPoseSequence CreateLetterSequenceAnimation(
+            string signName,
+            float initialDelaySeconds,
+            float betweenHoldSeconds,
+            float finalHoldSeconds,
+            params string[] letters)
+        {
+            var keyframes = new List<PoseKeyframe>();
+            // Frame inicial a t=0 para que la animación se dispare al entrar (pose abierta neutra).
+            keyframes.Add(new PoseKeyframe(0f, ClonePoseWithName(HandPoseData.OpenHand(), $"{signName}_start")));
+
+            float t = initialDelaySeconds;
+            HandPoseData lastPose = HandPoseData.OpenHand();
+
+            foreach (var letter in letters)
+            {
+                var pose = GetPoseBySignName(letter);
+                if (pose == null) pose = HandPoseData.OpenHand();
+                var renamed = ClonePoseWithName(pose, $"{signName}_{letter}");
+                keyframes.Add(new PoseKeyframe(t, renamed));
+                lastPose = renamed;
+                // Mantener la letra visible un tiempo entre transiciones
+                t += betweenHoldSeconds;
+            }
+
+            // Pausa final manteniendo la última letra
+            keyframes.Add(new PoseKeyframe(t + finalHoldSeconds, ClonePoseWithName(lastPose, $"{signName}_hold")));
+
+            return new AnimatedPoseSequence
+            {
+                poseName = signName,
+                loop = false,
+                keyframes = keyframes.ToArray()
             };
         }
 
@@ -2029,49 +2154,13 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Pose de mano para Sunday: dedos abiertos y SEPARADOS entre sí (como 5),
-        /// con una leve inclinación. Más abierta que la pose de Please.
+        /// Pose de mano para Sunday: reutiliza la mano de Hello/ThankYou (dedos juntos),
+        /// permitiendo que ambas manos se vean lado a lado como en "thank you".
         /// </summary>
         private static HandPoseData CreateSundayHandPose(string name, Vector3 wristPos, Vector3 wristRot)
         {
-            return new HandPoseData
-            {
-                poseName = name,
-                wristRotationOffset = wristRot,
-                wristPositionOffset = wristPos,
-                // Pulgar extendido y separado
-                thumb = new ThumbPoseData
-                {
-                    metacarpalCurl = 0f,
-                    proximalCurl = 0f,
-                    distalCurl = 0f,
-                    abductionAngle = -50f,  // Bien separado
-                    oppositionAngle = -10f,
-                    distalTwist = 40f,
-                    thumbPitch = 0f
-                },
-                // Dedos separados entre sí (como 5 pero más spread)
-                index = new FingerPoseData
-                {
-                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
-                    spreadAngle = 8f  // Separado hacia el pulgar
-                },
-                middle = new FingerPoseData
-                {
-                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
-                    spreadAngle = 3f  // Ligeramente hacia el índice
-                },
-                ring = new FingerPoseData
-                {
-                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
-                    spreadAngle = -3f   // Ligeramente hacia el meñique
-                },
-                pinky = new FingerPoseData
-                {
-                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
-                    spreadAngle = -8f   // Separado hacia fuera
-                }
-            };
+            // Usa la misma mano plana de Hello/ThankYou (dedos juntos, pulgar junto al índice)
+            return CreateHelloHandPose(name, wristPos, wristRot);
         }
 
         /// <summary>
@@ -2083,7 +2172,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             float r = 0.04f;
             float cz = 0.06f;
             float d = r * 0.707f;
-            float ox = 0.06f; // Offset X para separar la mano derecha hacia la derecha
+            float ox = 0.12f; // Alineado con separación de Grey para evitar solapes
             Vector3 tilt = new Vector3(0f, 0f, -15f); // Leve inclinación
 
             return new AnimatedPoseSequence
@@ -2126,7 +2215,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             float r = 0.04f;
             float cz = 0.06f;
             float d = r * 0.707f;
-            float ox = -0.06f; // Offset X para separar la mano izquierda hacia la izquierda
+            float ox = -0.12f; // Alineado con separación de Grey (espejo)
             Vector3 tilt = new Vector3(0f, 0f, 15f); // Inclinación espejada
 
             return new AnimatedPoseSequence
@@ -2277,11 +2366,31 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Green: Signo G + oscilación Z (como Hello wave).
+        /// Green: Signo G con movimiento adelante ↔ atrás (palma manteniendo orientación de G).
         /// </summary>
         private static AnimatedPoseSequence CreateSignGreen()
         {
-            return CreateZOscillationAnimation("Green", CreateLetterG());
+            var basePose = CreateLetterG();
+            // Mantener la muñeca fija en posición y rotación base; solo inclina la mano hacia delante/atrás.
+            // Usamos el mismo eje de profundidad que ThankYou (rotación en X).
+            float tilt = 25f;
+            var baseRot = basePose.wristRotationOffset;
+            var basePos = basePose.wristPositionOffset;
+
+            return new AnimatedPoseSequence
+            {
+                poseName = "Green",
+                loop = false,
+                keyframes = new PoseKeyframe[]
+                {
+                    new PoseKeyframe(0f,    WithWristTransform(basePose, "Green_front1", baseRot + new Vector3(-tilt, 0f, 0f), basePos)),
+                    new PoseKeyframe(0.25f, WithWristTransform(basePose, "Green_back1",  baseRot + new Vector3( tilt, 0f, 0f), basePos)),
+                    new PoseKeyframe(0.5f,  WithWristTransform(basePose, "Green_front2", baseRot + new Vector3(-tilt, 0f, 0f), basePos)),
+                    new PoseKeyframe(0.75f, WithWristTransform(basePose, "Green_back2",  baseRot + new Vector3( tilt, 0f, 0f), basePos)),
+                    new PoseKeyframe(1.0f,  WithWristTransform(basePose, "Green_front3", baseRot + new Vector3(-tilt, 0f, 0f), basePos)),
+                    new PoseKeyframe(1.6f,  WithWristTransform(basePose, "Green_hold",   baseRot + new Vector3(-tilt, 0f, 0f), basePos))
+                }
+            };
         }
 
         /// <summary>
@@ -2301,14 +2410,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Pink: Signo P + movimiento arriba-abajo.
-        /// P apunta hacia abajo (Y180), así que subimos la posición para compensar.
+        /// Pink: Signo K + movimiento arriba-abajo.
         /// </summary>
         private static AnimatedPoseSequence CreateSignPink()
         {
-            var pPose = CreateLetterP();
-            pPose.wristPositionOffset = new Vector3(0f, 0f, 0.3f);
-            return CreateUpDownAnimation("Pink", pPose);
+            var kPose = CreateLetterK();
+            return CreateUpDownAnimation("Pink", kPose);
         }
 
         /// <summary>
@@ -2317,8 +2424,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         private static AnimatedPoseSequence CreateSignPurple()
         {
-            var pPose = CreateLetterP();
-            pPose.wristPositionOffset = new Vector3(0f, 0f, 0.3f);
+            var pPose = CreateLetterK();
             return CreateZOscillationAnimation("Purple", pPose);
         }
 
@@ -2373,7 +2479,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         {
             var onePose = CreateDigit1();
             // Horizontal como G: Y+90 gira la mano, Z+90 tumba el dedo
-            var baseRot = new Vector3(0f, 90f, 90f);
+            var baseRot = new Vector3(0f, 90f, 0f);
             var basePos = new Vector3(-0.08f, 0f, 0.1f);
 
             return new AnimatedPoseSequence
@@ -2393,15 +2499,34 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Grey (mano derecha): Misma pose que Please (vertical, dedos juntos),
-        /// movimiento adelante-atrás. Desfasada con la izquierda.
+        /// Grey (mano derecha): Palmas horizontales (GreyHandPose) con movimiento adelante-atrás,
+        /// desfasado con la izquierda.
         /// </summary>
         private static AnimatedPoseSequence CreateSignGrey()
         {
-            float yFront = 0.08f;
-            float yBack = -0.06f;
-            float ox = 0.04f;
-            float cz = 0.06f;
+            float y = 0.12f;      // Altura fija
+            float ox = 0.12f;     // Separación lateral derecha
+            float tilt = 25f;     // Basculación hacia/desde el usuario (eje de profundidad como Green/ThankYou)
+
+            var basePose = CreateGreyHandPose("Gry_base", new Vector3(ox, y, 0.05f));
+            // Mano derecha: muñeca vertical mirando al usuario (sin yaw extra)
+            var baseRot = Vector3.zero;
+            var basePos = basePose.wristPositionOffset;
+
+            HandPoseData PoseAt(string name, float tiltX)
+            {
+                return new HandPoseData
+                {
+                    poseName = name,
+                    thumb = basePose.thumb,
+                    index = basePose.index,
+                    middle = basePose.middle,
+                    ring = basePose.ring,
+                    pinky = basePose.pinky,
+                    wristRotationOffset = baseRot + new Vector3(tiltX, 0f, 0f),
+                    wristPositionOffset = basePos // muñeca fija
+                };
+            }
 
             return new AnimatedPoseSequence
             {
@@ -2409,27 +2534,45 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Derecha empieza adelante
-                    new PoseKeyframe(0f,    CreatePleaseHandPose("Gry_f1",   new Vector3(ox, yFront, cz))),
-                    new PoseKeyframe(0.3f,  CreatePleaseHandPose("Gry_b1",   new Vector3(ox, yBack, cz))),
-                    new PoseKeyframe(0.6f,  CreatePleaseHandPose("Gry_f2",   new Vector3(ox, yFront, cz))),
-                    new PoseKeyframe(0.9f,  CreatePleaseHandPose("Gry_b2",   new Vector3(ox, yBack, cz))),
-                    new PoseKeyframe(1.2f,  CreatePleaseHandPose("Gry_f3",   new Vector3(ox, yFront, cz))),
-                    new PoseKeyframe(1.8f,  CreatePleaseHandPose("Gry_hold", new Vector3(ox, yFront, cz)))
+                    // Derecha: bascula hacia delante (negativo) y atrás (positivo)
+                    new PoseKeyframe(0f,    PoseAt("Gry_front1", -tilt)),
+                    new PoseKeyframe(0.3f,  PoseAt("Gry_back1",   tilt)),
+                    new PoseKeyframe(0.6f,  PoseAt("Gry_front2", -tilt)),
+                    new PoseKeyframe(0.9f,  PoseAt("Gry_back2",   tilt)),
+                    new PoseKeyframe(1.2f,  PoseAt("Gry_front3", -tilt)),
+                    new PoseKeyframe(1.8f,  PoseAt("Gry_hold",   -tilt))
                 }
             };
         }
 
         /// <summary>
-        /// Grey (mano izquierda): Misma pose que Please, desfasada.
-        /// Cuando la derecha va adelante, esta va atrás.
+        /// Grey (mano izquierda): Misma pose horizontal, desfasada (empieza atrás).
         /// </summary>
         private static AnimatedPoseSequence CreateSignGreyLeftHand()
         {
-            float yFront = 0.08f;
-            float yBack = -0.06f;
-            float ox = -0.04f;
-            float cz = 0.06f;
+            float y = 0.12f;
+            float ox = -0.12f; // Separación lateral izquierda
+            float tilt = 25f;
+
+            var basePose = CreateGreyHandPose("GryL_base", new Vector3(ox, y, 0.05f));
+            // Mano izquierda: espejada en yaw para que el pulgar quede hacia fuera (no se crucen al centro)
+            var baseRot = new Vector3(0f, 180f, 0f);
+            var basePos = basePose.wristPositionOffset;
+
+            HandPoseData PoseAt(string name, float tiltX)
+            {
+                return new HandPoseData
+                {
+                    poseName = name,
+                    thumb = basePose.thumb,
+                    index = basePose.index,
+                    middle = basePose.middle,
+                    ring = basePose.ring,
+                    pinky = basePose.pinky,
+                    wristRotationOffset = baseRot + new Vector3(tiltX, 0f, 0f),
+                    wristPositionOffset = basePos // muñeca fija
+                };
+            }
 
             return new AnimatedPoseSequence
             {
@@ -2437,13 +2580,13 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Izquierda empieza ATRÁS (desfasada)
-                    new PoseKeyframe(0f,    CreatePleaseHandPose("GryL_b1",   new Vector3(ox, yBack, cz))),
-                    new PoseKeyframe(0.3f,  CreatePleaseHandPose("GryL_f1",   new Vector3(ox, yFront, cz))),
-                    new PoseKeyframe(0.6f,  CreatePleaseHandPose("GryL_b2",   new Vector3(ox, yBack, cz))),
-                    new PoseKeyframe(0.9f,  CreatePleaseHandPose("GryL_f2",   new Vector3(ox, yFront, cz))),
-                    new PoseKeyframe(1.2f,  CreatePleaseHandPose("GryL_b3",   new Vector3(ox, yBack, cz))),
-                    new PoseKeyframe(1.8f,  CreatePleaseHandPose("GryL_hold", new Vector3(ox, yBack, cz)))
+                    // Izquierda: empieza atrás (tilt positivo), luego delante (tilt negativo)
+                    new PoseKeyframe(0f,    PoseAt("GryL_back1",   tilt)),
+                    new PoseKeyframe(0.3f,  PoseAt("GryL_front1", -tilt)),
+                    new PoseKeyframe(0.6f,  PoseAt("GryL_back2",   tilt)),
+                    new PoseKeyframe(0.9f,  PoseAt("GryL_front2", -tilt)),
+                    new PoseKeyframe(1.2f,  PoseAt("GryL_back3",   tilt)),
+                    new PoseKeyframe(1.8f,  PoseAt("GryL_hold",    tilt))
                 }
             };
         }
@@ -2510,7 +2653,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         private static AnimatedPoseSequence CreateSignWhite()
         {
-            var pos = new Vector3(0f, 0f, 0.08f);
+            // Alineamos el offset al eje de profundidad usado en ThankYou (Y positivo hacia el usuario)
+            var pos = new Vector3(0f, 0.12f, -0.02f);
             var openPose = CreatePleaseHandPose("White_open", pos);
             var closedPose = CreateWhiteClosedPose("White_closed", pos);
 
@@ -2527,6 +2671,24 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 }
             };
         }
+
+        #endregion
+
+        #region Months
+
+        // Lógica unificada: 0.5s de espera inicial, 0.5s de pausa entre letras, 0.6s de hold final.
+        private static AnimatedPoseSequence CreateSignJanuary()   => CreateLetterSequenceAnimation("January",   0.5f, 0.5f, 0.6f, "J", "A", "N");
+        private static AnimatedPoseSequence CreateSignFebruary()  => CreateLetterSequenceAnimation("February",  0.5f, 0.5f, 0.6f, "F", "E", "B");
+        private static AnimatedPoseSequence CreateSignMarch()     => CreateLetterSequenceAnimation("March",     0.5f, 0.5f, 0.6f, "M", "A", "R");
+        private static AnimatedPoseSequence CreateSignApril()     => CreateLetterSequenceAnimation("April",     0.5f, 0.5f, 0.6f, "A", "P", "R");
+        private static AnimatedPoseSequence CreateSignMay()       => CreateLetterSequenceAnimation("May",       0.5f, 0.5f, 0.6f, "M", "A", "Y");
+        private static AnimatedPoseSequence CreateSignJune()      => CreateLetterSequenceAnimation("June",      0.5f, 0.5f, 0.6f, "J", "U", "N");
+        private static AnimatedPoseSequence CreateSignJuly()      => CreateLetterSequenceAnimation("July",      0.5f, 0.5f, 0.6f, "J", "U", "L");
+        private static AnimatedPoseSequence CreateSignAugust()    => CreateLetterSequenceAnimation("August",    0.5f, 0.5f, 0.6f, "A", "U", "G");
+        private static AnimatedPoseSequence CreateSignSeptember() => CreateLetterSequenceAnimation("September", 0.5f, 0.5f, 0.6f, "S", "E", "P");
+        private static AnimatedPoseSequence CreateSignOctober()   => CreateLetterSequenceAnimation("October",   0.5f, 0.5f, 0.6f, "O", "C", "T");
+        private static AnimatedPoseSequence CreateSignNovember()  => CreateLetterSequenceAnimation("November",  0.5f, 0.5f, 0.6f, "N", "O", "V");
+        private static AnimatedPoseSequence CreateSignDecember()  => CreateLetterSequenceAnimation("December",  0.5f, 0.5f, 0.6f, "D", "E", "C");
 
         #endregion
 

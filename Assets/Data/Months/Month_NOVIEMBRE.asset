@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d01ae6ca00d6a84b962b8e4b6926bd7, type: 3}
-  m_Name: Month_10_OCTUBRE
+  m_Name: Month_NOVIEMBRE
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.MonthSequenceData
-  signName: OCTUBRE
-  description: "Fingerspelling for OCTOBER: O \u2192 C \u2192 T"
+  signName: NOVIEMBRE
+  description: "Fingerspelling for NOVEMBER: N \u2192 O \u2192 V"
   handShapeOrPose: {fileID: 0}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 0}
   letters:
+  - {fileID: 11400000, guid: 1ab4464bac070c84f95d87cf095227aa, type: 2}
   - {fileID: 11400000, guid: ab8c041e333bb8045a30d346a8056426, type: 2}
-  - {fileID: 11400000, guid: 214ead2281280254fb68ee91e6e69e0c, type: 2}
-  - {fileID: 11400000, guid: a9b2cde6447c50643bae073ed135666e, type: 2}
+  - {fileID: 11400000, guid: 747a154c7b9ec2941a937568c9b88fbe, type: 2}
   guideClipLeft: {fileID: 0}
   guideClipRight: {fileID: 0}
