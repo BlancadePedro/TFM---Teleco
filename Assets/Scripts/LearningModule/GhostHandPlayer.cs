@@ -521,9 +521,9 @@ namespace ASL_LearnVR.LearningModule
         {
             if (leftGhostHand == null) return;
 
-            // Posicionar junto a la mano derecha pero en el lado opuesto
+            // Posicionar junto a la mano derecha pero en el lado izquierdo (X más negativo)
             leftGhostHand.transform.position = new Vector3(
-                rightHandPosition.x + 0.14f,  // Offset hacia la izquierda del usuario
+                rightHandPosition.x - 0.14f,  // A la izquierda de la mano derecha
                 rightHandPosition.y,
                 rightHandPosition.z
             );
