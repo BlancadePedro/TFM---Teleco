@@ -247,7 +247,8 @@ namespace ASL_LearnVR.LearningModule
             }
 
             // AUTOMÁTICAMENTE mostrar el gesto con las manos guía al cargar un nuevo signo
-            if (ghostHandPlayer != null && !(sign is ASL_LearnVR.Data.MonthSequenceData))
+            // Los meses también se reproducen (secuencia de 3 letras animada)
+            if (ghostHandPlayer != null)
             {
                 Debug.Log($"[LearningController] Mostrando automáticamente el gesto '{sign.signName}' con manos guía");
                 ghostHandPlayer.PlaySign(sign);
