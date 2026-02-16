@@ -12,6 +12,11 @@ namespace ASL.SelfAssessment
         [Header("Referencias")]
         [SerializeField] private DynamicGestureRecognizer dynamicGestureRecognizer;
 
+        /// <summary>
+        /// Acceso público al reconocedor para suscripción a eventos adicionales (ej: OnGestureStarted)
+        /// </summary>
+        public DynamicGestureRecognizer DynamicGestureRecognizer => dynamicGestureRecognizer;
+
         [Header("Filtro")]
         [Tooltip("Nombre del gesto que se está practicando (vacío = permite todos)")]
         [SerializeField] private string currentTargetGesture = "";

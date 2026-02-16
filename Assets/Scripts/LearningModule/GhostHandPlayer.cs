@@ -55,7 +55,7 @@ namespace ASL_LearnVR.LearningModule
         [SerializeField] private Material ghostHandMaterial;
 
         [Tooltip("Color de las ghost hands")]
-        [SerializeField] private Color ghostHandColor = new Color(0f, 0.627451f, 1f, 0.5f);
+        [SerializeField] private Color ghostHandColor = new Color(0f, 0.627451f, 1f, 1f);
 
         [Header("Animation Timing")]
         [Tooltip("Tiempo en estado neutro antes de mostrar el gesto (segundos)")]

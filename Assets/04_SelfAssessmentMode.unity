@@ -119,6 +119,53 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &77885573
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 77885575}
+  - component: {fileID: 77885574}
+  m_Layer: 0
+  m_Name: 'DynamicGestureFilter '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &77885574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 77885573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f62e86f9d1cd16541b750a356091aba0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL.SelfAssessment.DynamicGestureFilter
+  dynamicGestureRecognizer: {fileID: 1608912722}
+  currentTargetGesture: 
+  showDebugLogs: 1
+--- !u!4 &77885575
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 77885573}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1608912723}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &255483885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1573,9 +1620,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 687586615af1cde4ca727473db7ccf75, type: 2}
   - {fileID: 11400000, guid: cbc66e63bb3fb534f9991030326aa69d, type: 2}
   - {fileID: 11400000, guid: 4e3d92a60acae494aa23149d3a3ed684, type: 2}
+  - {fileID: 11400000, guid: 21f8f599695076d48a775c812ed11ab2, type: 2}
+  - {fileID: 11400000, guid: 53b202820ef638549affe44915850f39, type: 2}
+  - {fileID: 11400000, guid: 1aaa24b1bbe23ce4b9329a647c484b35, type: 2}
+  - {fileID: 11400000, guid: 4a28783e3d9b4c144a57b8b41281e30a, type: 2}
+  - {fileID: 11400000, guid: cb2949a1e81963045806db94d64380fd, type: 2}
+  - {fileID: 11400000, guid: c29fc659a01d6b047b37b83ea39fe489, type: 2}
   leftHandTrackingEvents: {fileID: 756614766}
   rightHandTrackingEvents: {fileID: 756614765}
-  dynamicGestureRecognizer: {fileID: 0}
+  dynamicGestureRecognizer: {fileID: 1608912722}
   detectionInterval: 0.1
   minimumHoldTime: 0.5
   onGestureDetected:
@@ -1653,7 +1706,9 @@ MonoBehaviour:
   signTilePrefab: {fileID: 7610024951609659216, guid: 0d1b956ab3fd5ef4da9744448c2b8090, type: 3}
   backButton: {fileID: 283325896}
   multiGestureRecognizer: {fileID: 1120855380}
+  dynamicGesturePracticeManager: {fileID: 0}
   progressText: {fileID: 1936488298}
+  progressBar: {fileID: 0}
   showDebugLogs: 0
 --- !u!1 &1185070927
 GameObject:
@@ -2198,7 +2253,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1608912723}
   - component: {fileID: 1608912722}
-  - component: {fileID: 1608912724}
   m_Layer: 0
   m_Name: DynamicGestureManager
   m_TagString: Untagged
@@ -2221,8 +2275,6 @@ MonoBehaviour:
   gestureDefinitions:
   - {fileID: 11400000, guid: 749649d9ac24aa7479e7fc582cacba89, type: 2}
   - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
-  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
-  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b1, type: 2}
   - {fileID: 11400000, guid: e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b2, type: 2}
@@ -2233,6 +2285,33 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 781b6c567a2b94b43bed7a4bdb1f1a0c, type: 2}
   - {fileID: 11400000, guid: 60cab9d8acd421447b043b92f2326479, type: 2}
   - {fileID: 11400000, guid: 2b116f1d7c909e94990ae9a490b7e1f6, type: 2}
+  - {fileID: 11400000, guid: 730edf0803f54ed49a63bd5053c186af, type: 2}
+  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
+  - {fileID: 11400000, guid: 549425d49b9d4ad429eb964e696e67d0, type: 2}
+  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
+  - {fileID: 11400000, guid: e7185dbe1fdb5924891f07bfd18e23f6, type: 2}
+  - {fileID: 11400000, guid: cebf9f99c692f5541b1ed54453bef148, type: 2}
+  - {fileID: 11400000, guid: d3de2656ff72c0540851c7d38d04d99e, type: 2}
+  - {fileID: 11400000, guid: 27b3e59ceb1a0ec469e5c19027d95e46, type: 2}
+  - {fileID: 11400000, guid: ba395cefc96ecd146b329c697acdb9d1, type: 2}
+  - {fileID: 11400000, guid: 365d926c7f01ba749b9b6db65bb4e740, type: 2}
+  - {fileID: 11400000, guid: b570f9fb72ca5d24e8ef4f7b0833a3cf, type: 2}
+  - {fileID: 11400000, guid: 4d0c51471ec2d3b43b3da179e7069366, type: 2}
+  - {fileID: 11400000, guid: 180fdd834dc9f5c40b17c544c254a870, type: 2}
+  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
+  - {fileID: 11400000, guid: 7fb40436ce38a3948b6a89079dde2b6f, type: 2}
+  - {fileID: 11400000, guid: d118ece1e64133d428820941bffd2aae, type: 2}
+  - {fileID: 11400000, guid: 706f32039572cf1449176fdfe714cbb8, type: 2}
+  - {fileID: 11400000, guid: ba8cbd2171571f144b26de58dca8ac58, type: 2}
+  - {fileID: 11400000, guid: 098c0c09e4bb8bb4b9542e4de2659b77, type: 2}
+  - {fileID: 11400000, guid: 7c8004d256ed6d34e9f57a6696104434, type: 2}
+  - {fileID: 11400000, guid: 7c3d2b7bd4ac85744b44c3187fa54db9, type: 2}
+  - {fileID: 11400000, guid: c5f9edf9ca2c39448a90eaa973c23bac, type: 2}
+  - {fileID: 11400000, guid: 6ccbca09b43d4b040847b5846de64472, type: 2}
+  - {fileID: 11400000, guid: e1686e7eb8a3e7e429e757d6d99b830e, type: 2}
+  - {fileID: 11400000, guid: 2b58e18cb3ef0b544abb16d50e4b2386, type: 2}
+  - {fileID: 11400000, guid: 1dcac3a324398e4479382331da9d1498, type: 2}
+  - {fileID: 11400000, guid: db62349471340644db2b9b2bbbfe5a27, type: 2}
   poseAdapterComponent: {fileID: 1120855380}
   handTrackingEvents: {fileID: 756614765}
   positionSmoothingFactor: 0.3
@@ -2249,41 +2328,10 @@ Transform:
   m_LocalPosition: {x: 0.56571, y: 0, z: 5.24064}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 77885575}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1608912724
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1608912720}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71834ec2d9eb79b498b133b75fab662e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.SelfAssessment.DynamicGesturePracticeManager
-  gestureFilter: {fileID: 0}
-  selfAssessmentController: {fileID: 1137281139}
-  practiceGestures:
-  - {fileID: 11400000, guid: 730edf0803f54ed49a63bd5053c186af, type: 2}
-  - {fileID: 11400000, guid: f7903324494aa9e4ab099aea3a6c8a39, type: 2}
-  - {fileID: 11400000, guid: 549425d49b9d4ad429eb964e696e67d0, type: 2}
-  - {fileID: 11400000, guid: 8d859a747cc4c6e4ebb6384f82f6eb11, type: 2}
-  - {fileID: 11400000, guid: 749649d9ac24aa7479e7fc582cacba89, type: 2}
-  - {fileID: 11400000, guid: e7185dbe1fdb5924891f07bfd18e23f6, type: 2}
-  - {fileID: 11400000, guid: cebf9f99c692f5541b1ed54453bef148, type: 2}
-  - {fileID: 11400000, guid: d3de2656ff72c0540851c7d38d04d99e, type: 2}
-  - {fileID: 11400000, guid: 27b3e59ceb1a0ec469e5c19027d95e46, type: 2}
-  - {fileID: 11400000, guid: a4094a77f044d784a92aed27a5704661, type: 2}
-  feedbackPanel: {fileID: 0}
-  feedbackText: {fileID: 1745650903}
-  progressBar: {fileID: 0}
-  failureReasonText: {fileID: 0}
-  successFeedbackDuration: 2
-  failureFeedbackDuration: 4
-  showDebugLogs: 1
 --- !u!1 &1639328510
 GameObject:
   m_ObjectHideFlags: 0

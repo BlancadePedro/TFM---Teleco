@@ -78,6 +78,7 @@ namespace ASL.DynamicGestures
         private DynamicGestureDefinition activeGesture = null;
         private MovementTracker movementTracker;
         private float gestureStartTime = 0f;
+        private List<DynamicGestureDefinition> allGestureDefinitions = null; // Lista completa sin filtrar
 
         // Cooldown después de éxito (para que el usuario vea el mensaje)
         private float successCooldownEndTime = 0f;
@@ -119,6 +120,11 @@ namespace ASL.DynamicGestures
         private float pendingStartTime = 0f;
         private const float PENDING_CONFIRMATION_TIMEOUT = 0.25f; // Tiempo de espera para desambiguar (REDUCIDO para respuesta rápida)
 
+        // Cooldown después de que PendingConfirmation hace timeout (para evitar loop Idle→Pending→Idle→Pending)
+        // Cuando no hay movimiento y se determina que es gesto estático, esperar antes de re-entrar en Pending
+        private float pendingTimeoutCooldownEnd = 0f;
+        private const float PENDING_TIMEOUT_COOLDOWN = 0.6f; // Dar tiempo al MultiGestureRecognizer para confirmar el gesto estático
+
         // Tracking de mano
         private Vector3 smoothedHandPosition = Vector3.zero;
         private Quaternion smoothedHandRotation = Quaternion.identity;
@@ -152,29 +158,39 @@ namespace ASL.DynamicGestures
                 xrOriginTransform = Camera.main.transform.parent; // XR Origin es parent de Camera
             }
 
-            // AUTO-FIX: Buscar SingleGestureAdapter si no está asignado correctamente
+            // AUTO-FIX: Buscar adaptador de poses si no está asignado correctamente
             if (poseAdapterComponent == null || (poseAdapterComponent as IPoseAdapter) == null)
             {
-                Debug.LogWarning("[DynamicGestureRecognizer] Auto-buscando SingleGestureAdapter en RightHandRecognizer...");
+                Debug.LogWarning("[DynamicGestureRecognizer] Auto-buscando adaptador de poses...");
 
-                // Buscar específicamente en RightHandRecognizer
-                var rightHandRecognizer = GameObject.Find("RightHandRecognizer");
-                if (rightHandRecognizer != null)
+                // PRIORIDAD 1: Buscar StaticPoseAdapter (ideal para Scene 4 - multi-gesto)
+                var staticAdapter = FindObjectOfType<ASL.DynamicGestures.StaticPoseAdapter>();
+                if (staticAdapter != null)
                 {
-                    var adapter = rightHandRecognizer.GetComponent<ASL.DynamicGestures.SingleGestureAdapter>();
-                    if (adapter != null)
-                    {
-                        poseAdapterComponent = adapter;
-                        Debug.Log($"[DynamicGestureRecognizer] SingleGestureAdapter encontrado en RightHandRecognizer");
-                    }
-                    else
-                    {
-                        Debug.LogError("[DynamicGestureRecognizer] RightHandRecognizer no tiene SingleGestureAdapter!");
-                    }
+                    poseAdapterComponent = staticAdapter;
+                    Debug.Log($"[DynamicGestureRecognizer] StaticPoseAdapter encontrado (modo multi-gesto)");
                 }
                 else
                 {
-                    Debug.LogError("[DynamicGestureRecognizer] No se encontró GameObject 'RightHandRecognizer'!");
+                    // PRIORIDAD 2: Buscar SingleGestureAdapter en RightHandRecognizer
+                    var rightHandRecognizer = GameObject.Find("RightHandRecognizer");
+                    if (rightHandRecognizer != null)
+                    {
+                        var adapter = rightHandRecognizer.GetComponent<ASL.DynamicGestures.SingleGestureAdapter>();
+                        if (adapter != null)
+                        {
+                            poseAdapterComponent = adapter;
+                            Debug.Log($"[DynamicGestureRecognizer] SingleGestureAdapter encontrado en RightHandRecognizer");
+                        }
+                        else
+                        {
+                            Debug.LogError("[DynamicGestureRecognizer] RightHandRecognizer no tiene SingleGestureAdapter!");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("[DynamicGestureRecognizer] No se encontró adaptador de poses!");
+                    }
                 }
             }
 
@@ -337,6 +353,11 @@ namespace ASL.DynamicGestures
             if (poseAdapter == null)
                 return;
 
+            // Respetar cooldown después de PendingConfirmation timeout
+            // Esto evita el loop Idle→Pending→timeout→Idle→Pending que bloquea gestos estáticos
+            if (Time.time < pendingTimeoutCooldownEnd)
+                return;
+
             // FILTRO CRÍTICO: Solo aplicar en modo aprendizaje (Scene 3)
             // En modo autoevaluación (Scene 4), CurrentSign puede ser null o estático, así que permitimos todo
             var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
@@ -407,8 +428,18 @@ namespace ASL.DynamicGestures
 
                 if (isScene4Mode)
                 {
-                    // En Scene 4: TODOS los gestos son candidatos, desambiguamos por movimiento
-                    canStart = true;
+                    // En Scene 4: Filtrar por pose detectada, luego desambiguar por movimiento
+                    // PRIORIDAD 1: Comparar con la pose actual del adapter (si está disponible)
+                    if (!string.IsNullOrEmpty(currentPose))
+                    {
+                        canStart = gesture.CanStartWithPose(currentPose);
+                    }
+
+                    // PRIORIDAD 2: Validación directa con HandShape (si el gesto tiene poseData)
+                    if (!canStart)
+                    {
+                        canStart = CanStartWithPoseData(gesture);
+                    }
                 }
                 else
                 {
@@ -528,8 +559,14 @@ namespace ASL.DynamicGestures
                 // En este caso, NO marcamos como completado aquí, dejamos que MultiGestureRecognizer lo maneje
                 if (debugMode)
                 {
-                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
+                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático. Cooldown {PENDING_TIMEOUT_COOLDOWN}s");
                 }
+
+                // CLAVE: Activar cooldown para NO volver a entrar en PendingConfirmation inmediatamente.
+                // Esto da tiempo al MultiGestureRecognizer para confirmar el gesto estático
+                // sin que el DynamicGestureRecognizer lo bloquee en un loop.
+                pendingTimeoutCooldownEnd = Time.time + PENDING_TIMEOUT_COOLDOWN;
+
                 ResetState();
                 return;
             }
@@ -550,35 +587,37 @@ namespace ASL.DynamicGestures
                     return;
                 }
 
-                // EN SCENE 4: NO validar si la pose cambió, permitir cualquier pose
-                // Solo resetear si se pierde completamente
+                // Validar que la pose sigue siendo válida
                 var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
                 bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
-                if (!isScene4Mode)
+                bool poseStillValid = false;
+
+                foreach (var gesture in pendingGestures)
                 {
-                    // EN SCENE 3: Validar que la pose sigue siendo válida
-                    bool poseStillValid = false;
-
-                    foreach (var gesture in pendingGestures)
+                    // Verificar por nombre de pose
+                    if (gesture.CanStartWithPose(currentPose))
                     {
-                        if (gesture.CanStartWithPose(currentPose))
-                        {
-                            poseStillValid = true;
-                            break;
-                        }
+                        poseStillValid = true;
+                        break;
                     }
 
-                    if (!poseStillValid)
+                    // En Scene 4: también verificar directamente con HandShape
+                    if (isScene4Mode && CanStartWithPoseData(gesture))
                     {
-                        // Perdió la pose, resetear
-                        if (debugMode)
-                        {
-                            Debug.Log($"[DynamicGesture] PENDING: Pose inicial perdida en Scene 3, reseteando");
-                        }
-                        ResetState();
-                        return;
+                        poseStillValid = true;
+                        break;
                     }
+                }
+
+                if (!poseStillValid)
+                {
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING: Pose inicial perdida, reseteando");
+                    }
+                    ResetState();
+                    return;
                 }
             }
 
@@ -998,7 +1037,7 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // Fallback: si la pose no tiene poseData pero coincide con el CurrentSign, validar con ese SignData
+                    // Fallback 1: Intentar con GameManager.CurrentSign (Scene 3)
                     var gm = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
                     if (gm != null && gm.CurrentSign != null &&
                         gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
@@ -1011,6 +1050,23 @@ namespace ASL.DynamicGestures
 
                         if (matches)
                             return true;
+                    }
+
+                    // Fallback 2 (Scene 4): Buscar el SignData por nombre en la categoría actual
+                    if (gm != null && gm.CurrentCategory != null && gm.CurrentSign == null)
+                    {
+                        var signByName = gm.CurrentCategory.GetSignByName(poseReq.poseName);
+                        if (signByName != null)
+                        {
+                            bool matches = ValidatePoseDirectly(signByName);
+                            if (debugMode)
+                            {
+                                Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback categoría '{poseReq.poseName}' = {matches}");
+                            }
+
+                            if (matches)
+                                return true;
+                        }
                     }
                 }
             }
@@ -1466,6 +1522,51 @@ namespace ASL.DynamicGestures
         public void ClearGestureDefinitions()
         {
             gestureDefinitions.Clear();
+        }
+
+        /// <summary>
+        /// Obtiene una copia de la lista actual de definiciones de gestos
+        /// </summary>
+        public List<DynamicGestureDefinition> GetGestureDefinitions()
+        {
+            return new List<DynamicGestureDefinition>(gestureDefinitions);
+        }
+
+        /// <summary>
+        /// Filtra las definiciones de gestos activas para que solo se reconozcan
+        /// los que pertenecen a una categoría dada (por nombre de signo).
+        /// Guarda internamente la lista completa original para poder restaurarla.
+        /// </summary>
+        public void FilterGesturesByNames(HashSet<string> allowedNames)
+        {
+            if (allGestureDefinitions == null || allGestureDefinitions.Count == 0)
+            {
+                // Primera vez: guardar la lista completa original
+                allGestureDefinitions = new List<DynamicGestureDefinition>(gestureDefinitions);
+            }
+
+            gestureDefinitions = allGestureDefinitions.FindAll(g => g != null && allowedNames.Contains(g.gestureName));
+
+            if (debugMode)
+            {
+                Debug.Log($"[DynamicGestureRecognizer] Filtrado a {gestureDefinitions.Count} gestos de {allGestureDefinitions.Count} totales");
+            }
+        }
+
+        /// <summary>
+        /// Restaura la lista completa de definiciones de gestos (deshace FilterGesturesByNames).
+        /// </summary>
+        public void RestoreAllGestures()
+        {
+            if (allGestureDefinitions != null && allGestureDefinitions.Count > 0)
+            {
+                gestureDefinitions = new List<DynamicGestureDefinition>(allGestureDefinitions);
+
+                if (debugMode)
+                {
+                    Debug.Log($"[DynamicGestureRecognizer] Restaurados {gestureDefinitions.Count} gestos");
+                }
+            }
         }
 
         /// <summary>

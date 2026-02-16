@@ -5,6 +5,7 @@ using TMPro;
 using ASL_LearnVR.Core;
 using ASL_LearnVR.Data;
 using ASL_LearnVR.Gestures;
+using ASL.DynamicGestures;
 
 namespace ASL_LearnVR.SelfAssessment
 {
@@ -30,6 +31,9 @@ namespace ASL_LearnVR.SelfAssessment
         [Header("Components")]
         [Tooltip("Componente MultiGestureRecognizer que detecta todos los signos")]
         [SerializeField] private MultiGestureRecognizer multiGestureRecognizer;
+
+        [Tooltip("(Opcional) Manager de gestos dinámicos para autoevaluación")]
+        [SerializeField] private DynamicGesturePracticeManager dynamicGesturePracticeManager;
 
         [Header("Progress")]
         [Tooltip("Texto que muestra el progreso")]
@@ -69,8 +73,26 @@ namespace ASL_LearnVR.SelfAssessment
             if (backButton != null)
                 backButton.onClick.AddListener(OnBackButtonClicked);
 
-            // Activa el reconocimiento de gestos
+            // IMPORTANTE: Limpiar CurrentSign para que DynamicGestureRecognizer
+            // entre en modo Scene 4 (autoevaluación: todos los gestos activos)
+            GameManager.Instance.CurrentSign = null;
+
+            // Activa el reconocimiento de gestos estáticos
             StartRecognition();
+
+            // Auto-buscar DynamicGesturePracticeManager si no está asignado
+            if (dynamicGesturePracticeManager == null)
+            {
+                dynamicGesturePracticeManager = FindObjectOfType<DynamicGesturePracticeManager>();
+            }
+
+            if (dynamicGesturePracticeManager != null && showDebugLogs)
+            {
+                Debug.Log("SelfAssessmentController: DynamicGesturePracticeManager encontrado y activo.");
+            }
+
+            // AUTO-CONFIGURAR: Filtrar DynamicGestureRecognizer para solo los gestos de esta categoría
+            AutoConfigureDynamicGestures();
 
             // Actualiza el progreso
             UpdateProgress();
@@ -278,6 +300,46 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
+        /// Auto-configura el DynamicGestureRecognizer para que solo reconozca
+        /// los gestos dinámicos que pertenecen a la categoría actual.
+        /// Busca los signos con requiresMovement = true y filtra el reconocedor.
+        /// </summary>
+        private void AutoConfigureDynamicGestures()
+        {
+            var dynamicRecognizer = FindObjectOfType<DynamicGestureRecognizer>();
+            if (dynamicRecognizer == null)
+            {
+                if (showDebugLogs)
+                    Debug.Log("SelfAssessmentController: No se encontró DynamicGestureRecognizer (no hay gestos dinámicos).");
+                return;
+            }
+
+            // Recopilar nombres de signos dinámicos de la categoría actual
+            HashSet<string> dynamicSignNames = new HashSet<string>();
+            foreach (var sign in currentCategory.signs)
+            {
+                if (sign != null && sign.requiresMovement)
+                {
+                    dynamicSignNames.Add(sign.signName);
+                }
+            }
+
+            if (dynamicSignNames.Count > 0)
+            {
+                // Filtrar el reconocedor para que solo busque estos gestos
+                dynamicRecognizer.FilterGesturesByNames(dynamicSignNames);
+
+                if (showDebugLogs)
+                    Debug.Log($"SelfAssessmentController: DynamicGestureRecognizer filtrado a {dynamicSignNames.Count} gestos de categoría '{currentCategory.categoryName}'");
+            }
+            else
+            {
+                if (showDebugLogs)
+                    Debug.Log($"SelfAssessmentController: Categoría '{currentCategory.categoryName}' no tiene gestos dinámicos.");
+            }
+        }
+
+        /// <summary>
         /// Callback cuando se hace clic en el botón "Volver".
         /// </summary>
         private void OnBackButtonClicked()
@@ -303,6 +365,13 @@ namespace ASL_LearnVR.SelfAssessment
                 multiGestureRecognizer.onGestureDetected.RemoveListener(OnGestureDetected);
                 multiGestureRecognizer.onGestureRecognized.RemoveListener(OnGestureRecognized);
                 multiGestureRecognizer.onGestureLost.RemoveListener(OnGestureLost);
+            }
+
+            // Restaurar lista completa de gestos dinámicos al salir de la escena
+            var dynamicRecognizer = FindObjectOfType<DynamicGestureRecognizer>();
+            if (dynamicRecognizer != null)
+            {
+                dynamicRecognizer.RestoreAllGestures();
             }
         }
     }
