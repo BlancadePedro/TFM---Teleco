@@ -2603,10 +2603,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         private static AnimatedPoseSequence CreateSignEat()
         {
             var fist = CreateLetterS();
-            float zMouth = 0.18f;   // altura boca
-            float yClose = 0.06f;   // cerca de la boca (hacia el usuario)
-            float yAway = 0.00f;    // un poco alejado
             float px = -0.04f;
+            float zUp = 0.16f;
+            var startRot = new Vector3(-90f, 0f, 90f);
+            var tipRot   = new Vector3(-0f, 0f, 90f);
 
             return new AnimatedPoseSequence
             {
@@ -2614,12 +2614,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    new PoseKeyframe(0f,    WithWristOffset(fist, "Eat_close1",  new Vector3(px, yClose, zMouth))),
-                    new PoseKeyframe(0.25f, WithWristOffset(fist, "Eat_away1",   new Vector3(px, yAway,  zMouth))),
-                    new PoseKeyframe(0.5f,  WithWristOffset(fist, "Eat_close2",  new Vector3(px, yClose, zMouth))),
-                    new PoseKeyframe(0.75f, WithWristOffset(fist, "Eat_away2",   new Vector3(px, yAway,  zMouth))),
-                    new PoseKeyframe(1.0f,  WithWristOffset(fist, "Eat_close3",  new Vector3(px, yClose, zMouth))),
-                    new PoseKeyframe(1.6f,  WithWristOffset(fist, "Eat_hold",    new Vector3(px, yClose, zMouth)))
+                    new PoseKeyframe(0f,    WithWristTransform(fist, "Eat_start", startRot, new Vector3(px, 0.02f, zUp))),
+                    new PoseKeyframe(0.4f,  WithWristTransform(fist, "Eat_tip1",  tipRot,   new Vector3(px, 0.06f, zUp))),
+                    new PoseKeyframe(0.7f,  WithWristTransform(fist, "Eat_back1", startRot, new Vector3(px, 0.02f, zUp))),
+                    new PoseKeyframe(1.0f,  WithWristTransform(fist, "Eat_tip2",  tipRot,   new Vector3(px, 0.06f, zUp))),
+                    new PoseKeyframe(1.6f,  WithWristTransform(fist, "Eat_hold",  tipRot,   new Vector3(px, 0.06f, zUp)))
                 }
             };
         }
@@ -2635,8 +2634,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             float zUp = 0.16f;
             // C base tiene wristRotationOffset=(0,0,90). Añadir Y=90 para girar la apertura
             // de la C hacia el usuario (Y+). Resultado: (0, 90, 90).
-            var startRot = new Vector3(0f, 90f, 0f);
-            var tipRot   = new Vector3(-30f, 90f, 0f);
+            var startRot = new Vector3(-90f, 0f, 90f);
+            var tipRot   = new Vector3(-0f, 0f, 90f);
 
             return new AnimatedPoseSequence
             {
@@ -2718,16 +2717,58 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Tap (mano derecha): Palma abierta (5) con movimiento de tap (dedos bajando y subiendo).
-        /// Se logra rotando la muñeca en X (inclinando dedos abajo y volviendo). Dos manos.
+        /// Pose de mano para Tap: dedos extendidos, palma hacia abajo (wristRotationOffset fijo -90,0,0).
+        /// </summary>
+        private static HandPoseData CreateTapHandPose(string name, Vector3 wristPos)
+        {
+            return new HandPoseData
+            {
+                poseName = name,
+                wristRotationOffset = new Vector3(-90f, 0f, 180f),  // Palma hacia abajo
+                wristPositionOffset = wristPos,
+                thumb = new ThumbPoseData
+                {
+                    metacarpalCurl = 0.1f,
+                    proximalCurl = 0.15f,
+                    distalCurl = 0.1f,
+                    abductionAngle = 15f,
+                    oppositionAngle = 0f,
+                    distalTwist = 0f,
+                    thumbPitch = 0f
+                },
+                index = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 3f
+                },
+                middle = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = 1f
+                },
+                ring = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -1f
+                },
+                pinky = new FingerPoseData
+                {
+                    metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
+                    spreadAngle = -3f
+                }
+            };
+        }
+
+        /// <summary>
+        /// Tap (mano derecha): Palma hacia abajo, palmadas sobre la mesa (movimiento Z arriba-abajo).
+        /// Desfasada con la izquierda (derecha baja cuando izquierda sube).
         /// </summary>
         private static AnimatedPoseSequence CreateSignTap()
         {
-            // Palmas mirando hacia la mesa (rotación X=-90 para que los dedos apunten hacia delante y la palma mire abajo)
-            var downRot = new Vector3(-90f, 0f, 180f);
-            float ox = 0.18f;   // Desplazamiento lateral derecho
-            float zUp = 0.10f;  // Posición alta (lejos de la mesa)
-            float zDown = 0.1f; // Posición baja (cerca de la mesa, sin tocarla)
+            float ox = -0.05f;    // Separación lateral derecha
+            float yDepth = 0.04f; // Profundidad fija
+            float zUp = 0.12f;    // Arriba (lejos de la mesa)
+            float zDown = 0.02f;  // Abajo (palmada sobre la mesa)
 
             return new AnimatedPoseSequence
             {
@@ -2735,28 +2776,28 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    new PoseKeyframe(0f,    CreateHelloHandPose("Tap_up1",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.15f, CreateHelloHandPose("Tap_down1", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.30f, CreateHelloHandPose("Tap_up2",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.45f, CreateHelloHandPose("Tap_down2", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.60f, CreateHelloHandPose("Tap_up3",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.75f, CreateHelloHandPose("Tap_down3", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.90f, CreateHelloHandPose("Tap_up4",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(1.6f,  CreateHelloHandPose("Tap_hold",  new Vector3(ox, 0f, zUp),   downRot))
+                    // Derecha empieza ARRIBA
+                    new PoseKeyframe(0f,    CreateTapHandPose("Tap_up1",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(0.2f,  CreateTapHandPose("Tap_down1", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(0.4f,  CreateTapHandPose("Tap_up2",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(0.6f,  CreateTapHandPose("Tap_down2", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(0.8f,  CreateTapHandPose("Tap_up3",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(1.0f,  CreateTapHandPose("Tap_down3", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(1.6f,  CreateTapHandPose("Tap_hold",  new Vector3(ox, yDepth, zDown)))
                 }
             };
         }
 
         /// <summary>
-        /// Tap (mano izquierda): Palma abierta (5) espejo, tap opuesto.
+        /// Tap (mano izquierda): Palma hacia abajo, palmadas sobre la mesa desfasadas
+        /// (izquierda baja cuando derecha sube).
         /// </summary>
         private static AnimatedPoseSequence CreateSignTapLeftHand()
         {
-            // Palmas mirando hacia la mesa, espejada a la izquierda
-            var downRot = new Vector3(-90f, 0f, 180f);
-            float ox = -0.18f;  // Desplazamiento lateral izquierdo
-            float zUp = 0.10f;
-            float zDown = -0.1f;
+            float ox = 0.05f;     // Separación lateral izquierda
+            float yDepth = 0.04f; // Profundidad fija
+            float zUp = 0.12f;    // Arriba
+            float zDown = 0.02f;  // Abajo (palmada)
 
             return new AnimatedPoseSequence
             {
@@ -2764,14 +2805,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    new PoseKeyframe(0f,    CreateHelloHandPose("TapL_up1",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.15f, CreateHelloHandPose("TapL_down1", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.30f, CreateHelloHandPose("TapL_up2",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.45f, CreateHelloHandPose("TapL_down2", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.60f, CreateHelloHandPose("TapL_up3",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(0.75f, CreateHelloHandPose("TapL_down3", new Vector3(ox, 0f, zDown), downRot)),
-                    new PoseKeyframe(0.90f, CreateHelloHandPose("TapL_up4",   new Vector3(ox, 0f, zUp),   downRot)),
-                    new PoseKeyframe(1.6f,  CreateHelloHandPose("TapL_hold",  new Vector3(ox, 0f, zUp),   downRot))
+                    // Izquierda empieza ABAJO (desfasada)
+                    new PoseKeyframe(0f,    CreateTapHandPose("TapL_down1", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(0.2f,  CreateTapHandPose("TapL_up1",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(0.4f,  CreateTapHandPose("TapL_down2", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(0.6f,  CreateTapHandPose("TapL_up2",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(0.8f,  CreateTapHandPose("TapL_down3", new Vector3(ox, yDepth, zDown))),
+                    new PoseKeyframe(1.0f,  CreateTapHandPose("TapL_up3",   new Vector3(ox, yDepth, zUp))),
+                    new PoseKeyframe(1.6f,  CreateTapHandPose("TapL_hold",  new Vector3(ox, yDepth, zDown)))
                 }
             };
         }
@@ -2788,9 +2829,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         {
             var fPose = CreateLetterF();
             // Dedos apuntando hacia la palma izquierda (a la izquierda del usuario)
-            var baseRot = new Vector3(-45f, 90f, 90f);
+            var baseRot = new Vector3(-45f, 60f, -180f);
             float xBase = -0.10f;   // desplazado hacia la mano izquierda (papel)
-            float yBase = 0.04f;
+            float yBase = 0.02f;
             float zTop = 0.14f;    // arriba de la palma
             float zBot = 0.04f;    // abajo de la palma
             float amp = 0.02f;     // amplitud ondulación Y (profundidad)
@@ -2828,6 +2869,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             var pos = new Vector3(0.02f, 0.04f, 0.10f); // centrada, Z alto para que la derecha escriba sobre ella
             var rot = new Vector3(0f, 0f, -90f);
             var flatHand = CreateHelloHandPose("Write_L", pos, rot);
+            
 
             return new AnimatedPoseSequence
             {
@@ -2850,9 +2892,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         {
             var vPose = CreateLetterV();
             // V apuntando hacia la palma izquierda (Y=90 dedos a la izquierda, X=-30 ligeramente inclinado)
-            var baseRot = new Vector3(-30f, 0f, 0f);
+            var baseRot = new Vector3(30f, -15f, 90f);
             float xBase = -0.10f;   // desplazado hacia la mano izquierda (papel)
-            float yBase = 0.06f;
+            float yBase = 0.02f;
             float zTop = 0.14f;
             float zBot = 0.04f;
             float zMid = 0.09f;
@@ -2892,9 +2934,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         private static AnimatedPoseSequence CreateSignDraw()
         {
             var iPose = CreateLetterI();
-            var baseRot = new Vector3(-45f, 90f, 0f);
+            var baseRot = new Vector3(-45f, 60f, 0f);
             float xBase = -0.10f;   // desplazado hacia la mano izquierda (papel)
-            float yBase = 0.04f;
+            float yBase = 0.02f;
             float zTop = 0.14f;
             float zBot = 0.04f;
             float amp = 0.02f;
