@@ -1738,13 +1738,13 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 keyframes = new PoseKeyframe[]
                 {
                     // Inicio: posición de referencia, inclinada 45° (meñique hacia el centro)
-                    new PoseKeyframe(0f, CreateHelloHandPose("TY_start", new Vector3(0f, 0.09f, 0.08f), new Vector3(0f, 0f, -45f))),
+                    new PoseKeyframe(0f, CreateHelloHandPose("TY_start", new Vector3(0f, 0.09f, 0.08f), new Vector3(0f, 0f, 45f))),
                     // Intermedio: avanza hacia adelante (Y+), se va aplanando
-                    new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.14f, 0.06f), new Vector3(-25f, 0f, -30f))),
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.14f, 0.06f), new Vector3(-25f, 0f, 30f))),
                     // Final: inclinada hacia adelante, alejada del cuerpo, Z positivo para no meterse en la mesa
-                    new PoseKeyframe(0.7f, CreateHelloHandPose("TY_end", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, -15f))),
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TY_end", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, 15f))),
                     // Mantener
-                    new PoseKeyframe(1.4f, CreateHelloHandPose("TY_hold", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, -15f)))
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TY_hold", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, 15f)))
                 }
             };
         }
@@ -1761,10 +1761,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 keyframes = new PoseKeyframe[]
                 {
                     // Mano IZQUIERDA: meñique hacia el centro → Z positivo (espejo a 45°)
-                    new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", new Vector3(0f, 0.09f, 0.08f), new Vector3(0f, 0f, 45f))),
-                    new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.14f, 0.06f), new Vector3(-25f, 0f, 30f))),
-                    new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, 15f))),
-                    new PoseKeyframe(1.4f, CreateHelloHandPose("TYL_hold", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, 15f)))
+                    new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", new Vector3(0f, 0.09f, 0.08f), new Vector3(0f, 0f, -45f))),
+                    new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.14f, 0.06f), new Vector3(-25f, 0f, -30f))),
+                    new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, -15f))),
+                    new PoseKeyframe(1.4f, CreateHelloHandPose("TYL_hold", new Vector3(0f, 0.20f, 0.04f), new Vector3(-50f, 0f, -15f)))
                 }
             };
         }

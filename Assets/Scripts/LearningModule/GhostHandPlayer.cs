@@ -77,11 +77,17 @@ namespace ASL_LearnVR.LearningModule
         [Tooltip("Si está activo, las manos se muestran visibles al iniciar (para testing)")]
         [SerializeField] private bool showOnStart = true;
 
+        [Header("Fade Settings")]
+        [Tooltip("Duración del fade in/out en segundos")]
+        [SerializeField] private float fadeDuration = 0.5f;
+
         // Estado interno
         private SignData currentSign;
         private bool isPlaying = false;
         private bool isShowingGesture = false;
+        private bool isFading = false;
         private Coroutine currentAnimation;
+        private Coroutine currentFade;
         private SkinnedMeshRenderer[] leftHandRenderers;
         private SkinnedMeshRenderer[] rightHandRenderers;
 
@@ -690,5 +696,159 @@ namespace ASL_LearnVR.LearningModule
             if (rightPoseApplier != null)
                 rightPoseApplier.ApplyPose(pose);
         }
+
+        #region Fade In/Out para modo práctica
+
+        /// <summary>
+        /// True si las manos están en transición de fade.
+        /// </summary>
+        public bool IsFading => isFading;
+
+        /// <summary>
+        /// Fade out de las guide hands (para entrar en modo práctica).
+        /// Las manos se desvanecen en fadeDuration segundos y luego se desactivan.
+        /// </summary>
+        public void FadeOut()
+        {
+            // Detener animación en curso
+            if (currentAnimation != null)
+            {
+                StopCoroutine(currentAnimation);
+                currentAnimation = null;
+            }
+            isPlaying = false;
+            isShowingGesture = false;
+
+            // Detener fade anterior si existe
+            if (currentFade != null)
+            {
+                StopCoroutine(currentFade);
+                currentFade = null;
+            }
+
+            currentFade = StartCoroutine(FadeCoroutine(fadeOut: true));
+        }
+
+        /// <summary>
+        /// Fade in de las guide hands (para salir del modo práctica).
+        /// Las manos se activan y aparecen en fadeDuration segundos.
+        /// NO reproduce animación automáticamente - el usuario debe dar a "Repetir".
+        /// </summary>
+        public void FadeIn()
+        {
+            // Detener fade anterior si existe
+            if (currentFade != null)
+            {
+                StopCoroutine(currentFade);
+                currentFade = null;
+            }
+
+            currentFade = StartCoroutine(FadeCoroutine(fadeOut: false));
+        }
+
+        /// <summary>
+        /// Actualiza el signo actual sin reproducir animación.
+        /// Útil cuando se navega entre signos en modo práctica.
+        /// </summary>
+        public void SetCurrentSign(SignData sign)
+        {
+            currentSign = sign;
+        }
+
+        /// <summary>
+        /// Establece la visibilidad inmediata (alpha 0 o ghostHandColor.a) sin fade.
+        /// </summary>
+        public void SetVisibilityImmediate(bool visible)
+        {
+            if (ghostHandMaterial == null) return;
+
+            float targetAlpha = visible ? ghostHandColor.a : 0f;
+            Color c = ghostHandMaterial.color;
+            ghostHandMaterial.color = new Color(c.r, c.g, c.b, targetAlpha);
+
+            if (!visible)
+            {
+                SetGhostHandsVisible(false);
+            }
+            else
+            {
+                SetGhostHandsVisible(true);
+            }
+        }
+
+        private IEnumerator FadeCoroutine(bool fadeOut)
+        {
+            isFading = true;
+
+            float startAlpha = fadeOut ? ghostHandColor.a : 0f;
+            float endAlpha = fadeOut ? 0f : ghostHandColor.a;
+
+            // Si fade in, activar GameObjects primero y aplicar alpha 0
+            if (!fadeOut)
+            {
+                if (ghostHandMaterial != null)
+                {
+                    Color c = ghostHandMaterial.color;
+                    ghostHandMaterial.color = new Color(c.r, c.g, c.b, 0f);
+                }
+                SetGhostHandsVisible(true);
+                PositionHands();
+
+                // Aplicar la pose del signo actual (no neutro) para que las manos
+                // aparezcan mostrando el gesto correcto
+                if (currentSign != null && rightPoseApplier != null)
+                {
+                    var pose = ASLPoseLibrary.GetPoseBySignName(currentSign.signName);
+                    if (pose != null)
+                        rightPoseApplier.ApplyPose(pose);
+                    else
+                        ApplyNeutralPose(rightPoseApplier);
+                }
+                else
+                {
+                    ApplyNeutralPose(rightPoseApplier);
+                }
+                ApplyNeutralPose(leftPoseApplier);
+            }
+
+            // Fade progresivo
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                // SmoothStep para un fade más progresivo (ease-in-out)
+                float smoothT = t * t * (3f - 2f * t);
+                float alpha = Mathf.Lerp(startAlpha, endAlpha, smoothT);
+
+                if (ghostHandMaterial != null)
+                {
+                    Color c = ghostHandMaterial.color;
+                    ghostHandMaterial.color = new Color(c.r, c.g, c.b, alpha);
+                }
+
+                yield return null;
+            }
+
+            // Asegurar valor final exacto
+            if (ghostHandMaterial != null)
+            {
+                Color c = ghostHandMaterial.color;
+                ghostHandMaterial.color = new Color(c.r, c.g, c.b, endAlpha);
+            }
+
+            // Si fade out completado, desactivar GameObjects
+            if (fadeOut)
+            {
+                SetGhostHandsVisible(false);
+            }
+
+            isFading = false;
+            currentFade = null;
+
+            Debug.Log($"[GhostHandPlayer] Fade {(fadeOut ? "OUT" : "IN")} completado");
+        }
+
+        #endregion
     }
 }

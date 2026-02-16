@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: Brown_Gesture
   m_EditorClassIdentifier: Assembly-CSharp::ASL.DynamicGestures.DynamicGestureDefinition
   gestureName: Brown
-  gestureDescription: B handshape slides down cheek
+  gestureDescription: B handshape starts up and slides down
   poseSequence:
-  - poseName: Brown
+  - poseName: B
     timing: 0
     isOptional: 0
+    poseData: {fileID: 11400000, guid: 16919dc3463f6ed439885800d938a1b0, type: 2}
     poseFamilyAlternatives: []
   requiresMovement: 1
   primaryDirection: {x: 0, y: -1, z: 0}

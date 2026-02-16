@@ -247,11 +247,22 @@ namespace ASL_LearnVR.LearningModule
             }
 
             // AUTOMÁTICAMENTE mostrar el gesto con las manos guía al cargar un nuevo signo
-            // Los meses también se reproducen (secuencia de 3 letras animada)
+            // Solo si NO estamos en modo práctica (las manos están ocultas durante práctica)
             if (ghostHandPlayer != null)
             {
-                Debug.Log($"[LearningController] Mostrando automáticamente el gesto '{sign.signName}' con manos guía");
-                ghostHandPlayer.PlaySign(sign);
+                if (isPracticing)
+                {
+                    // En modo práctica: mantener las guide hands ocultas pero actualizar el signo
+                    // para que al dejar de practicar se muestre el signo correcto
+                    ghostHandPlayer.SetCurrentSign(sign);
+                    ghostHandPlayer.SetVisibilityImmediate(false);
+                    Debug.Log($"[LearningController] Signo '{sign.signName}' cargado - guide hands ocultas (modo práctica)");
+                }
+                else
+                {
+                    Debug.Log($"[LearningController] Mostrando automáticamente el gesto '{sign.signName}' con manos guía");
+                    ghostHandPlayer.PlaySign(sign);
+                }
             }
         }
 
@@ -304,6 +315,10 @@ namespace ASL_LearnVR.LearningModule
                 {
                     Debug.Log($"[LearningController] ====== INICIANDO PRÁCTICA DE MES: {monthSequence.signName} ======");
 
+                    // Fade out de las guide hands
+                    if (ghostHandPlayer != null)
+                        ghostHandPlayer.FadeOut();
+
                     // Activar feedbackPanel (contiene los tiles de MonthTilesUI)
                     if (feedbackPanel != null)
                         feedbackPanel.SetActive(true);
@@ -347,6 +362,10 @@ namespace ASL_LearnVR.LearningModule
                     if (feedbackText != null)
                         feedbackText.gameObject.SetActive(true);
 
+                    // Fade in de las guide hands + reproducir animación
+                    if (ghostHandPlayer != null)
+                        ghostHandPlayer.FadeIn();
+
                     // Restaurar texto del botón
                     if (practiceButton != null)
                     {
@@ -362,6 +381,10 @@ namespace ASL_LearnVR.LearningModule
             // Comportamiento por defecto para signos individuales
             if (isPracticing)
             {
+                // Fade out de las guide hands
+                if (ghostHandPlayer != null)
+                    ghostHandPlayer.FadeOut();
+
                 // Activa el feedback y el reconocimiento de gestos
                 if (feedbackPanel != null)
                     feedbackPanel.SetActive(true);
@@ -406,6 +429,10 @@ namespace ASL_LearnVR.LearningModule
                     feedbackSystem.SetActive(false);
                     Debug.Log("[LearningController] FeedbackSystem DESACTIVADO");
                 }
+
+                // Fade in de las guide hands + reproducir animación
+                if (ghostHandPlayer != null)
+                    ghostHandPlayer.FadeIn();
 
                 if (practiceButton != null)
                 {
@@ -722,10 +749,17 @@ namespace ASL_LearnVR.LearningModule
                     // NO usar Sign_1 para evitar confusión
                     return dynamicSign;
 
+                case "Bye":
+                    // Bye empieza con mano abierta "5" y cierra a puño "S"
+                    return FindSignByName("5");
+
+                case "Brown":
+                    // Brown empieza con pose B y baja
+                    return FindSignByName("B");
+
                 case "Yes":
                 case "No":
                 case "Hello":
-                case "Bye":
                 case "Please":
                 case "Thank You":
                 case "Good":
