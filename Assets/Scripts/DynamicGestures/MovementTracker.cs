@@ -177,7 +177,7 @@ namespace ASL.DynamicGestures
                 if (lastDirection.sqrMagnitude > 0.01f)
                 {
                     float angle = Vector3.Angle(lastDirection, currentDirection);
-                    if (angle > 45f) // Cambio significativo
+                    if (angle > 30f) // 30° (antes 45°) - más sensible para waving suave
                     {
                         directionChanges++;
                     }

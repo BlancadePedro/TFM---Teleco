@@ -82,7 +82,7 @@ namespace ASL.DynamicGestures
 
         // Cooldown después de éxito (para que el usuario vea el mensaje)
         private float successCooldownEndTime = 0f;
-        private const float SUCCESS_COOLDOWN_DURATION = 2f; // 2 segundos de pausa después de éxito
+        private const float SUCCESS_COOLDOWN_DURATION = 1f; // 1s (antes 2s) - permite gestos consecutivos más rápido en Scene 4
 
         /// <summary>
         /// True si el reconocedor está en cooldown después de un éxito.
@@ -118,12 +118,7 @@ namespace ASL.DynamicGestures
         // Estado de confirmación pendiente
         private List<DynamicGestureDefinition> pendingGestures = new List<DynamicGestureDefinition>();
         private float pendingStartTime = 0f;
-        private const float PENDING_CONFIRMATION_TIMEOUT = 0.25f; // Tiempo de espera para desambiguar (REDUCIDO para respuesta rápida)
-
-        // Cooldown después de que PendingConfirmation hace timeout (para evitar loop Idle→Pending→Idle→Pending)
-        // Cuando no hay movimiento y se determina que es gesto estático, esperar antes de re-entrar en Pending
-        private float pendingTimeoutCooldownEnd = 0f;
-        private const float PENDING_TIMEOUT_COOLDOWN = 0.6f; // Dar tiempo al MultiGestureRecognizer para confirmar el gesto estático
+        private const float PENDING_CONFIRMATION_TIMEOUT = 0.4f; // 0.4s (antes 0.25s) - más tiempo para iniciar movimiento
 
         // Tracking de mano
         private Vector3 smoothedHandPosition = Vector3.zero;
@@ -131,7 +126,17 @@ namespace ASL.DynamicGestures
         private Vector3 lastHandPosition = Vector3.zero;
         private Quaternion lastHandRotation = Quaternion.identity;
         private float trackingLostTime = 0f;
-        private const float TRACKING_LOSS_TOLERANCE = 0.2f; // Tolerar hasta 0.2s de pérdida de tracking
+        private const float TRACKING_LOSS_TOLERANCE = 0.5f; // 0.5s (antes 0.2s) - más tolerante a pérdidas momentáneas Quest 3
+
+        // Cooldown después de PendingConfirmation hace timeout
+        private float pendingTimeoutCooldownEnd = 0f;
+        private const float PENDING_TIMEOUT_COOLDOWN = 0.6f;
+
+        // Detección y prevención de loop de PENDING
+        private int consecutivePendingEntries = 0;
+        private float lastPendingExitTime = 0f;
+        private const float PENDING_REENTRY_WINDOW = 1.0f; // Ventana de 1 segundo
+        private const int MAX_CONSECUTIVE_PENDING = 2; // Máximo 2 re-entradas antes de bloquear
 
         // Cache XR Origin
         private Transform xrOriginTransform;
@@ -354,7 +359,7 @@ namespace ASL.DynamicGestures
                 return;
 
             // Respetar cooldown después de PendingConfirmation timeout
-            // Esto evita el loop Idle→Pending→timeout→Idle→Pending que bloquea gestos estáticos
+            // Esto evita el loop Idle→Pending→timeout→Idle→Pending
             if (Time.time < pendingTimeoutCooldownEnd)
                 return;
 
@@ -529,6 +534,29 @@ namespace ASL.DynamicGestures
         /// </summary>
         private void EnterPendingConfirmation()
         {
+            // Detectar loop de PENDING: si re-entramos muchas veces seguidas, bloquear
+            if (Time.time - lastPendingExitTime < PENDING_REENTRY_WINDOW)
+            {
+                consecutivePendingEntries++;
+
+                if (consecutivePendingEntries >= MAX_CONSECUTIVE_PENDING)
+                {
+                    // Bloquear por 2 segundos para romper el loop
+                    pendingTimeoutCooldownEnd = Time.time + 2.0f;
+                    consecutivePendingEntries = 0;
+
+                    if (debugMode)
+                    {
+                        Debug.LogWarning($"[DynamicGesture] Loop de PENDING detectado ({MAX_CONSECUTIVE_PENDING}+ re-entradas en {PENDING_REENTRY_WINDOW}s), bloqueando por 2s");
+                    }
+                    return;
+                }
+            }
+            else
+            {
+                consecutivePendingEntries = 0;
+            }
+
             currentState = GestureState.PendingConfirmation;
             pendingStartTime = Time.time;
 
@@ -559,14 +587,8 @@ namespace ASL.DynamicGestures
                 // En este caso, NO marcamos como completado aquí, dejamos que MultiGestureRecognizer lo maneje
                 if (debugMode)
                 {
-                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático. Cooldown {PENDING_TIMEOUT_COOLDOWN}s");
+                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
                 }
-
-                // CLAVE: Activar cooldown para NO volver a entrar en PendingConfirmation inmediatamente.
-                // Esto da tiempo al MultiGestureRecognizer para confirmar el gesto estático
-                // sin que el DynamicGestureRecognizer lo bloquee en un loop.
-                pendingTimeoutCooldownEnd = Time.time + PENDING_TIMEOUT_COOLDOWN;
-
                 ResetState();
                 return;
             }
@@ -621,9 +643,10 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            // Analizar si hay movimiento significativo (MÁS SENSIBLE para respuesta rápida)
-            bool hasSignificantMovement = movementTracker.TotalDistance > 0.015f || // 1.5cm de movimiento (reducido)
-                                          movementTracker.CurrentSpeed > 0.06f;     // Velocidad mínima (reducida)
+            // Analizar si hay movimiento significativo
+            // Umbrales intermedios: filtran jitter (~1-2cm) pero detectan movimiento intencional
+            bool hasSignificantMovement = movementTracker.TotalDistance > 0.025f || // 2.5cm (filtra jitter, detecta movimiento real)
+                                          movementTracker.CurrentSpeed > 0.08f;      // 0.08 m/s
 
             if (hasSignificantMovement)
             {
@@ -1399,6 +1422,8 @@ namespace ASL.DynamicGestures
             if (wasPending)
             {
                 OnPendingConfirmationChanged?.Invoke(false);
+                lastPendingExitTime = Time.time; // Rastrear cuándo salimos de PENDING
+                pendingTimeoutCooldownEnd = Time.time + PENDING_TIMEOUT_COOLDOWN;
             }
         }
 

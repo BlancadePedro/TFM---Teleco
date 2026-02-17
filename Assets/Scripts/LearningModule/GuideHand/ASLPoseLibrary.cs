@@ -381,7 +381,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "F",
                 // Pulgar curvado tocando el índice
-                wristRotationOffset = new Vector3(0f, 0f, 160f),
+                wristRotationOffset = new Vector3(0f, 0f, 130f),
                 // RANGOS: abductionAngle [-45,45], oppositionAngle [-30,30]
                 thumb = new ThumbPoseData
                 {
@@ -417,7 +417,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "G",
                 // Dedos apuntando a la izquierda (-90 Z) + girada sobre muñeca (-90 X) para ver pulgar-índice paralelos
-                wristRotationOffset = new Vector3(0f, 90f, 90f),
+                wristRotationOffset = new Vector3(0f, 120f, 90f),
                 wristPositionOffset = new Vector3(-0.08f, 0f, 0.12f), // Subir para no meter en la mesa
 
                 // Pulgar extendido en paralelo al índice

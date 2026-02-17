@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 77885575}
   - component: {fileID: 77885574}
+  - component: {fileID: 77885576}
   m_Layer: 0
   m_Name: 'DynamicGestureFilter '
   m_TagString: Untagged
@@ -166,6 +167,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1608912723}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &77885576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 77885573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71834ec2d9eb79b498b133b75fab662e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.SelfAssessment.DynamicGesturePracticeManager
+  gestureFilter: {fileID: 77885574}
+  selfAssessmentController: {fileID: 1137281139}
+  practiceGestures: []
+  feedbackPanel: {fileID: 0}
+  feedbackText: {fileID: 0}
+  progressBar: {fileID: 0}
+  failureReasonText: {fileID: 0}
+  successFeedbackDuration: 2
+  failureFeedbackDuration: 4
+  showDebugLogs: 1
 --- !u!1 &255483885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1625,7 +1648,46 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1aaa24b1bbe23ce4b9329a647c484b35, type: 2}
   - {fileID: 11400000, guid: 4a28783e3d9b4c144a57b8b41281e30a, type: 2}
   - {fileID: 11400000, guid: cb2949a1e81963045806db94d64380fd, type: 2}
-  - {fileID: 11400000, guid: c29fc659a01d6b047b37b83ea39fe489, type: 2}
+  - {fileID: 11400000, guid: 43815303e8455064a9e6fbbcb1d3d260, type: 2}
+  - {fileID: 11400000, guid: f522d16499a9df54ea2ca9a6b2e5e616, type: 2}
+  - {fileID: 11400000, guid: 1d53ef80c9d59fb4b81ecd5bfd4947c1, type: 2}
+  - {fileID: 11400000, guid: 560f44635a693d94eb30997cce16413e, type: 2}
+  - {fileID: 11400000, guid: 56c0082a91870dd4aa6ecab6f3e3223c, type: 2}
+  - {fileID: 11400000, guid: 0a1156842e6c74b47838a90e53176202, type: 2}
+  - {fileID: 11400000, guid: d28afdb2102c98b45b9b77411e95d409, type: 2}
+  - {fileID: 11400000, guid: 40aa088a8cf896d43b11707119e051c6, type: 2}
+  - {fileID: 11400000, guid: 460d20a6c84a9c74287ab69f0f155fce, type: 2}
+  - {fileID: 11400000, guid: 7fb6288f8e26938419ca8c9958e7d78f, type: 2}
+  - {fileID: 11400000, guid: a2d3d654023c050419433e67e3fd39db, type: 2}
+  - {fileID: 11400000, guid: ce231ca7cd947114c858e286630d713b, type: 2}
+  - {fileID: 11400000, guid: fcc67a47095629e40803c8c061e2191a, type: 2}
+  - {fileID: 11400000, guid: 6454e805d13f1664495f26e794e6b62c, type: 2}
+  - {fileID: 11400000, guid: 121f308884161144880c43a0b6f9d5c7, type: 2}
+  - {fileID: 11400000, guid: fd77121e37533ca4e9e032503d25aecd, type: 2}
+  - {fileID: 11400000, guid: 1a61e54ffacf30d40a4982a1b51182e9, type: 2}
+  - {fileID: 11400000, guid: 5aa2c2ff5ef10c0428e6ef0b681ff2a2, type: 2}
+  - {fileID: 11400000, guid: 67727b87a4084274abdfb95acb657d80, type: 2}
+  - {fileID: 11400000, guid: 06e3722bcf4aa264db64ab0e809a02d5, type: 2}
+  - {fileID: 11400000, guid: 149414c2bd9fa8240901ff951cee3c3f, type: 2}
+  - {fileID: 11400000, guid: 93b3dc8754d02294daacf64d73ae4d83, type: 2}
+  - {fileID: 11400000, guid: bafc4a62b2ee9f046b6ed9a0c30bf9c7, type: 2}
+  - {fileID: 11400000, guid: 5e5127d4b5109f14fae1492dcdca3274, type: 2}
+  - {fileID: 11400000, guid: a4c7eb58aa1cbb04faeaea6ded622d2a, type: 2}
+  - {fileID: 11400000, guid: 1b661ea728094354d9dad5efb4c33b86, type: 2}
+  - {fileID: 11400000, guid: 1c3c411a853de96409736caa3399dd2a, type: 2}
+  - {fileID: 11400000, guid: 3a54ce5eacea1394696dfa21876016db, type: 2}
+  - {fileID: 11400000, guid: f29235bca3959e742904c72728cff72b, type: 2}
+  - {fileID: 11400000, guid: 52d8c17b54cfd2e4c8c73e999f1f8f59, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+  - {fileID: 11400000, guid: ed6498b8a8efe9b4e825494ff746c5c0, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d1, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d8, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d4, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d5, type: 2}
+  - {fileID: 11400000, guid: 2544e248256269b46b93bc620c6ca59e, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d2, type: 2}
+  - {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d7, type: 2}
+  - {fileID: 11400000, guid: e770db0db4252ba4787ca6f6c8de38c8, type: 2}
   leftHandTrackingEvents: {fileID: 756614766}
   rightHandTrackingEvents: {fileID: 756614765}
   dynamicGestureRecognizer: {fileID: 1608912722}
@@ -1706,10 +1768,10 @@ MonoBehaviour:
   signTilePrefab: {fileID: 7610024951609659216, guid: 0d1b956ab3fd5ef4da9744448c2b8090, type: 3}
   backButton: {fileID: 283325896}
   multiGestureRecognizer: {fileID: 1120855380}
-  dynamicGesturePracticeManager: {fileID: 0}
+  dynamicGesturePracticeManager: {fileID: 77885576}
   progressText: {fileID: 1936488298}
   progressBar: {fileID: 0}
-  showDebugLogs: 0
+  showDebugLogs: 1
 --- !u!1 &1185070927
 GameObject:
   m_ObjectHideFlags: 0

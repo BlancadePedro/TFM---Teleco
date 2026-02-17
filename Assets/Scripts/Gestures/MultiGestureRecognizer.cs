@@ -281,9 +281,11 @@ namespace ASL_LearnVR.Gestures
                     float holdTimer = Time.timeSinceLevelLoad - holdStartTimes[CurrentActiveSign];
 
                     // COORDINACIÓN CON GESTOS DINÁMICOS:
-                    // Si el gesto NO requiere movimiento PERO hay un pending dinámico,
-                    // NO confirmar aún (esperar a que se resuelva la ambigüedad)
-                    bool shouldWaitForDynamicResolution = !CurrentActiveSign.requiresMovement && isDynamicGesturePending;
+                    // Solo en Scene 3 (aprendizaje individual): si hay pending dinámico, esperar resolución
+                    // En Scene 4 (autoevaluación): NO bloquear, estáticos y dinámicos son independientes
+                    var gm = ASL_LearnVR.Core.GameManager.Instance;
+                    bool isScene4 = (gm == null || gm.CurrentSign == null);
+                    bool shouldWaitForDynamicResolution = !isScene4 && !CurrentActiveSign.requiresMovement && isDynamicGesturePending;
 
                     if (holdTimer >= requiredHoldTime && !shouldWaitForDynamicResolution)
                     {

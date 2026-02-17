@@ -53,6 +53,19 @@ namespace ASL_LearnVR.SelfAssessment
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = false;
 
+        // Eventos públicos para comunicación con SelfAssessmentController
+        /// <summary>
+        /// Evento público para notificar cuando un gesto dinámico se completa.
+        /// El SelfAssessmentController se suscribe a este evento.
+        /// </summary>
+        public System.Action<SignData> OnDynamicGestureCompletedSignal;
+
+        /// <summary>
+        /// Evento para feedback visual en tiempo real (reconocimiento instantáneo).
+        /// Permite iluminar tiles mientras el gesto está en progreso.
+        /// </summary>
+        public System.Action<string> OnDynamicGestureRecognizedSignal;
+
         // Estado interno
         private Dictionary<string, SignData> gestureNameToSignData = new Dictionary<string, SignData>();
         private Dictionary<string, SignTileController> gestureTiles = new Dictionary<string, SignTileController>();
@@ -237,12 +250,8 @@ namespace ASL_LearnVR.SelfAssessment
 
             ShowFeedback($"Reconociendo: {gestureName}", new Color(1f, 0.843f, 0f), showProgress: true); // Golden
 
-            // Iluminar tile temporalmente (equivalente a onGestureRecognized)
-            if (gestureNameToSignData.TryGetValue(gestureName, out SignData signData))
-            {
-                // El SelfAssessmentController ya maneja esto con MultiGestureRecognizer
-                // No necesitamos duplicar lógica aquí
-            }
+            // Emitir evento de reconocimiento visual para iluminar tile
+            OnDynamicGestureRecognizedSignal?.Invoke(gestureName);
         }
 
         private void OnDynamicGestureProgress(string gestureName, float progress)
@@ -346,22 +355,13 @@ namespace ASL_LearnVR.SelfAssessment
         /// </summary>
         private void BroadcastGestureCompleted(SignData signData)
         {
-            // Estrategia 1: Buscar MultiGestureRecognizer y simular detección
-            var multiGestureRecognizer = FindObjectOfType<ASL_LearnVR.Gestures.MultiGestureRecognizer>();
-            if (multiGestureRecognizer != null)
+            if (showDebugLogs)
             {
-                // Invocar el evento onGestureDetected manualmente
-                multiGestureRecognizer.onGestureDetected?.Invoke(signData);
+                Debug.Log($"[DynamicGesturePracticeManager] Enviando señal de gesto completado: '{signData.signName}'");
+            }
 
-                if (showDebugLogs)
-                {
-                    Debug.Log($"[DynamicGesturePracticeManager]  Evento onGestureDetected invocado para '{signData.signName}'");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[DynamicGesturePracticeManager] No se encontró MultiGestureRecognizer para notificar completitud");
-            }
+            // Invocar el evento propio para que SelfAssessmentController pueda escucharlo
+            OnDynamicGestureCompletedSignal?.Invoke(signData);
         }
 
         /// <summary>
