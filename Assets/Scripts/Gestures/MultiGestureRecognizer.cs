@@ -26,6 +26,9 @@ namespace ASL_LearnVR.Gestures
         [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
 
         [Header("Detection Settings")]
+        [Tooltip("Solo reconocer la mano derecha (ignorar mano izquierda)")]
+        [SerializeField] private bool rightHandOnly = true;
+
         [Tooltip("Intervalo de detección en segundos")]
         [SerializeField] private float detectionInterval = 0.1f;
 
@@ -56,6 +59,10 @@ namespace ASL_LearnVR.Gestures
         // Estado de coordinación con gestos dinámicos
         private bool isDynamicGesturePending = false;
 
+        // Período de gracia: evita parpadeo cuando Quest 3 pierde tracking por 1-2 frames
+        private int consecutiveMisses = 0;
+        private const int MAX_CONSECUTIVE_MISSES = 2; // Tolerar 2 checks sin detección (~0.2s)
+
         /// <summary>
         /// Obtiene el signo activo actual (null si ninguno).
         /// </summary>
@@ -63,7 +70,7 @@ namespace ASL_LearnVR.Gestures
 
         void OnEnable()
         {
-            if (leftHandTrackingEvents != null)
+            if (leftHandTrackingEvents != null && !rightHandOnly)
                 leftHandTrackingEvents.jointsUpdated.AddListener(OnLeftHandJointsUpdated);
 
             if (rightHandTrackingEvents != null)
@@ -80,7 +87,7 @@ namespace ASL_LearnVR.Gestures
 
         void OnDisable()
         {
-            if (leftHandTrackingEvents != null)
+            if (leftHandTrackingEvents != null && !rightHandOnly)
                 leftHandTrackingEvents.jointsUpdated.RemoveListener(OnLeftHandJointsUpdated);
 
             if (rightHandTrackingEvents != null)
@@ -238,9 +245,28 @@ namespace ASL_LearnVR.Gestures
         /// </summary>
         private void UpdateActiveSign(SignData newActiveSign)
         {
-            // Si cambió el signo activo
+            // PERÍODO DE GRACIA: Si perdemos detección pero teníamos un signo activo,
+            // tolerar hasta MAX_CONSECUTIVE_MISSES checks antes de perderlo.
+            // Esto evita el parpadeo cuando Quest 3 pierde tracking por 1-2 frames.
             if (CurrentActiveSign != newActiveSign)
             {
+                if (newActiveSign == null && CurrentActiveSign != null)
+                {
+                    // Signo perdido - aplicar período de gracia
+                    consecutiveMisses++;
+                    if (consecutiveMisses <= MAX_CONSECUTIVE_MISSES)
+                    {
+                        // Mantener el signo activo por ahora, no resetear
+                        return;
+                    }
+                    // Superó el período de gracia, continuar con la pérdida
+                }
+                else
+                {
+                    // Nuevo signo detectado (o cambio de signo) - resetear contador
+                    consecutiveMisses = 0;
+                }
+
                 // Procesa el fin del signo anterior
                 if (CurrentActiveSign != null)
                 {
@@ -254,25 +280,28 @@ namespace ASL_LearnVR.Gestures
                 // Procesa el inicio del nuevo signo
                 if (newActiveSign != null)
                 {
-                    // SIEMPRE inicializa el nuevo signo activo, sin importar si ya fue detectado antes
                     holdStartTimes[newActiveSign] = Time.timeSinceLevelLoad;
                     wasDetected[newActiveSign] = true;
 
-                    // Emite evento de reconocimiento instantáneo
+                    // Emite evento de reconocimiento instantáneo (tile amarillo)
                     onGestureRecognized?.Invoke(newActiveSign);
 
                     if (showDebugLogs)
                         Debug.Log($"MultiGestureRecognizer: Gesto '{newActiveSign.signName}' detectado.");
                 }
 
-                // Actualiza el signo activo (ahora es una propiedad pública)
                 CurrentActiveSign = newActiveSign;
+            }
+            else
+            {
+                // Mismo signo detectado consecutivamente - resetear contador de misses
+                if (newActiveSign != null)
+                    consecutiveMisses = 0;
             }
 
             // Si hay un signo activo, verifica si cumplió el hold time
             if (CurrentActiveSign != null && wasDetected[CurrentActiveSign])
             {
-                // Solo dispara el evento de confirmación si NO se disparó antes
                 if (!performedTriggered.ContainsKey(CurrentActiveSign) || !performedTriggered[CurrentActiveSign])
                 {
                     float requiredHoldTime = CurrentActiveSign.minimumHoldTime > 0
@@ -280,20 +309,31 @@ namespace ASL_LearnVR.Gestures
                         : minimumHoldTime;
                     float holdTimer = Time.timeSinceLevelLoad - holdStartTimes[CurrentActiveSign];
 
-                    // COORDINACIÓN CON GESTOS DINÁMICOS:
-                    // Solo en Scene 3 (aprendizaje individual): si hay pending dinámico, esperar resolución
-                    // En Scene 4 (autoevaluación): NO bloquear, estáticos y dinámicos son independientes
                     var gm = ASL_LearnVR.Core.GameManager.Instance;
                     bool isScene4 = (gm == null || gm.CurrentSign == null);
+
+                    // COORDINACIÓN CON GESTOS DINÁMICOS (Scene 3):
                     bool shouldWaitForDynamicResolution = !isScene4 && !CurrentActiveSign.requiresMovement && isDynamicGesturePending;
 
                     if (holdTimer >= requiredHoldTime && !shouldWaitForDynamicResolution)
                     {
-                        performedTriggered[CurrentActiveSign] = true;
-                        onGestureDetected?.Invoke(CurrentActiveSign);
+                        // SCENE 4: Gestos DINÁMICOS NO se confirman aquí.
+                        // Deben completar el movimiento vía DynamicGestureRecognizer.
+                        // Solo gestos ESTÁTICOS se confirman por hold time.
+                        if (isScene4 && CurrentActiveSign.requiresMovement)
+                        {
+                            if (showDebugLogs)
+                                Debug.Log($"MultiGestureRecognizer: '{CurrentActiveSign.signName}' requiere movimiento - esperando DynamicGestureRecognizer");
+                            // NO confirmar - el DynamicGesturePracticeManager lo hará cuando complete el movimiento
+                        }
+                        else
+                        {
+                            performedTriggered[CurrentActiveSign] = true;
+                            onGestureDetected?.Invoke(CurrentActiveSign);
 
-                        if (showDebugLogs)
-                            Debug.Log($"MultiGestureRecognizer: Gesto '{CurrentActiveSign.signName}' confirmado!");
+                            if (showDebugLogs)
+                                Debug.Log($"MultiGestureRecognizer: Gesto '{CurrentActiveSign.signName}' confirmado!");
+                        }
                     }
                     else if (shouldWaitForDynamicResolution && showDebugLogs)
                     {
