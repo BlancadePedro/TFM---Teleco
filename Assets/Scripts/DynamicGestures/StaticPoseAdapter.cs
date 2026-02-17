@@ -93,5 +93,14 @@ namespace ASL.DynamicGestures
             // El MultiGestureRecognizer internamente valida handIsTracked
             return multiGestureRecognizer != null && multiGestureRecognizer.CurrentActiveSign != null;
         }
+
+        /// <summary>
+        /// Obtiene el SignData actualmente detectado por el MultiGestureRecognizer.
+        /// Útil para validación directa de HandShape sin depender del nombre.
+        /// </summary>
+        public SignData GetCurrentSignData()
+        {
+            return multiGestureRecognizer != null ? multiGestureRecognizer.CurrentActiveSign : null;
+        }
     }
 }

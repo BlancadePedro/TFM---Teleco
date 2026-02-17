@@ -179,7 +179,7 @@ namespace ASL_LearnVR.Gestures
 
             // Obtiene el signo que el usuario está practicando actualmente
             SignData currentPracticingSign = null;
-            var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+            var gameManager = ASL_LearnVR.Core.GameManager.Instance;
             if (gameManager != null)
             {
                 currentPracticingSign = gameManager.CurrentSign;

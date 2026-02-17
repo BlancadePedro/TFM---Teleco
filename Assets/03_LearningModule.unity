@@ -409,7 +409,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Modo repetici'on
+  m_Text: Repetition Mode
 --- !u!222 &12448495
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2629,10 +2629,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Observa el signo y rep\xEDtelo con ayuda visual.\nSigue la referencia
-    de la mano gu\xEDa y reproduce el gesto tantas veces necesites.\n\nEste modo
-    tiene como objetivo ensenarte la forma, la orientaci\xF3n y la posici\xF3n de
-    la mano."
+  m_Text: "Watch the sign and repeat it with visual guidance.\nFollow the guide hand reference and reproduce the gesture as many times as you need.\n\nThis mode aims to teach you the hand shape, orientation, and position."
 --- !u!222 &712140289
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3201,7 +3198,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: INTRUCCIONES
+  m_Text: INSTRUCTIONS
 --- !u!222 &840846854
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3886,9 +3883,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Realiza el signo sin ayuda visual.\nRepite el gesto tu solo y deja que
-    el sistema eval'ue c'omo lo est'as haciendo.\n\nRecibir\xE1s feedback sobre tu
-    ejecuci\xF3n para comprobar si el signo es correcto o no."
+  m_Text: "Perform the sign without visual help.\nRepeat the gesture on your own and let the system evaluate how you are doing.\n\nYou will receive feedback on your execution to check whether the sign is correct."
 --- !u!222 &1043666663
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4220,7 +4215,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: QUE HAY QUE HACER?
+  m_Text: WHAT DO I NEED TO DO?
 --- !u!222 &1113627545
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4469,7 +4464,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Modo pr'actica
+  m_Text: Practice Mode
 --- !u!222 &1188602946
 CanvasRenderer:
   m_ObjectHideFlags: 0

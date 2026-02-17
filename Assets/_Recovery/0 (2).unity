@@ -401,7 +401,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Repetir
+  m_Text: Repeat
 --- !u!222 &12448495
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2481,7 +2481,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Repetir
+  m_Text: Repeat
 --- !u!222 &712140289
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2656,7 +2656,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: INTRUCCIONES
+  m_Text: INSTRUCTIONS
 --- !u!222 &840846854
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3188,7 +3188,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: QUE HAY QUE HACER?
+  m_Text: WHAT DO I NEED TO DO?
 --- !u!222 &1113627545
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3396,7 +3396,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Practicar
+  m_Text: Practice
 --- !u!222 &1188602946
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5205,7 +5205,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Texto SLT
+  m_Text: SLT Text
 --- !u!222 &2011048361
 CanvasRenderer:
   m_ObjectHideFlags: 0

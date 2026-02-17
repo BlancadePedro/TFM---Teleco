@@ -117,8 +117,11 @@ namespace ASL.DynamicGestures
 
         // Estado de confirmación pendiente
         private List<DynamicGestureDefinition> pendingGestures = new List<DynamicGestureDefinition>();
+        // Gestos alternativos cuando la desambiguación no pudo resolver (gestos compuestos con mismo Start pose)
+        private List<DynamicGestureDefinition> alternativeGestures = new List<DynamicGestureDefinition>();
         private float pendingStartTime = 0f;
-        private const float PENDING_CONFIRMATION_TIMEOUT = 0.4f; // 0.4s (antes 0.25s) - más tiempo para iniciar movimiento
+        private const float PENDING_CONFIRMATION_TIMEOUT = 0.4f; // 0.4s para Scene 3 (1 gesto específico)
+        private const float PENDING_CONFIRMATION_TIMEOUT_SCENE4 = 1.2f; // 1.2s para Scene 4 (desambiguación entre múltiples gestos)
 
         // Tracking de mano
         private Vector3 smoothedHandPosition = Vector3.zero;
@@ -365,7 +368,7 @@ namespace ASL.DynamicGestures
 
             // FILTRO CRÍTICO: Solo aplicar en modo aprendizaje (Scene 3)
             // En modo autoevaluación (Scene 4), CurrentSign puede ser null o estático, así que permitimos todo
-            var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+            var gameManager = ASL_LearnVR.Core.GameManager.Instance;
             if (gameManager != null && gameManager.CurrentSign != null)
             {
                 // Si el signo actual NO requiere movimiento, NO iniciar gestos dinámicos
@@ -386,21 +389,29 @@ namespace ASL.DynamicGestures
 
             string currentPose = poseAdapter.GetCurrentPoseName();
 
-            if (string.IsNullOrEmpty(currentPose))
+            // MODO ESPECIAL SCENE 4: Si CurrentSign es NULL (autoevaluación),
+            // considerar TODOS los gestos como candidatos para desambiguación por movimiento
+            bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
+
+            // En Scene 3, necesitamos una pose detectada para continuar.
+            // En Scene 4, permitimos continuar incluso sin pose detectada por nombre,
+            // porque CanStartWithPoseData puede validar directamente el HandShape del gesto compuesto
+            // (ej: Bye empieza con "5" que puede no estar en MultiGestureRecognizer).
+            if (string.IsNullOrEmpty(currentPose) && !isScene4Mode)
+                return;
+
+            // En Scene 4 sin pose y sin joints válidos, no hay nada que hacer
+            if (string.IsNullOrEmpty(currentPose) && !hasValidJointsEventArgs)
                 return;
 
             // DEBUG: Log de pose detectada
             if (debugMode && Time.frameCount % 60 == 0)
             {
-                Debug.Log($"[DynamicGesture] CheckForGestureStart: Pose actual = '{currentPose}', Gestos definidos = {gestureDefinitions.Count}");
+                Debug.Log($"[DynamicGesture] CheckForGestureStart: Pose actual = '{currentPose ?? "NULL (poseData mode)"}', Gestos definidos = {gestureDefinitions.Count}");
             }
 
             // Buscar TODOS los gestos que puedan iniciarse con esta pose
             pendingGestures.Clear();
-
-            // MODO ESPECIAL SCENE 4: Si CurrentSign es NULL (autoevaluación),
-            // considerar TODOS los gestos como candidatos para desambiguación por movimiento
-            bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
             List<DynamicGestureDefinition> candidateGestures;
             if (!isScene4Mode)
@@ -580,16 +591,62 @@ namespace ASL.DynamicGestures
         {
             float elapsed = Time.time - pendingStartTime;
 
-            // Timeout: si no hay movimiento significativo, asumir que es un gesto estático
-            if (elapsed >= PENDING_CONFIRMATION_TIMEOUT)
+            // Usar timeout más largo en Scene 4 para dar tiempo a desambiguar
+            var gm = ASL_LearnVR.Core.GameManager.Instance;
+            bool isScene4 = (gm == null || gm.CurrentSign == null);
+            float timeout = isScene4 ? PENDING_CONFIRMATION_TIMEOUT_SCENE4 : PENDING_CONFIRMATION_TIMEOUT;
+
+            // Timeout: si no se pudo desambiguar a tiempo
+            if (elapsed >= timeout)
             {
-                // No se detectó movimiento suficiente, podría ser un gesto estático
-                // En este caso, NO marcamos como completado aquí, dejamos que MultiGestureRecognizer lo maneje
-                if (debugMode)
+                // Verificar si algún candidato tiene End poses (gesto compuesto).
+                // Para gestos compuestos (Bye:5→S, White:5→White, Sleep:5→White, Thursday:T→H),
+                // la desambiguación por movimiento no funciona porque comparten el mismo perfil.
+                // En este caso, iniciar el primer candidato y guardar los demás como alternativas.
+                // La End pose determinará cuál es el gesto correcto.
+                bool hasCompoundCandidate = false;
+                DynamicGestureDefinition compoundCandidate = null;
+                foreach (var gesture in pendingGestures)
                 {
-                    Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
+                    var endPoses = gesture.GetPosesForTiming(PoseTimingRequirement.End);
+                    foreach (var ep in endPoses)
+                    {
+                        if (!ep.isOptional)
+                        {
+                            hasCompoundCandidate = true;
+                            if (compoundCandidate == null)
+                                compoundCandidate = gesture;
+                            break;
+                        }
+                    }
                 }
-                ResetState();
+
+                if (hasCompoundCandidate && compoundCandidate != null)
+                {
+                    // Guardar alternativas (los demás candidatos con End poses)
+                    alternativeGestures.Clear();
+                    foreach (var gesture in pendingGestures)
+                    {
+                        if (gesture != compoundCandidate)
+                            alternativeGestures.Add(gesture);
+                    }
+
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Iniciando gesto compuesto '{compoundCandidate.gestureName}' con {alternativeGestures.Count} alternativas. " +
+                                  $"La End pose determinará el gesto correcto.");
+                    }
+                    StartGesture(compoundCandidate);
+                }
+                else
+                {
+                    // No hay gestos compuestos, asumir gesto estático
+                    if (debugMode)
+                    {
+                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
+                    }
+                    ResetState();
+                }
                 return;
             }
 
@@ -598,27 +655,49 @@ namespace ASL.DynamicGestures
             {
                 string currentPose = poseAdapter.GetCurrentPoseName();
 
-                // Si perdimos completamente la pose, resetear
+                // Validar que la pose sigue siendo válida
+                var gameManager = ASL_LearnVR.Core.GameManager.Instance;
+                bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
+
+                // Si perdimos completamente la pose por nombre
                 if (string.IsNullOrEmpty(currentPose))
                 {
-                    if (debugMode)
+                    // En Scene 4: antes de resetear, verificar si la pose sigue válida vía poseData
+                    if (isScene4Mode && hasValidJointsEventArgs)
                     {
-                        Debug.Log($"[DynamicGesture] PENDING: Pose completamente perdida, reseteando");
+                        bool anyPoseDataValid = false;
+                        foreach (var gesture in pendingGestures)
+                        {
+                            if (CanStartWithPoseData(gesture))
+                            {
+                                anyPoseDataValid = true;
+                                break;
+                            }
+                        }
+                        if (!anyPoseDataValid)
+                        {
+                            if (debugMode)
+                                Debug.Log($"[DynamicGesture] PENDING: Pose perdida (poseData también inválido), reseteando");
+                            ResetState();
+                            return;
+                        }
+                        // Pose sigue válida vía poseData, continuar
                     }
-                    ResetState();
-                    return;
+                    else
+                    {
+                        if (debugMode)
+                            Debug.Log($"[DynamicGesture] PENDING: Pose completamente perdida, reseteando");
+                        ResetState();
+                        return;
+                    }
                 }
-
-                // Validar que la pose sigue siendo válida
-                var gameManager = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
-                bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
                 bool poseStillValid = false;
 
                 foreach (var gesture in pendingGestures)
                 {
                     // Verificar por nombre de pose
-                    if (gesture.CanStartWithPose(currentPose))
+                    if (!string.IsNullOrEmpty(currentPose) && gesture.CanStartWithPose(currentPose))
                     {
                         poseStillValid = true;
                         break;
@@ -632,7 +711,7 @@ namespace ASL.DynamicGestures
                     }
                 }
 
-                if (!poseStillValid)
+                if (!poseStillValid && !string.IsNullOrEmpty(currentPose))
                 {
                     if (debugMode)
                     {
@@ -663,8 +742,36 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // No se pudo desambiguar aún, seguir esperando
-                    if (debugMode && Time.frameCount % 30 == 0)
+                    // No se pudo desambiguar por movimiento.
+                    // Para gestos compuestos con mismo Start pose (Bye/White/Sleep todos empiezan con "5"),
+                    // no esperar al timeout: iniciar inmediatamente y dejar que la End pose determine el gesto.
+                    bool hasCompound = false;
+                    DynamicGestureDefinition firstCompound = null;
+                    foreach (var g in pendingGestures)
+                    {
+                        var eps = g.GetPosesForTiming(PoseTimingRequirement.End);
+                        foreach (var ep in eps)
+                        {
+                            if (!ep.isOptional) { hasCompound = true; if (firstCompound == null) firstCompound = g; break; }
+                        }
+                    }
+
+                    if (hasCompound && firstCompound != null)
+                    {
+                        alternativeGestures.Clear();
+                        foreach (var g in pendingGestures)
+                        {
+                            if (g != firstCompound)
+                                alternativeGestures.Add(g);
+                        }
+                        if (debugMode)
+                        {
+                            Debug.Log($"[DynamicGesture] PENDING: Desambiguación imposible, iniciando gesto compuesto '{firstCompound.gestureName}' " +
+                                      $"con {alternativeGestures.Count} alternativas. End pose determinará el gesto.");
+                        }
+                        StartGesture(firstCompound);
+                    }
+                    else if (debugMode && Time.frameCount % 30 == 0)
                     {
                         Debug.Log($"[DynamicGesture] PENDING: Esperando más datos de movimiento...");
                     }
@@ -702,10 +809,11 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            // PRIORIDAD 2: Detectar ROTACIÓN (J, I, etc.)
+            // PRIORIDAD 2: Detectar ROTACIÓN clara (Blue wrist twist, Purple shake, etc.)
+            // Umbral de 20° para evitar falsos positivos por movimiento natural de la mano
             foreach (var gesture in pendingGestures)
             {
-                if (gesture.requiresRotation && movementTracker.TotalRotation > 8f)
+                if (gesture.requiresRotation && movementTracker.TotalRotation > 20f)
                 {
                     if (debugMode)
                     {
@@ -715,13 +823,14 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            // PRIORIDAD 3: Detectar CAMBIOS DE DIRECCIÓN (Hello, Bye con waving)
+            // PRIORIDAD 3: Detectar CAMBIOS DE DIRECCIÓN con dirección específica
             foreach (var gesture in pendingGestures)
             {
                 if (gesture.requiresDirectionChange && movementTracker.DirectionChanges > 0)
                 {
-                    // Verificar que también coincida la dirección general
                     Vector3 currentDirection = movementTracker.AverageDirection;
+
+                    // Si el gesto tiene dirección específica, verificar que coincida
                     if (currentDirection.sqrMagnitude > 0.01f && gesture.primaryDirection.sqrMagnitude > 0.01f)
                     {
                         float angleDiff = Vector3.Angle(currentDirection, gesture.primaryDirection);
@@ -734,10 +843,21 @@ namespace ASL.DynamicGestures
                             return gesture;
                         }
                     }
+                    // Si el gesto NO tiene dirección específica (wrist twist puro),
+                    // seleccionar si hay dirección changes + rotación (ej: Blue, Purple)
+                    else if (gesture.primaryDirection.sqrMagnitude < 0.01f && gesture.requiresRotation &&
+                             movementTracker.TotalRotation > 12f)
+                    {
+                        if (debugMode)
+                        {
+                            Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por cambios de dirección + rotación (twist)");
+                        }
+                        return gesture;
+                    }
                 }
             }
 
-            // PRIORIDAD 4: Analizar SOLO por dirección (Thank You, etc.)
+            // PRIORIDAD 4: Analizar por dirección principal (Brown down, ThankYou forward, etc.)
             Vector3 currentDir = movementTracker.AverageDirection;
 
             if (currentDir.sqrMagnitude < 0.01f)
@@ -861,8 +981,14 @@ namespace ASL.DynamicGestures
             {
                 if (!ValidateDirectionChanges())
                 {
-                    // No fallar inmediatamente, esperar hasta cerca del final
-                    if (elapsed > activeGesture.minDuration * 0.9f)
+                    // No fallar inmediatamente - dar tiempo suficiente para que el usuario
+                    // complete el movimiento de ida y vuelta (ej: Drink va hacia la boca y vuelve).
+                    // Usar el mayor entre minDuration*2 y 1.0s como umbral mínimo.
+                    float dirChangeDeadline = Mathf.Max(activeGesture.minDuration * 2f, 1.0f);
+                    // No exceder el 80% de maxDuration
+                    dirChangeDeadline = Mathf.Min(dirChangeDeadline, activeGesture.maxDuration * 0.8f);
+
+                    if (elapsed > dirChangeDeadline)
                     {
                         FailGesture($"Cambios de dirección insuficientes ({movementTracker.DirectionChanges}/{activeGesture.requiredDirectionChanges})");
                         return;
@@ -889,7 +1015,9 @@ namespace ASL.DynamicGestures
             {
                 if (!ValidateCircularity())
                 {
-                    if (elapsed > activeGesture.minDuration * 0.9f)
+                    float circDeadline = Mathf.Max(activeGesture.minDuration * 2f, 1.0f);
+                    circDeadline = Mathf.Min(circDeadline, activeGesture.maxDuration * 0.8f);
+                    if (elapsed > circDeadline)
                     {
                         FailGesture($"Movimiento no circular (score: {movementTracker.GetCircularityScore():F2})");
                         return;
@@ -928,8 +1056,9 @@ namespace ASL.DynamicGestures
             // Verificar completado
             if (elapsed >= activeGesture.minDuration)
             {
-                // Validaciones finales más estrictas
+                // Validaciones finales
                 bool finalValidation = true;
+                bool endPosePending = false;
 
                 // Distancia mínima
                 if (activeGesture.requiresMovement && movementTracker.TotalDistance < activeGesture.minDistance)
@@ -942,10 +1071,94 @@ namespace ASL.DynamicGestures
                     }
                 }
 
-                // Poses finales
-                if (!ValidatePoses(PoseTimingRequirement.End))
+                // Cambios de dirección requeridos
+                if (activeGesture.requiresDirectionChange && !ValidateDirectionChanges())
                 {
                     finalValidation = false;
+                    if (debugMode)
+                    {
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Cambios de dirección insuficientes al completar. " +
+                                         $"Actual: {movementTracker.DirectionChanges}, Requeridos: {activeGesture.requiredDirectionChanges}");
+                    }
+                }
+
+                // Rotación requerida
+                if (activeGesture.requiresRotation && !ValidateRotation())
+                {
+                    finalValidation = false;
+                    if (debugMode)
+                    {
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Rotación insuficiente al completar. " +
+                                         $"Actual: {movementTracker.TotalRotation:F1}°, Mínima: {activeGesture.minRotationAngle:F1}°");
+                    }
+                }
+
+                // Circularidad requerida
+                if (activeGesture.requiresCircularMotion && !ValidateCircularity())
+                {
+                    finalValidation = false;
+                    if (debugMode)
+                    {
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Circularidad insuficiente al completar. " +
+                                         $"Score: {movementTracker.GetCircularityScore():F2}, Mínimo: {activeGesture.minCircularityScore:F2}");
+                    }
+                }
+
+                // Poses finales: verificar End pose del gesto activo Y de alternativas
+                bool endPoseMatched = ValidatePoses(PoseTimingRequirement.End);
+
+                if (!endPoseMatched && alternativeGestures.Count > 0)
+                {
+                    // El End pose no coincide con el gesto activo.
+                    // Verificar si coincide con algún gesto alternativo (misma Start pose, diferente End pose).
+                    // Ej: Activo=Bye(5→S), pero el usuario hizo White(5→White).
+                    foreach (var alt in alternativeGestures)
+                    {
+                        var altEndPoses = alt.GetPosesForTiming(PoseTimingRequirement.End);
+                        bool altMatches = true;
+                        foreach (var ep in altEndPoses)
+                        {
+                            if (ep.isOptional) continue;
+                            bool epMatch = false;
+                            if (ep.poseData != null)
+                            {
+                                epMatch = ValidatePoseDirectly(ep.poseData);
+                            }
+                            else
+                            {
+                                string currentPose = poseAdapter != null ? poseAdapter.GetCurrentPoseName() : null;
+                                epMatch = !string.IsNullOrEmpty(currentPose) && ep.IsValidPose(currentPose);
+                            }
+                            if (!epMatch) { altMatches = false; break; }
+                        }
+
+                        if (altMatches && altEndPoses.Count > 0)
+                        {
+                            if (debugMode)
+                            {
+                                Debug.Log($"[DynamicGesture] End pose coincide con alternativa '{alt.gestureName}' en lugar de '{activeGesture.gestureName}'. Cambiando gesto activo.");
+                            }
+                            activeGesture = alt;
+                            endPoseMatched = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!endPoseMatched)
+                {
+                    finalValidation = false;
+                    // Verificar si el gesto tiene End poses requeridas (gestos compuestos)
+                    var endPoses = activeGesture.GetPosesForTiming(PoseTimingRequirement.End);
+                    bool hasRequiredEndPoses = false;
+                    foreach (var ep in endPoses)
+                    {
+                        if (!ep.isOptional) { hasRequiredEndPoses = true; break; }
+                    }
+                    if (hasRequiredEndPoses)
+                    {
+                        endPosePending = true;
+                    }
                 }
 
                 if (finalValidation)
@@ -954,7 +1167,21 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    FailGesture("Requisitos finales no cumplidos");
+                    // Requisitos NO cumplidos aún: NO fallar inmediatamente.
+                    // Seguir esperando - el siguiente frame volverá a evaluar.
+                    // Los fallos se manejan por:
+                    //   - maxDuration timeout (línea ~913)
+                    //   - Direction change deadline (línea ~963)
+                    //   - Circularity deadline (línea ~995)
+                    // Esto permite que:
+                    //   - Gestos compuestos (Bye, White) esperen la End pose
+                    //   - Gestos con directionChange (Drink, Red) esperen el cambio de dirección
+                    //   - Gestos con rotación (Blue, Purple) esperen la rotación
+                    if (debugMode && Time.frameCount % 30 == 0)
+                    {
+                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Esperando requisitos... " +
+                                  $"Elapsed={elapsed:F2}s, MaxDuration={activeGesture.maxDuration:F1}s");
+                    }
                 }
             }
         }
@@ -998,7 +1225,7 @@ namespace ASL.DynamicGestures
                     // Fallback: si no hay poseData pero el CurrentSign coincide por nombre,
                     // validar directamente usando ese SignData para evitar ambigüedades (ej: Gray).
                     SignData fallbackSignData = null;
-                    var gm = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
+                    var gm = ASL_LearnVR.Core.GameManager.Instance;
                     if (gm != null && gm.CurrentSign != null &&
                         gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
                     {
@@ -1044,9 +1271,11 @@ namespace ASL.DynamicGestures
             if (startPoses.Count == 0)
                 return false;
 
+            var gm = ASL_LearnVR.Core.GameManager.Instance;
+
             foreach (var poseReq in startPoses)
             {
-                // Si tiene poseData, validar directamente con HandShape
+                // PRIORIDAD 1: Si tiene poseData, validar directamente con HandShape
                 if (poseReq.poseData != null)
                 {
                     bool matches = ValidatePoseDirectly(poseReq.poseData);
@@ -1058,39 +1287,55 @@ namespace ASL.DynamicGestures
                     if (matches)
                         return true;
                 }
-                else
+
+                // PRIORIDAD 2 (Scene 3): Intentar con GameManager.CurrentSign
+                if (gm != null && gm.CurrentSign != null &&
+                    gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // Fallback 1: Intentar con GameManager.CurrentSign (Scene 3)
-                    var gm = FindObjectOfType<ASL_LearnVR.Core.GameManager>();
-                    if (gm != null && gm.CurrentSign != null &&
-                        gm.CurrentSign.signName.Equals(poseReq.poseName, System.StringComparison.OrdinalIgnoreCase))
+                    bool matches = ValidatePoseDirectly(gm.CurrentSign);
+                    if (debugMode)
                     {
-                        bool matches = ValidatePoseDirectly(gm.CurrentSign);
+                        Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback CurrentSign '{gm.CurrentSign.signName}' = {matches}");
+                    }
+
+                    if (matches)
+                        return true;
+                }
+
+                // PRIORIDAD 3 (Scene 4): Buscar el SignData por nombre en la categoría actual
+                if (gm != null && gm.CurrentCategory != null && gm.CurrentSign == null)
+                {
+                    // 3a: Buscar por poseName del gesture definition
+                    var signByName = gm.CurrentCategory.GetSignByName(poseReq.poseName);
+                    if (signByName != null)
+                    {
+                        bool matches = ValidatePoseDirectly(signByName);
                         if (debugMode)
                         {
-                            Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback CurrentSign '{gm.CurrentSign.signName}' = {matches}");
+                            Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback categoría '{poseReq.poseName}' = {matches}");
                         }
 
                         if (matches)
                             return true;
                     }
 
-                    // Fallback 2 (Scene 4): Buscar el SignData por nombre en la categoría actual
-                    if (gm != null && gm.CurrentCategory != null && gm.CurrentSign == null)
+                    // 3b: Buscar por gestureName (ej: Brown_Gesture.gestureName="Brown" → buscar Sign_Brown)
+                    if (signByName == null || poseReq.poseName != gesture.gestureName)
                     {
-                        var signByName = gm.CurrentCategory.GetSignByName(poseReq.poseName);
-                        if (signByName != null)
+                        var signByGestureName = gm.CurrentCategory.GetSignByName(gesture.gestureName);
+                        if (signByGestureName != null)
                         {
-                            bool matches = ValidatePoseDirectly(signByName);
+                            bool matches = ValidatePoseDirectly(signByGestureName);
                             if (debugMode)
                             {
-                                Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback categoría '{poseReq.poseName}' = {matches}");
+                                Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback gestureName '{gesture.gestureName}' = {matches}");
                             }
 
                             if (matches)
                                 return true;
                         }
                     }
+
                 }
             }
 
@@ -1417,6 +1662,7 @@ namespace ASL.DynamicGestures
             gestureStartTime = 0f;
             initialDirectionValidated = false;
             pendingGestures.Clear();
+            alternativeGestures.Clear();
 
             // Notificar que salimos de pending si estábamos en ese estado
             if (wasPending)

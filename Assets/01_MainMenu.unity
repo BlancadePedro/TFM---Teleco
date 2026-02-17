@@ -624,7 +624,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Bienvenido a LearnASL VR
+  m_Text: Welcome to LearnASL VR
 --- !u!222 &104865142
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1702,9 +1702,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u2022 Reconoce signos en tiempo real\r\n\u2022 Convierte gestos en texto\r\n\u2022
-    Pensado para comunicaci\xF3n directa\r\n\nTraduce tus signos a texto en tiempo
-    real.\r\nPractica conversaciones completas con reconocimiento autom\xE1tico."
+  m_Text: "• Recognizes signs in real time\n• Converts gestures to text\n• Designed for direct communication\n\nTranslate your signs to text in real time.\nPractice full conversations with automatic recognition."
 --- !u!222 &694867256
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2065,9 +2063,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Aprende y practica Lengua de Signos Americana en realidad virtual\nElige
-    c\xF3mo quieres interactuar con plaforma: aprendizaje guiado o traducci\xF3n
-    de signos en tiempo real."
+  m_Text: "Learn and practice American Sign Language in virtual reality.\nChoose how you want to interact with the platform: guided learning or real-time sign translation."
 --- !u!222 &818094060
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2489,11 +2485,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Est\xE1s en un entorno de realidad virtual dise\xF1ado para aprender Lengua
-    de Signos Americana.    \n\nInteracci\xF3n:\r\n  \u2022 Mueve tus manos naturalmente\r\n 
-    \u2022 Apunta y selecciona con el dedo \xEDndice\n  \u2022 Los paneles responden
-    a tus gestos\n\nSelecciona \"Modo Aprendizaje\" para comenzar tu primera lecci\xF3n
-    de signos.   "
+  m_Text: "You are in a virtual reality environment designed to learn American Sign Language.\n\nInteraction:\n  • Move your hands naturally\n  • Point and select with your index finger\n  • Panels respond to your gestures\n\nSelect \"Learning Mode\" to start your first sign lesson."
 --- !u!222 &1224653242
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3287,7 +3279,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: INTRUCCIONES
+  m_Text: INSTRUCTIONS
 --- !u!222 &1689279245
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3924,7 +3916,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Modo Aprendizaje
+  m_Text: Learning Mode
 --- !u!222 &2030532717
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4359,10 +4351,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u2022 Aprende ASL paso a paso\n\u2022 Practica letras, n\xFAmeros y signos\r\n\u2022
-    Recibe feedback visual inmediato \r\n\nAprende y practica signos ASL a tu propio
-    ritmo. \nProgresa desde el alfabeto b\xE1sico hasta vocabulario avanzado con
-    retroalimentaci\xF3n en tiempo real."
+  m_Text: "• Learn ASL step by step\n• Practice letters, numbers, and signs\n• Get immediate visual feedback\n\nLearn and practice ASL signs at your own pace.\nAdvance from the basic alphabet to advanced vocabulary with real-time feedback."
 --- !u!222 &2099152301
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4441,7 +4430,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Modo Traducci\xF3n"
+  m_Text: "Translation Mode"
 --- !u!222 &2133604265
 CanvasRenderer:
   m_ObjectHideFlags: 0

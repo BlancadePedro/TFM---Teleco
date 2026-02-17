@@ -1169,7 +1169,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Selecciona tu Nivel de Aprendizaje
+  m_Text: Select Your Learning Level
 --- !u!222 &420823787
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2995,8 +2995,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Elige el nivel que mejor se adapte a tu experiencia con la Lengua de Signos
-    Americana
+  m_Text: Choose the level that best matches your experience with American Sign Language
 --- !u!222 &1266210420
 CanvasRenderer:
   m_ObjectHideFlags: 0
