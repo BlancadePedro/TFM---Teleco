@@ -112,8 +112,8 @@ namespace ASL_LearnVR.Feedback
         // Dynamic gesture hints (J, Z, etc.)
         private readonly Dictionary<string, string> dynamicHints = new()
         {
-            { "J", "Draw a J with your index finger: move outward and finish down" },
-            { "Z", "Draw a Z with your index finger: three quick strokes" }
+            { "J", "Dibuja una J con el menique: mueve hacia abajo y curva a la izquierda" },
+            { "Z", "Dibuja una Z con el indice: derecha, diagonal abajo, y derecha" }
         };
 
         private readonly Dictionary<string, DynamicGestureDefinition> gestureDefinitionCache = new();
@@ -927,15 +927,50 @@ namespace ASL_LearnVR.Feedback
                 return;
 
             bool hasMajor = HasMajorSeverity(fingers, states);
-            string message = $"{prefix}: {BuildFingerList(fingers)}";
 
-            list.Add(new MessageCandidate
+            // Check if any finger has a specific custom message from the constraint profile.
+            // If so, use those messages directly instead of the generic "Action: finger" format.
+            var fingersWithCustom = new List<Finger>();
+            var fingersWithoutCustom = new List<Finger>();
+
+            foreach (var finger in fingers)
             {
-                text = message,
-                severityWeight = hasMajor ? 3 : 2,
-                affectedCount = fingers.Count,
-                order = order
-            });
+                int idx = (int)finger;
+                if (idx >= 0 && idx < states.Length && !string.IsNullOrEmpty(states[idx].message))
+                {
+                    fingersWithCustom.Add(finger);
+                }
+                else
+                {
+                    fingersWithoutCustom.Add(finger);
+                }
+            }
+
+            // Add custom messages as individual candidates (higher priority)
+            foreach (var finger in fingersWithCustom)
+            {
+                int idx = (int)finger;
+                list.Add(new MessageCandidate
+                {
+                    text = states[idx].message,
+                    severityWeight = states[idx].severity == Severity.Major ? 3 : 2,
+                    affectedCount = 1,
+                    order = order
+                });
+            }
+
+            // Add remaining fingers without custom messages using generic format
+            if (fingersWithoutCustom.Count > 0)
+            {
+                string message = $"{prefix}: {BuildFingerList(fingersWithoutCustom)}";
+                list.Add(new MessageCandidate
+                {
+                    text = message,
+                    severityWeight = hasMajor ? 3 : 2,
+                    affectedCount = fingersWithoutCustom.Count,
+                    order = order
+                });
+            }
         }
 
         private bool HasMajorSeverity(List<Finger> fingers, FingerStateSnapshot[] states)
@@ -1318,8 +1353,14 @@ namespace ASL_LearnVR.Feedback
             feedbackAudio?.PlayError();
 
             // Mensaje de fallo que explica el por qué e invita a reintentar
+            // Try to get expected direction from gesture definition for specific feedback
+            Vector3 expectedDir = Vector3.zero;
+            var gestureDef = GetActiveGestureDefinition(result.gestureName);
+            if (gestureDef != null)
+                expectedDir = gestureDef.primaryDirection;
+
             string message = dynamicFeedbackAnalyzer?.CurrentMessage ??
-                FeedbackMessages.GetFailedMessage(result.failureReason, result.failedPhase, result.metrics, result.gestureName);
+                FeedbackMessages.GetFailedMessage(result.failureReason, result.failedPhase, result.metrics, result.gestureName, expectedDir);
 
             UpdateFeedbackMessage(message);
 

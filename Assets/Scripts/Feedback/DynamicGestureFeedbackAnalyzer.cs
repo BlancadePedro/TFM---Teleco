@@ -149,6 +149,9 @@ namespace ASL_LearnVR.Feedback
 
             currentIssue = issue;
 
+            // Get expected direction from gesture definition for specific feedback
+            Vector3 expectedDirection = gestureDefinition != null ? gestureDefinition.primaryDirection : Vector3.zero;
+
             // Generar mensaje basado en fase y problema
             string message;
             if (targetPhase == DynamicFeedbackPhase.NearCompletion)
@@ -157,7 +160,7 @@ namespace ASL_LearnVR.Feedback
             }
             else
             {
-                message = FeedbackMessages.GetInProgressMessage(issue, metrics, gestureName);
+                message = FeedbackMessages.GetInProgressMessage(issue, metrics, gestureName, expectedDirection);
             }
 
             // Evitar spam de mensajes repetidos

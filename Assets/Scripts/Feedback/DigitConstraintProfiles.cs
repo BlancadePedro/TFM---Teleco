@@ -131,8 +131,10 @@ namespace ASL_LearnVR.Feedback
 
             profile.thumb = new ThumbConstraint
             {
-                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = 0.45f, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooCurled = "Extiende el pulgar"
+                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = 0.35f, isEnabled = true, severityIfOutOfRange = Severity.Major },
+                customMessageTooCurled = "Estira el pulgar completamente (debe estar extendido)",
+                customMessageNeedsExtend = "Estira el pulgar completamente (debe estar extendido)",
+                customMessageGeneric = "Estira el pulgar completamente (debe estar extendido)"
             };
 
             profile.index = new FingerConstraint
@@ -225,8 +227,10 @@ namespace ASL_LearnVR.Feedback
 
             profile.thumb = new ThumbConstraint
             {
-                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = 0.45f, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooCurled = "Extiende el pulgar"
+                curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = 0.35f, isEnabled = true, severityIfOutOfRange = Severity.Major },
+                customMessageTooCurled = "Estira el pulgar completamente (debe estar extendido)",
+                customMessageNeedsExtend = "Estira el pulgar completamente (debe estar extendido)",
+                customMessageGeneric = "Estira el pulgar completamente (debe estar extendido)"
             };
 
             profile.index = new FingerConstraint

@@ -355,43 +355,45 @@ namespace ASL_LearnVR.Feedback
         {
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "G";
-            profile.description = "Thumb and index extended SIDEWAYS (horizontal).";
+            profile.description = "Thumb and index extended SIDEWAYS (horizontal), parallel to each other.";
             profile.checkOrientation = true;
             profile.expectedPalmDirection = Vector3.right; // sideways for right hand
-            profile.orientationHint = "Hold your hand sideways (horizontal).";
+            profile.orientationHint = "Gira la mano de lado (horizontal).";
 
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = PARTIAL_MIN, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your thumb pointing out (sideways)."
+                customMessageTooCurled = "Estira el pulgar apuntando hacia fuera, en paralelo al indice.",
+                customMessageGeneric = "El pulgar y el indice deben apuntar en paralelo (ambos horizontales)."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your index finger (sideways)."
+                customMessageTooCurled = "Estira el indice apuntando hacia fuera, en paralelo al pulgar.",
+                customMessageGeneric = "El indice y el pulgar deben apuntar en paralelo (ambos horizontales)."
             };
 
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooExtended = "Curl your middle finger."
+                customMessageTooExtended = "Cierra el dedo medio."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your ring finger."
+                customMessageTooExtended = "Cierra el anular."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your pinky."
+                customMessageTooExtended = "Cierra el menique."
             };
 
             return profile;
@@ -549,47 +551,49 @@ namespace ASL_LearnVR.Feedback
         {
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "K";
-            profile.description = "Index and middle extended, thumb touching middle";
+            profile.description = "Index and middle extended in V, thumb touching middle finger";
 
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 shouldTouchMiddle = true,
-                customMessageTooExtended = "Touch your thumb to your middle finger.",
-                customMessageTooCurled = "Touch your thumb to your middle finger.",
-                customMessageGeneric = "Touch your thumb to your middle finger."
+                customMessageTooExtended = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageTooCurled = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageNeedsCurve = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageNeedsExtend = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageGeneric = "Acerca el pulgar al dedo medio hasta tocarlo."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your index finger.",
+                customMessageTooCurled = "Estira el indice.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Separate the index and middle fingers to form a V."
+                customMessageGeneric = "Separa el indice del medio formando una V."
             };
 
+            // NOTE: No spread constraint on middle - only index measures the V gap.
+            // Spread on middle would measure middle-vs-ring, which is meaningless when ring is curled.
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your middle finger.",
-                spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Keep a gap between the index and middle fingers."
+                customMessageTooCurled = "Estira el dedo medio."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your ring finger."
+                customMessageTooExtended = "Cierra el anular."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your pinky."
+                customMessageTooExtended = "Cierra el menique."
             };
 
             return profile;
@@ -722,41 +726,41 @@ namespace ASL_LearnVR.Feedback
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 shouldTouchMiddle = true,
-                customMessageTooExtended = "Touch your thumb to your middle finger.",
-                customMessageTooCurled = "Touch your thumb to your middle finger.",
-                customMessageGeneric = "Touch your thumb to your middle finger."
+                customMessageTooExtended = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageTooCurled = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageNeedsCurve = "Acerca el pulgar al dedo medio hasta tocarlo.",
+                customMessageGeneric = "Acerca el pulgar al dedo medio hasta tocarlo."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your index finger.",
+                customMessageTooCurled = "Estira el indice.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Separate the index and middle fingers to form a V."
+                customMessageGeneric = "Separa el indice del medio formando una V."
             };
 
+            // NOTE: No spread constraint on middle - only index measures the V gap.
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your middle finger.",
-                spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Keep a gap between the index and middle fingers."
+                customMessageTooCurled = "Estira el dedo medio."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your ring finger."
+                customMessageTooExtended = "Cierra el anular."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Curl your pinky."
+                customMessageTooExtended = "Cierra el menique."
             };
 
             return profile;
@@ -1218,39 +1222,39 @@ namespace ASL_LearnVR.Feedback
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Tuck your thumb in."
+                customMessageTooExtended = "Recoge el pulgar contra la palma."
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your index finger for a V.",
+                customMessageTooCurled = "Estira el indice para formar la V.",
                 spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Separate index and middle to form a V."
+                customMessageGeneric = "Separa el indice del medio para formar una V clara."
             };
 
+            // NOTE: No spread constraint on middle - only index measures the V gap.
+            // Spread on middle would measure middle-vs-ring, which is meaningless when ring is curled.
             profile.middle = new FingerConstraint
             {
                 finger = Finger.Middle,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extend your middle finger for a V.",
-                spread = new SpreadConstraint { isEnabled = true, minSpreadAngle = 8f, maxSpreadAngle = 30f, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Keep a clear gap between index and middle (V)."
+                customMessageTooCurled = "Estira el medio para formar la V."
             };
 
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooExtended = "Curl your ring finger down."
+                customMessageTooExtended = "Cierra el anular."
             };
 
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooExtended = "Curl your pinky down."
+                customMessageTooExtended = "Cierra el menique."
             };
 
             return profile;
