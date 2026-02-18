@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e402cbc44049d414fad72afe16dfdf7c, type: 3}
+  m_Name: StudioEnvironmentConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.StudioEnvironmentConfig
+  floorCenterColor: {r: 0.165, g: 0.165, b: 0.165, a: 1}
+  floorEdgeColor: {r: 0.62, g: 0.62, b: 0.62, a: 1}
+  floorGradientRadius: 3
+  floorSmoothness: 0.1
+  floorSize: 6
+  wallBottomColor: {r: 0.62, g: 0.62, b: 0.62, a: 1}
+  wallTopColor: {r: 0.96, g: 0.96, b: 0.94, a: 1}
+  wallGradientHeight: 3
+  wallGroundLevel: 0
+  wallSmoothness: 0.3
+  wallRadius: 10
+  wallCenterY: 2
+  mainLightIntensity: 0.8
+  mainLightColor: {r: 1, g: 0.98, b: 0.95, a: 1}
+  mainLightAngle: {x: 50, y: -30}
+  fillLightIntensity: 0.3
+  fillLightColor: {r: 0.9, g: 0.95, b: 1, a: 1}
+  enableSoftShadows: 1
+  shadowStrength: 0.4
+  ambientColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+  ambientIntensity: 0.5
+  panelPrefab: {fileID: 0}
+  panelCount: 5
+  panelArcRadius: 2.5
+  panelArcAngle: 120
+  panelHeight: 1.6

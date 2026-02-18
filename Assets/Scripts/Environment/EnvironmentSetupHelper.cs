@@ -103,10 +103,14 @@ namespace ASL_LearnVR
 
         private void CreatePreviewFloor()
         {
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            // Cylinder aplanado = disco circular (no cuadrado)
+            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             floor.name = "Preview_Floor";
-            floor.transform.position = Vector3.zero;
-            floor.transform.localScale = new Vector3(config.floorSize / 10f, 1, config.floorSize / 10f);
+            floor.transform.position = new Vector3(0, -0.01f, 0);
+            floor.transform.localScale = new Vector3(config.floorSize, 0.01f, config.floorSize);
+
+            Collider floorCol = floor.GetComponent<Collider>();
+            if (floorCol != null) DestroyImmediate(floorCol);
 
             if (floorShader != null)
             {

@@ -33,6 +33,7 @@ EditorBuildSettings:
     path: Assets/Samples/XR Hands/1.7.2/Hand Capture/HandCapture.unity
     guid: 1ebe1fe45ff8e46c9ac6fdd6bfd9ec73
   m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: defb769b98a16264dac8ddb7de1bee2b, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 9297785919926f04c88ca199a6ae6673, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 6fb5853d8e6fb8c4f92d1805484d3f19, type: 2}

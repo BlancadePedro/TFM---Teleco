@@ -203,12 +203,19 @@ namespace ASL_LearnVR
 
         private void CreateFloor()
         {
-            floorObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            // Cylinder en vez de Plane para que el suelo sea CIRCULAR (no cuadrado)
+            // Un Cylinder con Y muy pequeno = disco circular perfecto
+            floorObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             floorObject.name = "StudioFloor_Auto";
-            floorObject.transform.position = Vector3.zero;
+            floorObject.transform.position = new Vector3(0, -0.01f, 0);
             floorObject.transform.localScale = new Vector3(
-                config.floorSize / 10f, 1, config.floorSize / 10f
+                config.floorSize, 0.01f, config.floorSize
             );
+
+            // Quitar collider del cilindro (no lo necesitamos para el suelo visual)
+            Collider col = floorObject.GetComponent<Collider>();
+            if (col != null)
+                Destroy(col);
 
             if (floorMaterial != null)
                 floorObject.GetComponent<Renderer>().material = floorMaterial;
