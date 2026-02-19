@@ -721,8 +721,8 @@ namespace ASL_LearnVR.Feedback
                 FailureReason.SpeedTooLow => $"Mueve mas rapido (velocidad: {metrics.averageSpeed:F2} m/s).",
                 FailureReason.SpeedTooHigh => "Mueve mas lento y con control.",
                 FailureReason.DistanceTooShort => $"Haz un movimiento mas amplio (distancia: {metrics.totalDistance:F2} m).",
-                FailureReason.DirectionChangesInsufficient => $"Anade mas cambios de direccion ({metrics.directionChanges} detectados).",
-                FailureReason.RotationInsufficient => $"Rota la muneca mas ({metrics.totalRotation:F0}° detectados).",
+                FailureReason.DirectionChangesInsufficient => $"Anade mas cambios de direccion ({metrics.directionChanges} detecteds).",
+                FailureReason.RotationInsufficient => $"Rota la muneca mas ({metrics.totalRotation:F0}° detecteds).",
                 FailureReason.NotCircular => "Haz el movimiento mas circular.",
                 FailureReason.Timeout => "Completa el gesto mas rapido.",
                 FailureReason.EndPoseMismatch => "Termina con la forma de mano correcta.",
@@ -844,7 +844,7 @@ namespace ASL_LearnVR.Feedback
                 DynamicMovementIssue.NotCircular => "Haz el movimiento mas circular.",
                 DynamicMovementIssue.NeedMoreDirectionChanges => "Mueve de lado a lado mas veces.",
                 DynamicMovementIssue.RotationInsufficient => "Rota la muneca mas.",
-                DynamicMovementIssue.StartPoseDegrading => "Mantén la forma de la mano.",
+                DynamicMovementIssue.StartPoseDegrading => "Manten la forma de la mano.",
                 _ => "Sigue asi."
             };
         }

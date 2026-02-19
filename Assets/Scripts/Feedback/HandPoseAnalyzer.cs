@@ -7,11 +7,11 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Analiza la pose actual de la mano comparándola con un FingerConstraintProfile.
+    /// Analyzes the current hand pose against a FingerConstraintProfile.
     /// Genera errores por dedo (perFingerErrors) y un mensaje resumen.
     ///
-    /// IMPORTANTE: Este analizador NO reemplaza la detección global (XRHandShape.CheckConditions).
-    /// Solo explica POR QUÉ un gesto no coincide, para feedback pedagógico.
+    /// IMPORTANT: This analyzer does NOT replace global detection (XRHandShape.CheckConditions).
+    /// It only explains WHY a gesture doesn't match, for pedagogical feedback.
     /// </summary>
     public class HandPoseAnalyzer : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Diccionario de perfiles de constraints por signo")]
         [SerializeField] private List<FingerConstraintProfile> constraintProfiles = new List<FingerConstraintProfile>();
 
-        [Tooltip("Componente XRHandTrackingEvents de la mano a analizar")]
+        [Tooltip("Component XRHandTrackingEvents de la mano a analizar")]
         [SerializeField] private XRHandTrackingEvents handTrackingEvents;
 
         [Tooltip("Handedness de la mano a analizar")]
@@ -31,10 +31,10 @@ namespace ASL_LearnVR.Feedback
         [SerializeField] private float curlTolerance = 0.1f;
 
         [Header("Auto-load Profiles")]
-        [Tooltip("Cargar automáticamente perfiles de dígitos (0-9) al iniciar")]
+        [Tooltip("Automatically load digit profiles (0-9) on start")]
         [SerializeField] private bool autoLoadDigitProfiles = true;
 
-        [Tooltip("Cargar automáticamente perfiles de letras del alfabeto (A-Z) al iniciar")]
+        [Tooltip("Automatically load alphabet letter profiles (A-Z) on start")]
         [SerializeField] private bool autoLoadAlphabetProfiles = true;
 
         [Header("Debug")]
@@ -52,7 +52,7 @@ namespace ASL_LearnVR.Feedback
         private bool hasValidHandData = false;
         private float[] lastValidCurlValues = new float[5];
 
-        // Referencia al XRHandSubsystem
+        // Reference al XRHandSubsystem
         private XRHandSubsystem handSubsystem;
 
         // Mappings de XRHandJointID a dedos
@@ -106,7 +106,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Carga todos los perfiles de dígitos (0-9) predefinidos.
+        /// Loads all predefined digit profiles (0-9).
         /// </summary>
         public void LoadDigitProfiles()
         {
@@ -118,7 +118,7 @@ namespace ASL_LearnVR.Feedback
 
             if (showDebugLogs)
             {
-                Debug.Log($"[HandPoseAnalyzer] Cargados {digitProfiles.Length} perfiles de dígitos");
+                Debug.Log($"[HandPoseAnalyzer] Loaded {digitProfiles.Length} digit profiles");
             }
         }
 
@@ -140,14 +140,14 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Registra un perfil de constraints. Se puede llamar desde código o configurar en Inspector.
+        /// Registers a constraint profile. Can be called from code or configured in Inspector.
         /// </summary>
         public void RegisterProfile(FingerConstraintProfile profile)
         {
             if (profile != null && !constraintProfiles.Contains(profile))
             {
                 constraintProfiles.Add(profile);
-                Debug.Log($"[HandPoseAnalyzer] Perfil registrado: {profile.signName}");
+                Debug.Log($"[HandPoseAnalyzer] Profile registrado: {profile.signName}");
             }
         }
 
@@ -169,26 +169,26 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Analiza la pose actual de la mano comparándola con el perfil del signo especificado.
+        /// Analyzes the current hand pose against the profile of the specified sign.
         /// </summary>
         /// <param name="signData">El SignData del gesto objetivo</param>
         /// <param name="useGlobalMatch">Si true, usa XRHandShape.CheckConditions para isMatchGlobal</param>
-        /// <returns>Resultado del análisis con errores por dedo</returns>
+        /// <returns>Analysis result with per-finger errors</returns>
         public StaticGestureResult Analyze(SignData signData, bool useGlobalMatch = true)
         {
-            // Llamar a la versión que acepta el estado de detección externo
-            // Si no se proporciona, se usará false (no detectado) para evitar falsos positivos
+            // Call the version that accepts external detection state
+            // If not provided, false (not detected) will be used to avoid false positives
             return Analyze(signData, isDetectedByRecognizer: false, useGlobalMatch);
         }
 
         /// <summary>
-        /// Analiza la pose actual de la mano comparándola con el perfil del signo especificado.
-        /// Esta versión acepta el estado de detección del GestureRecognizer para evitar falsos positivos.
+        /// Analyzes the current hand pose against the profile of the specified sign.
+        /// This version accepts the GestureRecognizer detection state to avoid false positives.
         /// </summary>
         /// <param name="signData">El SignData del gesto objetivo</param>
-        /// <param name="isDetectedByRecognizer">True si el GestureRecognizer está detectando activamente el signo</param>
+        /// <param name="isDetectedByRecognizer">True if the GestureRecognizer is actively detecting the sign</param>
         /// <param name="useGlobalMatch">Si true y isDetectedByRecognizer es false, analiza errores de dedos</param>
-        /// <returns>Resultado del análisis con errores por dedo</returns>
+        /// <returns>Analysis result with per-finger errors</returns>
         public StaticGestureResult Analyze(SignData signData, bool isDetectedByRecognizer, bool useGlobalMatch = true)
         {
             cachedResult = new StaticGestureResult();
@@ -212,14 +212,14 @@ namespace ASL_LearnVR.Feedback
                 return cachedResult;
             }
 
-            // El match global viene del GestureRecognizer, NO lo calculamos aquí
+            // The global match comes from the GestureRecognizer, we do NOT calculate it here
             // porque no podemos acceder correctamente a XRHandJointsUpdatedEventArgs
             cachedResult.isMatchGlobal = isDetectedByRecognizer;
 
-            // Si el recognizer dice que está detectado, es un éxito
+            // If the recognizer says it is detected, it's a success
             if (isDetectedByRecognizer)
             {
-                cachedResult.summaryMessage = $"¡Correcto! '{signData.signName}' detectado";
+                cachedResult.summaryMessage = $"Correct! '{signData.signName}' detected";
                 cachedResult.majorErrorCount = 0;
                 cachedResult.minorErrorCount = 0;
                 cachedResult.perFingerErrors = new System.Collections.Generic.List<FingerError>();
@@ -229,12 +229,12 @@ namespace ASL_LearnVR.Feedback
 
                 if (showDebugLogs)
                 {
-                    Debug.Log($"[HandPoseAnalyzer] '{signData.signName}' detectado por GestureRecognizer - ÉXITO");
+                    Debug.Log($"[HandPoseAnalyzer] '{signData.signName}' detected by GestureRecognizer - SUCCESS");
                 }
                 return cachedResult;
             }
 
-            // Si no hay perfil definido, mostrar mensaje genérico
+            // If no profile is defined, show a generic message
             if (profile == null)
             {
                 if (showDebugLogs)
@@ -244,7 +244,7 @@ namespace ASL_LearnVR.Feedback
                 return cachedResult;
             }
 
-            // Analizar cada dedo contra el perfil para mostrar errores específicos
+            // Analyze each finger against the profile to show specific errors
             AnalyzeAllFingers(profile);
 
             // Generar mensaje resumen
@@ -253,32 +253,32 @@ namespace ASL_LearnVR.Feedback
             cachedResult.minorErrorCount = CountErrors(Severity.Minor);
             cachedResult.UpdateMatchScore();
 
-            // Generar mensaje basado en errores encontrados
+            // Generar mensaje basado en errores founds
             if (cachedResult.majorErrorCount == 0 && cachedResult.minorErrorCount == 0)
             {
-                // Sin errores detectados por el perfil, pero el recognizer no lo detecta
-                // Esto puede pasar si el perfil no está bien configurado o la pose no está exacta
-                cachedResult.summaryMessage = "El gesto no se ha reconocido completamente, repítelo de nuevo";
+                // Sin errores detecteds por el perfil, pero el recognizer no lo detecta
+                // This can happen if the profile is not well configured or the pose is not exact
+                cachedResult.summaryMessage = "The gesture has not been fully recognized, please try again";
             }
             else
             {
-                // Generar mensaje con contexto del signo que se está practicando
+                // Generate message with context of the sign being practiced
                 string errorSummary = FeedbackMessages.GenerateSummary(cachedResult.perFingerErrors, 2);
                 cachedResult.summaryMessage = $"Para '{signData.signName}':\n{errorSummary}";
             }
 
             if (showDebugLogs)
             {
-                Debug.Log($"[HandPoseAnalyzer] Análisis de '{signData.signName}': " +
+                Debug.Log($"[HandPoseAnalyzer] Analysis of '{signData.signName}': " +
                          $"Detected={isDetectedByRecognizer}, Major={cachedResult.majorErrorCount}, Minor={cachedResult.minorErrorCount}");
             }
 
             return cachedResult;
         }
 
-        // NOTA: EvaluateGlobalMatch, CheckShapeConditionsManual y CheckPoseConditionsManual fueron eliminados
+        // NOTA: EvaluateGlobalMatch, CheckShapeConditionsManual y CheckPoseConditionsManual fueron removeds
         // porque no podemos evaluar XRHandShape.CheckConditions sin XRHandJointsUpdatedEventArgs.
-        // La detección global ahora viene directamente del GestureRecognizer a través del parámetro isDetectedByRecognizer.
+        // Global detection now comes directly from GestureRecognizer through the isDetectedByRecognizer parameter.
 
         /// <summary>
         /// Actualiza los valores de curl actuales de la mano.
@@ -323,7 +323,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Calcula el valor de curl (0-1) para un dedo específico.
+        /// Calculates the curl value (0-1) for a specific finger.
         /// 0 = completamente extendido, 1 = completamente cerrado.
         /// </summary>
         private float CalculateFingerCurl(XRHand hand, Finger finger)
@@ -341,11 +341,11 @@ namespace ASL_LearnVR.Feedback
                 !distalJoint.TryGetPose(out Pose distalPose) ||
                 !tipJoint.TryGetPose(out Pose tipPose))
             {
-                // Conservar el último valor válido para evitar saltos de feedback
+                // Preserve the last valid value to avoid feedback jumps
                 return lastValidCurlValues[fingerIndex] > 0f ? lastValidCurlValues[fingerIndex] : 0.5f;
             }
 
-            // Direcciones basadas en posiciones para evitar dependencia de la rotación del dispositivo
+            // Direction based on positions to avoid dependency on device rotation
             Vector3 dirProxToInter = (intermediatePose.position - proximalPose.position).normalized;
             Vector3 dirInterToDistal = (distalPose.position - intermediatePose.position).normalized;
             Vector3 dirDistalToTip = (tipPose.position - distalPose.position).normalized;
@@ -353,11 +353,11 @@ namespace ASL_LearnVR.Feedback
             if (dirProxToInter.sqrMagnitude < 0.0001f || dirInterToDistal.sqrMagnitude < 0.0001f)
                 return lastValidCurlValues[fingerIndex];
 
-            // Calcular curl basado en ángulos entre segmentos consecutivos
+            // Calculate curl based on angles between consecutive segments
             float angle1 = Vector3.Angle(-dirProxToInter, dirInterToDistal);
             float angle2 = Vector3.Angle(-dirInterToDistal, dirDistalToTip);
 
-            // Para el pulgar, el cálculo es diferente
+            // For the thumb, the calculation is different
             if (finger == Finger.Thumb)
             {
                 // El pulgar tiene un rango de movimiento diferente y menor
@@ -365,19 +365,19 @@ namespace ASL_LearnVR.Feedback
                 return Mathf.Clamp01(Mathf.InverseLerp(180f, 50f, thumbAngle));
             }
 
-            // Normalizar ángulos a 0-1
-            // Un dedo extendido tiene ángulos cercanos a 180 grados
-            // Un dedo cerrado tiene ángulos cercanos a 45-60 grados
+            // Normalize angles to 0-1
+            // An extended finger has angles close to 180 degrees
+            // A closed finger has angles close to 45-60 degrees
             float avgAngle = (angle1 + angle2) / 2f;
 
-            // Mapear: 165 grados -> 0 (extendido), 45 grados -> 1 (cerrado)
+            // Mapear: 165 degrees -> 0 (extendido), 45 degrees -> 1 (cerrado)
             float curl = Mathf.InverseLerp(180f, 60f, avgAngle);
 
             return Mathf.Clamp01(curl);
         }
 
         /// <summary>
-        /// Calcula la dirección del dedo (proximal -> tip) para evaluar spread.
+        /// Calculates the finger direction (proximal -> tip) to evaluate spread.
         /// </summary>
         private Vector3 CalculateFingerDirection(XRHand hand, int fingerIndex, out bool hasDir)
         {
@@ -402,8 +402,8 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Analiza todos los dedos contra el perfil de constraints.
-        /// Usa la filosofía de TRES ESTADOS: Extendido, Curvado, Cerrado.
-        /// Genera errores semánticos que distinguen entre curvar y cerrar.
+        /// Uses the THREE-STATE philosophy: Extended, Curled, Closed.
+        /// Generates semantic errors that distinguish between curling and closing.
         /// </summary>
         private void AnalyzeAllFingers(FingerConstraintProfile profile)
         {
@@ -417,12 +417,12 @@ namespace ASL_LearnVR.Feedback
 
                 float currentCurl = currentCurlValues[i];
 
-                // === FILOSOFÍA DE TRES ESTADOS ===
+                // === THREE-STATE PHILOSOPHY ===
                 // Determinar estado actual y esperado
                 FingerShapeState currentState = FeedbackMessages.GetFingerState(currentCurl);
                 FingerShapeState expectedState = constraint.expectedState;
 
-                // Usar tolerancia reducida para feedback más preciso
+                // Use reduced tolerance for more precise feedback
                 float effectiveTolerance = Mathf.Max(curlTolerance * 0.5f, 0.08f);
                 if (finger == Finger.Thumb)
                 {
@@ -431,7 +431,7 @@ namespace ASL_LearnVR.Feedback
                 float minWithTolerance = Mathf.Max(0f, constraint.curl.minCurl - effectiveTolerance);
                 float maxWithTolerance = Mathf.Min(1f, constraint.curl.maxCurl + effectiveTolerance);
 
-                // Calcular desviación del rango
+                // Calculate range deviation
                 float deviation = 0f;
                 bool outOfRange = false;
                 if (currentCurl < minWithTolerance)
@@ -448,7 +448,7 @@ namespace ASL_LearnVR.Feedback
                 if (!outOfRange)
                     continue;
 
-                // Determinar severidad basada en desviación
+                // Determine severity based on deviation
                 Severity severity = Severity.None;
                 if (deviation > 0.18f)
                     severity = Severity.Major;
@@ -457,10 +457,10 @@ namespace ASL_LearnVR.Feedback
                 else
                     continue; // Dentro de tolerancia extendida
 
-                // === OBTENER TIPO DE ERROR SEMÁNTICO ===
+                // === GET SEMANTIC ERROR TYPE ===
                 FingerErrorType errorType = FeedbackMessages.GetSemanticErrorType(currentState, expectedState);
 
-                // Fallback a errores legacy si no hay diferencia semántica clara
+                // Fallback to legacy errors if no clear semantic difference
                 if (errorType == FingerErrorType.None)
                 {
                     errorType = currentCurl < minWithTolerance
@@ -468,8 +468,8 @@ namespace ASL_LearnVR.Feedback
                         : FingerErrorType.TooCurled;
                 }
 
-                // Suavizar severidad en casos específicos
-                // Si está curvado y esperamos cerrado, reducir a Minor (está en camino)
+                // Soften severity in specific cases
+                // If curled and expecting closed, reduce to Minor (on the way there)
                 if (currentState == FingerShapeState.Curved &&
                     expectedState == FingerShapeState.Closed &&
                     severity == Severity.Major)
@@ -486,7 +486,7 @@ namespace ASL_LearnVR.Feedback
                 if (severity == Severity.None)
                     continue;
 
-                // === GENERAR MENSAJE SEMÁNTICO ===
+                // === GENERATE SEMANTIC MESSAGE ===
                 float expectedValue = (constraint.curl.minCurl + constraint.curl.maxCurl) / 2f;
                 string fingerName = FeedbackMessages.GetFingerName(finger);
                 string message;
@@ -499,15 +499,15 @@ namespace ASL_LearnVR.Feedback
                 }
                 else
                 {
-                    // Generar mensaje basado en el tipo de error semántico
+                    // Generate message based on semantic error type
                     message = errorType switch
                     {
                         FingerErrorType.NeedsCurve =>
-                            $"Curva el {fingerName} (sin cerrar puño)",
+                            $"Curl the {fingerName} (without closing fist)",
                         FingerErrorType.NeedsFist =>
-                            $"Cierra el {fingerName} en puño",
+                            $"Close the {fingerName} into a fist",
                         FingerErrorType.TooMuchCurl =>
-                            $"Suelta el {fingerName}, no cierres puño",
+                            $"Release the {fingerName}, don't close into a fist",
                         FingerErrorType.NeedsExtend =>
                             $"Estira el {fingerName}",
                         FingerErrorType.TooExtended =>
@@ -535,13 +535,13 @@ namespace ASL_LearnVR.Feedback
                 }
             }
 
-            // Evaluar spread entre dedos adyacentes cuando esté definido
+            // Evaluate spread between adjacent fingers when defined
             if (profile != null)
             {
                 EvaluateSpreadConstraints(profile);
             }
 
-            // Analizar constraints específicos del pulgar
+            // Analyze specific thumb constraints
             if (profile.thumb.shouldTouchIndex)
             {
                 AnalyzeThumbTouch(profile.thumb, Finger.Index);
@@ -559,15 +559,15 @@ namespace ASL_LearnVR.Feedback
                 AnalyzeThumbTouch(profile.thumb, Finger.Pinky);
             }
 
-            // Reglas de colocación del pulgar (sobre o al lado de los dedos)
+            // Thumb placement rules (over or beside the fingers)
             AnalyzeThumbPlacement(profile.thumb);
 
-            // Orientación de la mano (solo si el perfil lo pide)
+            // Hand orientation (only if the profile requires it)
             EvaluateOrientation(profile);
         }
 
         /// <summary>
-        /// Evalúa constraints de spread usando la dirección de dedos adyacentes.
+        /// Evaluates spread constraints using adjacent finger directions.
         /// </summary>
         private void EvaluateSpreadConstraints(FingerConstraintProfile profile)
         {
@@ -608,7 +608,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Analiza si el pulgar está tocando el dedo especificado.
+        /// Analyzes whether the thumb is touching the specified finger.
         /// </summary>
         private void AnalyzeThumbTouch(ThumbConstraint thumbConstraint, Finger targetFinger)
         {
@@ -625,16 +625,16 @@ namespace ASL_LearnVR.Feedback
 
             float distance = Vector3.Distance(thumbPose.position, targetPose.position);
 
-            // Evitar penalizar al pulgar si el dedo objetivo está claramente mal colocado/extendido.
-            // Esto da prioridad a corregir primero los dedos largos y reduce la sensación de que el pulgar "nunca se pone verde".
+            // Avoid penalizing the thumb if the target finger is clearly misplaced/extended.
+            // This prioritizes correcting the long fingers first and reduces the feeling that the thumb 'never turns green'.
             float targetCurl = currentCurlValues[(int)targetFinger];
-            bool targetClearlyExtended = targetCurl < 0.25f; // dedo lejos de la posición de contacto
+            bool targetClearlyExtended = targetCurl < 0.25f; // finger far from contact position
             if (targetClearlyExtended)
             {
                 return;
             }
 
-            // Si están a más de 3cm, no están tocándose
+            // If more than 3cm apart, they are not touching
             if (distance > 0.03f)
             {
                 errorList.Add(FingerError.Create(
@@ -647,7 +647,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Refuerza feedback de posición del pulgar (sobre o al lado de los dedos).
+        /// Reinforces thumb position feedback (over or beside the fingers).
         /// </summary>
         private void AnalyzeThumbPlacement(ThumbConstraint thumbConstraint)
         {
@@ -656,7 +656,7 @@ namespace ASL_LearnVR.Feedback
 
             float thumbCurl = currentCurlValues[(int)Finger.Thumb];
 
-            // Pulgar sobre los dedos (ej. S): no debe estar demasiado extendido
+            // Thumb sobre los dedos (ej. S): no debe estar demasiado extendido
             if (thumbConstraint.shouldBeOverFingers && thumbCurl < 0.35f)
             {
                 string msg = !string.IsNullOrEmpty(thumbConstraint.customMessageGeneric)
@@ -671,12 +671,12 @@ namespace ASL_LearnVR.Feedback
                 ));
             }
 
-            // Pulgar al lado de los dedos (ej. A): no debe cruzar ni meterse sobre ellos
+            // Thumb al lado de los dedos (ej. A): no debe cruzar ni meterse sobre ellos
             if (thumbConstraint.shouldBeBesideFingers && thumbCurl > 0.6f)
             {
                 string msg = !string.IsNullOrEmpty(thumbConstraint.customMessageGeneric)
                     ? thumbConstraint.customMessageGeneric
-                    : "Mantén el pulgar al lado del puño, sin cruzarlo";
+                    : "Manten el thumb to the side del puno, sin cruzarlo";
 
                 errorList.Add(FingerError.Create(
                     Finger.Thumb,
@@ -688,7 +688,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Evalúa orientación de la mano cuando el perfil lo requiere.
+        /// Evalua orientacion de la mano cuando el perfil lo requiere.
         /// </summary>
         private void EvaluateOrientation(FingerConstraintProfile profile)
         {
@@ -724,7 +724,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Cuenta errores de una severidad específica.
+        /// Cuenta errores de una severidad especifica.
         /// </summary>
         private int CountErrors(Severity severity)
         {
@@ -738,7 +738,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Obtiene los valores de curl actuales (para debug/visualización).
+        /// Obtiene los valores de curl actuales (para debug/visualizacion).
         /// </summary>
         public float[] GetCurrentCurlValues()
         {
@@ -746,7 +746,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// True si hay datos de mano válidos.
+        /// True si hay datos de mano valids.
         /// </summary>
         public bool HasValidHandData => hasValidHandData;
     }

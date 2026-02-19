@@ -30,20 +30,20 @@ namespace ASL_LearnVR.Core
         }
 
         [Header("Scene Names")]
-        [Tooltip("Nombre de la escena del menú principal")]
+        [Tooltip("Name de la escena del menu principal")]
         public string mainMenuSceneName = "01_MainMenu";
 
-        [Tooltip("Nombre de la escena de selección de nivel")]
+        [Tooltip("Name de la escena de seleccion de nivel")]
         public string levelSelectionSceneName = "02_LevelSelection";
 
-        [Tooltip("Nombre de la escena del módulo de aprendizaje")]
+        [Tooltip("Name de la escena del modulo de aprendizaje")]
         public string learningModuleSceneName = "03_LearningModule";
 
-        [Tooltip("Nombre de la escena del modo autoevaluación")]
+        [Tooltip("Name de la escena del modo autoevaluacion")]
         public string selfAssessmentSceneName = "04_SelfAssessmentMode";
 
         [Header("Loading Settings")]
-        [Tooltip("Tiempo de espera opcional antes de cargar la escena (para transiciones)")]
+        [Tooltip("Time de espera opcional antes de cargar la escena (para transiciones)")]
         [SerializeField] private float loadDelay = 0f;
 
         private bool isLoading = false;
@@ -62,7 +62,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Carga la escena del menú principal.
+        /// Carga la escena del menu principal.
         /// </summary>
         public void LoadMainMenu()
         {
@@ -70,7 +70,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Carga la escena de selección de nivel.
+        /// Loads the level selection scene.
         /// </summary>
         public void LoadLevelSelection()
         {
@@ -78,26 +78,26 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Carga la escena del módulo de aprendizaje.
+        /// Carga la escena del modulo de aprendizaje.
         /// </summary>
         public void LoadLearningModule()
         {
             if (!GameManager.Instance.HasLevelAndCategory())
             {
-                Debug.LogError("No se puede cargar LearningModule sin un nivel y categoría seleccionados.");
+                Debug.LogError("No se puede cargar LearningModule sin un nivel y category selecteds.");
                 return;
             }
             LoadScene(learningModuleSceneName);
         }
 
         /// <summary>
-        /// Carga la escena del modo autoevaluación.
+        /// Carga la escena del modo autoevaluacion.
         /// </summary>
         public void LoadSelfAssessmentMode()
         {
             if (!GameManager.Instance.HasLevelAndCategory())
             {
-                Debug.LogError("No se puede cargar SelfAssessmentMode sin un nivel y categoría seleccionados.");
+                Debug.LogError("No se puede cargar SelfAssessmentMode sin un nivel y category selecteds.");
                 return;
             }
             LoadScene(selfAssessmentSceneName);
@@ -110,13 +110,13 @@ namespace ASL_LearnVR.Core
         {
             if (isLoading)
             {
-                Debug.LogWarning("Ya hay una escena cargándose. Ignorando petición.");
+                Debug.LogWarning("Ya hay una escena cargandose. Ignorando peticion.");
                 return;
             }
 
             if (string.IsNullOrEmpty(sceneName))
             {
-                Debug.LogError("El nombre de la escena está vacío.");
+                Debug.LogError("El nombre de la escena esta vacio.");
                 return;
             }
 
@@ -124,7 +124,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Corrutina que carga la escena de forma asíncrona.
+        /// Corrutina que carga la escena de forma asincrona.
         /// </summary>
         private IEnumerator LoadSceneAsync(string sceneName)
         {
@@ -136,10 +136,10 @@ namespace ASL_LearnVR.Core
                 yield return new WaitForSeconds(loadDelay);
             }
 
-            // Carga la escena de forma asíncrona
+            // Carga la escena de forma asincrona
             AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
 
-            // Espera hasta que la escena esté completamente cargada
+            // Espera hasta que la escena este completamente loaded
             while (!asyncLoad.isDone)
             {
                 yield return null;
@@ -149,7 +149,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Cierra la aplicación (solo funciona en build, no en editor).
+        /// Cierra la aplicacion (solo funciona en build, no en editor).
         /// </summary>
         public void QuitApplication()
         {

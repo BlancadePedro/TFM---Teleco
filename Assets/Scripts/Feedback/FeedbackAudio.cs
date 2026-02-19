@@ -4,7 +4,7 @@ namespace ASL_LearnVR.Feedback
 {
     /// <summary>
     /// Gestiona el audio de feedback para el sistema de aprendizaje.
-    /// Reproduce sonidos al éxito/error con opción de mute.
+    /// Reproduce sonidos al exito/error con opcion de mute.
     /// </summary>
     public class FeedbackAudio : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Sonido al fallar gesto (opcional, puede estar muted)")]
         [SerializeField] private AudioClip errorClip;
 
-        [Tooltip("Sonido al iniciar práctica")]
+        [Tooltip("Sonido al iniciar practica")]
         [SerializeField] private AudioClip startPracticeClip;
 
         [Tooltip("Sonido de progreso parcial (opcional)")]
@@ -30,20 +30,20 @@ namespace ASL_LearnVR.Feedback
         [Range(0f, 1f)]
         [SerializeField] private float volume = 0.5f;
 
-        [Tooltip("Reproducir sonido de éxito")]
+        [Tooltip("Play success sound")]
         [SerializeField] private bool playSuccessSound = true;
 
-        [Tooltip("Reproducir sonido de error")]
+        [Tooltip("Play error sound")]
         [SerializeField] private bool playErrorSound = false;
 
         [Tooltip("Mute global del audio de feedback")]
         [SerializeField] private bool isMuted = false;
 
         [Header("Cooldown")]
-        [Tooltip("Tiempo mínimo entre sonidos (evita spam)")]
+        [Tooltip("Time minimo entre sonidos (evita spam)")]
         [SerializeField] private float soundCooldown = 0.5f;
 
-        // Estado interno
+        // State interno
         private float lastSoundTime = 0f;
 
         void Awake()
@@ -58,7 +58,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de éxito.
+        /// Reproduce el sonido de exito.
         /// </summary>
         public void PlaySuccess()
         {
@@ -80,7 +80,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de inicio de práctica.
+        /// Reproduce el sonido de inicio de practica.
         /// </summary>
         public void PlayStartPractice()
         {
@@ -91,7 +91,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de éxito parcial.
+        /// Reproduce el sonido de exito parcial.
         /// </summary>
         public void PlayPartialSuccess()
         {
@@ -126,7 +126,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa/desactiva los sonidos de éxito.
+        /// Activa/desactiva los sonidos de exito.
         /// </summary>
         public void SetSuccessSoundEnabled(bool enabled)
         {
@@ -150,7 +150,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// True si el audio está muteado.
+        /// True si el audio esta muteado.
         /// </summary>
         public bool IsMuted => isMuted;
 

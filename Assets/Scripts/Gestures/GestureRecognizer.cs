@@ -16,21 +16,21 @@ namespace ASL_LearnVR.Gestures
         [Tooltip("El signo que se debe detectar")]
         [SerializeField] private SignData targetSign;
 
-        [Tooltip("Componente XRHandTrackingEvents de la mano a detectar")]
+        [Tooltip("Component XRHandTrackingEvents de la mano a detectar")]
         [SerializeField] private XRHandTrackingEvents handTrackingEvents;
 
         [Header("Detection Settings")]
-        [Tooltip("Intervalo de detección en segundos")]
+        [Tooltip("Intervalo de deteccion en segundos")]
         [SerializeField] private float detectionInterval = 0.1f;
 
         [Tooltip("Usar el tiempo de hold del SignData (si es false, usa minimumHoldTime de abajo)")]
         [SerializeField] private bool useSignDataHoldTime = true;
 
-        [Tooltip("Tiempo mínimo de hold si useSignDataHoldTime es false")]
+        [Tooltip("Time minimo de hold si useSignDataHoldTime es false")]
         [SerializeField] private float minimumHoldTime = 0.3f;
 
         [Header("Events")]
-        [Tooltip("Se invoca cuando el gesto es detectado")]
+        [Tooltip("Se invoca cuando el gesto es detected")]
         public UnityEvent<SignData> onGestureDetected;
 
         [Tooltip("Se invoca cuando el gesto termina")]
@@ -41,7 +41,7 @@ namespace ASL_LearnVR.Gestures
         [SerializeField] private bool showDebugLogs = true;
 
         [Header("Tolerancia")]
-        [Tooltip("Tiempo de tolerancia antes de considerar que el gesto se perdió (segundos)")]
+        [Tooltip("Time de tolerancia antes de considerar que el gesto se perdio (segundos)")]
         [SerializeField] private float detectionLossTolerance = 0.2f;
 
         private XRHandShape handShape;
@@ -53,7 +53,7 @@ namespace ASL_LearnVR.Gestures
         private float lastDetectionTime = 0f;
 
         /// <summary>
-        /// El signo actualmente configurado para detectar.
+        /// El current signmente configured para detectar.
         /// </summary>
         public SignData TargetSign
         {
@@ -66,7 +66,7 @@ namespace ASL_LearnVR.Gestures
         }
 
         /// <summary>
-        /// True si el gesto está siendo detectado actualmente.
+        /// True si el gesto is being detected actualmente.
         /// </summary>
         public bool IsDetected => wasDetected;
 
@@ -115,11 +115,11 @@ namespace ASL_LearnVR.Gestures
 
             if (handPose != null && handPose.relativeOrientation != null)
             {
-                // Asigna automáticamente la cámara principal como target
+                // Asigna automaticamente la camara principal como target
                 if (handPose.relativeOrientation.targetTransform == null)
                 {
                     handPose.relativeOrientation.targetTransform = Camera.main.transform;
-                    Debug.Log($"GestureRecognizer: Asignada cámara principal como targetTransform para '{targetSign.signName}'");
+                    Debug.Log($"GestureRecognizer: Asignada camara principal como targetTransform para '{targetSign.signName}'");
                 }
             }
         }
@@ -142,7 +142,7 @@ namespace ASL_LearnVR.Gestures
             if (targetSign == null)
             {
                 if (showDebugLogs && Time.timeSinceLevelLoad % 5f < detectionInterval)
-                    Debug.LogWarning("[GestureRecognizer] NO HAY SignData asignado!");
+                    Debug.LogWarning("[GestureRecognizer] NO HAY SignData assigned!");
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace ASL_LearnVR.Gestures
             if (handShape == null && handPose == null)
             {
                 if (showDebugLogs)
-                    Debug.LogWarning($"GestureRecognizer: El signo '{targetSign.signName}' no tiene Hand Shape ni Hand Pose configurado.");
+                    Debug.LogWarning($"GestureRecognizer: El signo '{targetSign.signName}' no tiene Hand Shape ni Hand Pose configured.");
                 return;
             }
 
@@ -167,28 +167,28 @@ namespace ASL_LearnVR.Gestures
                 Debug.Log($"GestureRecognizer [{targetSign.signName}]: Tracked={handTracked}, Shape={shapeMatches}, Pose={poseMatches}, Detected={detected}");
             }
 
-            // Actualizar timestamp si está detectado
+            // Actualizar timestamp si esta detected
             if (detected)
             {
                 lastDetectionTime = Time.timeSinceLevelLoad;
             }
 
-            // Inicio de detección
+            // Inicio de deteccion
             if (!wasDetected && detected)
             {
                 holdStartTime = Time.timeSinceLevelLoad;
 
                 if (showDebugLogs)
-                    Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' detectado, esperando hold time.");
+                    Debug.Log($"GestureRecognizer: Gesture '{targetSign.signName}' detected, esperando hold time.");
 
                 wasDetected = true;
             }
-            // Fin de detección con TOLERANCIA
+            // Fin de deteccion con TOLERANCIA
             else if (wasDetected && !detected)
             {
                 float timeSinceLoss = Time.timeSinceLevelLoad - lastDetectionTime;
 
-                // Solo terminar si ha pasado suficiente tiempo sin detección
+                // Solo terminar si ha pasado suficiente tiempo sin deteccion
                 if (timeSinceLoss > detectionLossTolerance)
                 {
                     performedTriggered = false;
@@ -196,7 +196,7 @@ namespace ASL_LearnVR.Gestures
                     wasDetected = false;
 
                     if (showDebugLogs)
-                        Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' terminado (pérdida de {timeSinceLoss:F2}s).");
+                        Debug.Log($"GestureRecognizer: Gesture '{targetSign.signName}' terminado (perdida de {timeSinceLoss:F2}s).");
                 }
                 // Si no, mantener wasDetected=true y continuar
             }
@@ -213,7 +213,7 @@ namespace ASL_LearnVR.Gestures
                     onGestureDetected?.Invoke(targetSign);
 
                     if (showDebugLogs)
-                        Debug.Log($"GestureRecognizer: Gesto '{targetSign.signName}' confirmado!");
+                        Debug.Log($"GestureRecognizer: Gesture '{targetSign.signName}' confirmado!");
                 }
             }
 
@@ -231,7 +231,7 @@ namespace ASL_LearnVR.Gestures
         }
 
         /// <summary>
-        /// Habilita o deshabilita la detección.
+        /// Habilita o deshabilita la deteccion.
         /// </summary>
         public void SetDetectionEnabled(bool enabled)
         {

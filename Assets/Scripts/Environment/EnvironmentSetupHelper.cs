@@ -35,7 +35,7 @@ namespace ASL_LearnVR
             CreatePreviewLighting();
             ApplyAmbient();
 
-            Debug.Log("[EnvironmentSetup] Preview creado. Dale Play para verlo con iluminacion completa.");
+            Debug.Log("[EnvironmentSetup] Preview created. Dale Play para verlo con iluminacion completa.");
         }
 
         [ContextMenu("2. Create StudioEnvironmentManager Prefab")]
@@ -60,7 +60,7 @@ namespace ASL_LearnVR
             PrefabUtility.SaveAsPrefabAsset(managerObj, prefabPath);
             DestroyImmediate(managerObj);
 
-            Debug.Log($"[EnvironmentSetup] Prefab creado en: {prefabPath}");
+            Debug.Log($"[EnvironmentSetup] Prefab created en: {prefabPath}");
             Debug.Log("[EnvironmentSetup] SIGUIENTE PASO: Arrastra este prefab a CADA escena (o solo a la primera si usas DontDestroyOnLoad).");
 
             // Seleccionar el prefab en el Project
@@ -84,7 +84,7 @@ namespace ASL_LearnVR
 
             if (prefab == null)
             {
-                Debug.LogError("[EnvironmentSetup] Prefab no encontrado. Ejecuta primero '2. Create StudioEnvironmentManager Prefab'.");
+                Debug.LogError("[EnvironmentSetup] Prefab not found. Ejecuta primero '2. Create StudioEnvironmentManager Prefab'.");
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace ASL_LearnVR
         {
             if (config == null)
             {
-                Debug.LogError("[EnvironmentSetup] Config no asignado! Crea uno: Assets > Create > ASL LearnVR > Studio Environment Config");
+                Debug.LogError("[EnvironmentSetup] Config not assigned! Crea uno: Assets > Create > ASL LearnVR > Studio Environment Config");
                 return false;
             }
             return true;

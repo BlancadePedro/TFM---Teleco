@@ -8,46 +8,46 @@ using ASL_LearnVR.Feedback;
 namespace ASL_LearnVR.LearningModule
 {
     /// <summary>
-    /// Controla las "ghost hands" que muestran visualmente cómo hacer un signo ASL.
+    /// Controla las "ghost hands" que muestran visualmente como hacer un signo ASL.
     ///
     /// PROTOTIPO V1:
     /// - Solo la mano DERECHA hace el gesto
-    /// - Mano izquierda permanece en estado neutro sobre la mesa
-    /// - Secuencia: Neutro → Esperar 1.5s → Gesto → Mantener → Volver a Neutro
-    /// - El usuario puede repetir la animación
+    /// - Hand izquierda permanece en estado neutro sobre la mesa
+    /// - Secuencia: Neutro → Esperar 1.5s → Gesture → Mantener → Back a Neutro
+    /// - El usuario puede repetir la animacion
     /// </summary>
     public class GhostHandPlayer : MonoBehaviour
     {
         [Header("Ghost Hand References")]
-        [Tooltip("Referencia al GameObject de la mano izquierda fantasma")]
+        [Tooltip("Reference al GameObject de la mano izquierda fantasma")]
         [SerializeField] private GameObject leftGhostHand;
 
-        [Tooltip("Referencia al GameObject de la mano derecha fantasma")]
+        [Tooltip("Reference al GameObject de la mano derecha fantasma")]
         [SerializeField] private GameObject rightGhostHand;
 
         [Header("Pose Appliers")]
-        [Tooltip("Componente que aplica poses a la mano izquierda")]
+        [Tooltip("Component que aplica poses a la mano izquierda")]
         [SerializeField] private GuideHandPoseApplier leftPoseApplier;
 
-        [Tooltip("Componente que aplica poses a la mano derecha")]
+        [Tooltip("Component que aplica poses a la mano derecha")]
         [SerializeField] private GuideHandPoseApplier rightPoseApplier;
 
         [Header("Right Hand Positioning (Active Hand)")]
-        [Tooltip("Posición de la mano derecha (preparada para hacer el gesto)")]
+        [Tooltip("Position de la mano derecha (preparada para hacer el gesto)")]
         [SerializeField] private Vector3 rightHandPosition = new Vector3(-0.07f, 0.85f, 0.5f);
 
-        [Tooltip("Rotación de la mano derecha (preparada para el gesto)")]
+        [Tooltip("Rotation de la mano derecha (preparada para el gesto)")]
         [SerializeField] private Vector3 rightHandNeutralRotation = new Vector3(-90f, -180f, 0f);
 
         [Header("Left Hand Positioning (Resting Hand)")]
-        [Tooltip("Posición de la mano izquierda (posada en la mesa)")]
+        [Tooltip("Position de la mano izquierda (posada en la mesa)")]
         [SerializeField] private Vector3 leftHandPosition = new Vector3(-0.07f, 0.8f, 0.5f);
 
-        [Tooltip("Rotación de la mano izquierda (posada en la mesa)")]
+        [Tooltip("Rotation de la mano izquierda (posada en la mesa)")]
         [SerializeField] private Vector3 leftHandRestingRotation = new Vector3(0f, -180f, 0f);
 
         [Header("Scale")]
-        [Tooltip("Escala de las ghost hands")]
+        [Tooltip("Scale de las ghost hands")]
         [SerializeField] private float ghostHandsScale = 1.0f;
 
         [Header("Visual Settings")]
@@ -58,30 +58,30 @@ namespace ASL_LearnVR.LearningModule
         [SerializeField] private Color ghostHandColor = new Color(0f, 0.627451f, 1f, 1f);
 
         [Header("Animation Timing")]
-        [Tooltip("Tiempo en estado neutro antes de mostrar el gesto (segundos)")]
+        [Tooltip("Time en estado neutro antes de mostrar el gesto (segundos)")]
         [SerializeField] private float delayBeforeGesture = 0.5f;
 
-        [Tooltip("Tiempo que se muestra el gesto antes de volver a neutro (segundos)")]
+        [Tooltip("Time que se muestra el gesto antes de volver a neutro (segundos)")]
         [SerializeField] private float gestureDisplayTime = 3f;
 
-        [Tooltip("Tiempo en neutro después del gesto antes de ocultar (segundos)")]
+        [Tooltip("Time en neutro despues del gesto antes de ocultar (segundos)")]
         [SerializeField] private float neutralAfterGestureTime = 1f;
 
         [Header("Auto Setup")]
-        [Tooltip("Intentar configurar automáticamente los pose appliers al iniciar")]
+        [Tooltip("Intentar configurar automaticamente los pose appliers al iniciar")]
         [SerializeField] private bool autoSetupPoseAppliers = true;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = true;
 
-        [Tooltip("Si está activo, las manos se muestran visibles al iniciar (para testing)")]
+        [Tooltip("Si esta active, las manos se muestran visibles al iniciar (para testing)")]
         [SerializeField] private bool showOnStart = true;
 
         [Header("Fade Settings")]
-        [Tooltip("Duración del fade in/out en segundos")]
+        [Tooltip("Duration del fade in/out en segundos")]
         [SerializeField] private float fadeDuration = 0.5f;
 
-        // Estado interno
+        // State interno
         private SignData currentSign;
         private bool isPlaying = false;
         private bool isShowingGesture = false;
@@ -92,12 +92,12 @@ namespace ASL_LearnVR.LearningModule
         private SkinnedMeshRenderer[] rightHandRenderers;
 
         /// <summary>
-        /// True si las ghost hands están reproduciendo actualmente.
+        /// True si las ghost hands estan reproduciendo actualmente.
         /// </summary>
         public bool IsPlaying => isPlaying;
 
         /// <summary>
-        /// True si está mostrando el gesto (no el estado neutro).
+        /// True si esta mostrando el gesto (no el estado neutro).
         /// </summary>
         public bool IsShowingGesture => isShowingGesture;
 
@@ -109,7 +109,7 @@ namespace ASL_LearnVR.LearningModule
             // NO desactivar tracking si son las manos reales del usuario
             if (IsValidGhostHand(leftGhostHand) && IsValidGhostHand(rightGhostHand))
             {
-                Debug.Log("[GhostHandPlayer] Manos guía VÁLIDAS detectadas. Desactivando tracking...");
+                Debug.Log("[GhostHandPlayer] Hands guia VALIDAS detectadas. Disabling tracking...");
                 // Desacopla las ghost hands del tracking XR
                 DisableHandTracking();
 
@@ -118,7 +118,7 @@ namespace ASL_LearnVR.LearningModule
             }
             else
             {
-                Debug.LogError("[GhostHandPlayer] ADVERTENCIA: Las ghost hands NO son válidas (deben contener 'Guide' en el nombre). NO se procesarán correctamente.");
+                Debug.LogError("[GhostHandPlayer] ADVERTENCIA: Las ghost hands NO son valids (deben contener 'Guide' en el nombre). NO se procesaran correctamente.");
             }
 
             // Obtener renderers
@@ -131,7 +131,7 @@ namespace ASL_LearnVR.LearningModule
             // Aplica el material fantasma
             ApplyGhostMaterial();
 
-            // Configurar pose appliers automáticamente
+            // Configure pose appliers automaticamente
             if (autoSetupPoseAppliers)
             {
                 SetupPoseAppliers();
@@ -140,12 +140,12 @@ namespace ASL_LearnVR.LearningModule
             // Posicionar las manos
             PositionHands();
 
-            // Mostrar u ocultar según configuración
+            // Mostrar u ocultar segun configuracion
             if (showOnStart)
             {
                 // PROTOTIPO: Mostrar las manos visibles al iniciar
                 SetGhostHandsVisible(true);
-                Debug.Log("[GhostHandPlayer] Manos VISIBLES al inicio (showOnStart=true)");
+                Debug.Log("[GhostHandPlayer] Hands VISIBLES al inicio (showOnStart=true)");
             }
             else
             {
@@ -157,7 +157,7 @@ namespace ASL_LearnVR.LearningModule
 
         void Start()
         {
-            // Aplicar pose neutra después de que todo esté inicializado
+            // Aplicar pose neutra despues de que todo este initialized
             if (showOnStart)
             {
                 ApplyNeutralPose(rightPoseApplier);
@@ -167,7 +167,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Configura los GuideHandPoseApplier automáticamente.
+        /// Configura los GuideHandPoseApplier automaticamente.
         /// </summary>
         private void SetupPoseAppliers()
         {
@@ -178,13 +178,13 @@ namespace ASL_LearnVR.LearningModule
                 if (leftPoseApplier == null)
                 {
                     leftPoseApplier = leftGhostHand.AddComponent<GuideHandPoseApplier>();
-                    Debug.Log("[GhostHandPlayer] Añadido GuideHandPoseApplier a LeftGhostHand");
+                    Debug.Log("[GhostHandPlayer] Anadido GuideHandPoseApplier a LeftGhostHand");
                 }
                 leftPoseApplier.AutoMapJointsFromHierarchy(leftGhostHand.transform);
 
                 // Validar que los joints se mapearon correctamente
                 bool isValid = leftPoseApplier.ValidateJointMapping();
-                Debug.Log($"[GhostHandPlayer] LeftHand joints mapeados. Válido: {isValid}");
+                Debug.Log($"[GhostHandPlayer] LeftHand joints mapeados. Valido: {isValid}");
             }
 
             // Right hand
@@ -194,19 +194,19 @@ namespace ASL_LearnVR.LearningModule
                 if (rightPoseApplier == null)
                 {
                     rightPoseApplier = rightGhostHand.AddComponent<GuideHandPoseApplier>();
-                    Debug.Log("[GhostHandPlayer] Añadido GuideHandPoseApplier a RightGhostHand");
+                    Debug.Log("[GhostHandPlayer] Anadido GuideHandPoseApplier a RightGhostHand");
                 }
                 rightPoseApplier.AutoMapJointsFromHierarchy(rightGhostHand.transform);
 
                 // Validar que los joints se mapearon correctamente
                 bool isValid = rightPoseApplier.ValidateJointMapping();
-                Debug.Log($"[GhostHandPlayer] RightHand joints mapeados. Válido: {isValid}");
+                Debug.Log($"[GhostHandPlayer] RightHand joints mapeados. Valido: {isValid}");
             }
         }
 
         /// <summary>
-        /// Verifica si un objeto es una mano guía válida (no las manos reales del usuario).
-        /// Las manos guía válidas deben tener "Guide" en su nombre (no "Ghost" que son las del usuario).
+        /// Verifica si un objeto es una guide hand valid (no las manos reales del usuario).
+        /// Las guide hands valids deben tener "Guide" en su nombre (no "Ghost" que son las del usuario).
         /// </summary>
         private bool IsValidGhostHand(GameObject hand)
         {
@@ -218,8 +218,8 @@ namespace ASL_LearnVR.LearningModule
 
             if (!isValid)
             {
-                Debug.LogWarning($"[GhostHandPlayer] '{hand.name}' NO es una mano guía válida. " +
-                    "El nombre debe contener 'Guide' para ser procesado. NO se desactivará tracking.");
+                Debug.LogWarning($"[GhostHandPlayer] '{hand.name}' NO es una guide hand valid. " +
+                    "El nombre debe contener 'Guide' para ser procesado. NO se desactivara tracking.");
             }
 
             return isValid;
@@ -263,12 +263,12 @@ namespace ASL_LearnVR.LearningModule
 
         /// <summary>
         /// Posiciona las manos en sus ubicaciones fijas.
-        /// - Mano derecha: vertical, frente al usuario
-        /// - Mano izquierda: posada sobre la mesa
+        /// - Hand derecha: vertical, frente al usuario
+        /// - Hand izquierda: posada sobre la mesa
         /// </summary>
         private void PositionHands()
         {
-            // Mano derecha: vertical, palma hacia el usuario
+            // Hand derecha: vertical, palma hacia el usuario
             if (rightGhostHand != null)
             {
                 rightGhostHand.transform.position = rightHandPosition;
@@ -276,7 +276,7 @@ namespace ASL_LearnVR.LearningModule
                 rightGhostHand.transform.localScale = Vector3.one * ghostHandsScale;
             }
 
-            // Mano izquierda: posada sobre la mesa
+            // Hand izquierda: posada sobre la mesa
             if (leftGhostHand != null)
             {
                 leftGhostHand.transform.position = leftHandPosition;
@@ -285,7 +285,7 @@ namespace ASL_LearnVR.LearningModule
             }
 
             if (showDebugLogs)
-                Debug.Log($"[GhostHandPlayer] Manos posicionadas - Derecha: {rightHandPosition}, Izquierda: {leftHandPosition}");
+                Debug.Log($"[GhostHandPlayer] Hands posicionadas - Derecha: {rightHandPosition}, Izquierda: {leftHandPosition}");
         }
 
         /// <summary>
@@ -330,8 +330,8 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// MÉTODO PRINCIPAL: Reproduce el signo con la secuencia completa.
-        /// Neutro → Esperar 1.5s → Gesto → Mantener → Volver a Neutro
+        /// METODO PRINCIPAL: Reproduce el signo con la secuencia completa.
+        /// Neutro → Esperar 1.5s → Gesture → Mantener → Back a Neutro
         /// </summary>
         public void PlaySign(SignData sign)
         {
@@ -341,7 +341,7 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
-            // Si ya está reproduciendo, detener primero
+            // Si ya esta reproduciendo, detener primero
             if (currentAnimation != null)
             {
                 StopCoroutine(currentAnimation);
@@ -350,11 +350,11 @@ namespace ASL_LearnVR.LearningModule
             currentSign = sign;
             currentAnimation = StartCoroutine(PlaySignSequence(sign));
 
-            Debug.Log($"[GhostHandPlayer] Iniciando secuencia para '{sign.signName}'");
+            Debug.Log($"[GhostHandPlayer] Starting secuencia para '{sign.signName}'");
         }
 
         /// <summary>
-        /// Repite la animación del signo actual.
+        /// Repite la animacion del current sign.
         /// </summary>
         public void RepeatSign()
         {
@@ -364,12 +364,12 @@ namespace ASL_LearnVR.LearningModule
             }
             else
             {
-                Debug.LogWarning("[GhostHandPlayer] No hay signo actual para repetir.");
+                Debug.LogWarning("[GhostHandPlayer] No hay current sign para repetir.");
             }
         }
 
         /// <summary>
-        /// Corrutina principal: secuencia de animación del gesto.
+        /// Corrutina principal: secuencia de animacion del gesto.
         /// </summary>
         private IEnumerator PlaySignSequence(SignData sign)
         {
@@ -393,12 +393,12 @@ namespace ASL_LearnVR.LearningModule
             // 3. Esperar antes de mostrar el gesto
             yield return new WaitForSeconds(delayBeforeGesture);
 
-            Debug.Log("[GhostHandPlayer] Paso 4: Delay completado, aplicando GESTO...");
+            Debug.Log("[GhostHandPlayer] Paso 4: Delay completed, aplicando GESTO...");
 
             // 4. Aplicar el GESTO solo a la mano DERECHA
             isShowingGesture = true;
 
-            // Comprobar si es una pose animada (J, Z, comunicación básica)
+            // Comprobar si es una pose animada (J, Z, comunicacion basica)
             var animatedPose = ASLPoseLibrary.GetAnimatedPose(sign.signName);
             if (animatedPose != null && rightPoseApplier != null)
             {
@@ -407,44 +407,44 @@ namespace ASL_LearnVR.LearningModule
 
                 if (isDoubleHanded && leftPoseApplier != null)
                 {
-                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA DOBLE MANO '{animatedPose.poseName}' encontrada.");
+                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA DOBLE MANO '{animatedPose.poseName}' found.");
                     var leftAnimatedPose = ASLPoseLibrary.GetAnimatedPoseLeftHand(sign.signName) ?? animatedPose;
 
-                    // Posicionar mano izquierda en posición activa (vertical)
+                    // Posicionar mano izquierda en posicion activa (vertical)
                     PositionLeftHandActive();
                     yield return PlayDualAnimatedPoseSequence(animatedPose, rightPoseApplier, leftAnimatedPose, leftPoseApplier);
-                    // Devolver mano izquierda a posición de descanso
+                    // Devolver mano izquierda a posicion de descanso
                     PositionLeftHandResting();
                 }
                 else
                 {
-                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA '{animatedPose.poseName}' encontrada. Reproduciendo secuencia...");
+                    Debug.Log($"[GhostHandPlayer] Pose ANIMADA '{animatedPose.poseName}' found. Reproduciendo secuencia...");
                     yield return PlayAnimatedPoseSequence(animatedPose, rightPoseApplier);
                 }
             }
             else
             {
-                // Pose estática normal
-                Debug.Log($"[GhostHandPlayer] Buscando pose para '{sign.signName}' en ASLPoseLibrary...");
+                // Pose estatica normal
+                Debug.Log($"[GhostHandPlayer] Searching pose para '{sign.signName}' en ASLPoseLibrary...");
                 var pose = ASLPoseLibrary.GetPoseBySignName(sign.signName);
 
                 if (pose != null && rightPoseApplier != null)
                 {
-                    Debug.Log($"[GhostHandPlayer] Pose '{pose.poseName}' encontrada. Aplicando a mano derecha...");
+                    Debug.Log($"[GhostHandPlayer] Pose '{pose.poseName}' found. Aplicando a mano derecha...");
                     rightPoseApplier.ApplyPose(pose);
-                    Debug.Log($"[GhostHandPlayer] ¡GESTO '{sign.signName}' APLICADO!");
+                    Debug.Log($"[GhostHandPlayer] GESTURE '{sign.signName}' APPLIED!");
                 }
                 else
                 {
-                    Debug.LogError($"[GhostHandPlayer] ERROR: No se encontró pose para '{sign.signName}'. " +
+                    Debug.LogError($"[GhostHandPlayer] ERROR: No found pose para '{sign.signName}'. " +
                         $"pose={pose}, rightPoseApplier={rightPoseApplier}");
                 }
 
-                // 5. Mantener el gesto visible (solo para poses estáticas)
+                // 5. Mantener el gesto visible (solo para poses estaticas)
                 yield return new WaitForSeconds(gestureDisplayTime);
             }
 
-            // 6. Volver a NEUTRO (ambas manos)
+            // 6. Back a NEUTRO (ambas manos)
             isShowingGesture = false;
             ApplyNeutralPose(rightPoseApplier);
             ApplyNeutralPose(leftPoseApplier);
@@ -488,11 +488,11 @@ namespace ASL_LearnVR.LearningModule
             // Mantener la pose final visible
             yield return new WaitForSeconds(gestureDisplayTime);
 
-            Debug.Log($"[GhostHandPlayer] Secuencia animada '{sequence.poseName}' completada.");
+            Debug.Log($"[GhostHandPlayer] Secuencia animada '{sequence.poseName}' completed.");
         }
 
         /// <summary>
-        /// Corrutina para reproducir secuencias animadas en AMBAS manos simultáneamente.
+        /// Corrutina para reproducir secuencias animadas en AMBAS manos simultaneamente.
         /// </summary>
         private IEnumerator PlayDualAnimatedPoseSequence(
             AnimatedPoseSequence rightSequence, GuideHandPoseApplier rightApplier,
@@ -517,17 +517,17 @@ namespace ASL_LearnVR.LearningModule
 
             yield return new WaitForSeconds(gestureDisplayTime);
 
-            Debug.Log($"[GhostHandPlayer] Secuencia doble mano '{rightSequence.poseName}' completada.");
+            Debug.Log($"[GhostHandPlayer] Secuencia doble mano '{rightSequence.poseName}' completed.");
         }
 
         /// <summary>
-        /// Posiciona la mano izquierda en posición activa (vertical, junto a la derecha).
+        /// Posiciona la mano izquierda en posicion activa (vertical, junto a la derecha).
         /// </summary>
         private void PositionLeftHandActive()
         {
             if (leftGhostHand == null) return;
 
-            // Posicionar junto a la mano derecha pero en el lado izquierdo (X más negativo)
+            // Posicionar junto a la mano derecha pero en el lado izquierdo (X mas negativo)
             leftGhostHand.transform.position = new Vector3(
                 rightHandPosition.x - 0.14f,  // A la izquierda de la mano derecha
                 rightHandPosition.y,
@@ -536,11 +536,11 @@ namespace ASL_LearnVR.LearningModule
             leftGhostHand.transform.rotation = Quaternion.Euler(rightHandNeutralRotation);
 
             if (showDebugLogs)
-                Debug.Log($"[GhostHandPlayer] Mano izquierda posicionada ACTIVA en {leftGhostHand.transform.position}");
+                Debug.Log($"[GhostHandPlayer] Hand izquierda posicionada ACTIVA en {leftGhostHand.transform.position}");
         }
 
         /// <summary>
-        /// Devuelve la mano izquierda a su posición de descanso (sobre la mesa).
+        /// Devuelve la mano izquierda a su posicion de descanso (sobre la mesa).
         /// </summary>
         private void PositionLeftHandResting()
         {
@@ -550,12 +550,12 @@ namespace ASL_LearnVR.LearningModule
             leftGhostHand.transform.rotation = Quaternion.Euler(leftHandRestingRotation);
 
             if (showDebugLogs)
-                Debug.Log("[GhostHandPlayer] Mano izquierda devuelta a posición de DESCANSO");
+                Debug.Log("[GhostHandPlayer] Hand izquierda devuelta a posicion de DESCANSO");
         }
 
         /// <summary>
-        /// Muestra la guía persistente (sin auto-ocultar).
-        /// Útil para el modo de práctica continua.
+        /// Muestra la guia persistente (sin auto-ocultar).
+        /// Util para el modo de practica continua.
         /// </summary>
         public void ShowPersistentGuide(SignData sign)
         {
@@ -565,7 +565,7 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
-            // Detener cualquier animación en curso
+            // Detener cualquier animacion en curso
             if (currentAnimation != null)
             {
                 StopCoroutine(currentAnimation);
@@ -579,18 +579,18 @@ namespace ASL_LearnVR.LearningModule
             PositionHands();
             SetGhostHandsVisible(true);
 
-            // Mano izquierda siempre en neutro
+            // Hand izquierda siempre en neutro
             ApplyNeutralPose(leftPoseApplier);
 
             // Iniciar la secuencia
             currentAnimation = StartCoroutine(PlaySignSequence(sign));
 
             if (showDebugLogs)
-                Debug.Log($"[GhostHandPlayer] Guía persistente para '{sign.signName}'");
+                Debug.Log($"[GhostHandPlayer] Guia persistente para '{sign.signName}'");
         }
 
         /// <summary>
-        /// Oculta las ghost hands y detiene la reproducción.
+        /// Oculta las ghost hands y detiene la reproduccion.
         /// </summary>
         public void Hide()
         {
@@ -609,7 +609,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Detiene la reproducción y oculta las ghost hands.
+        /// Detiene la reproduccion y oculta las ghost hands.
         /// </summary>
         public void StopPlaying()
         {
@@ -617,7 +617,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Oculta la guía persistente.
+        /// Oculta la guia persistente.
         /// </summary>
         public void HidePersistentGuide()
         {
@@ -645,7 +645,7 @@ namespace ASL_LearnVR.LearningModule
 
             if (pose == null)
             {
-                Debug.LogWarning($"[GhostHandPlayer] No se encontró pose para '{poseName}'");
+                Debug.LogWarning($"[GhostHandPlayer] No found pose para '{poseName}'");
                 return;
             }
 
@@ -653,7 +653,7 @@ namespace ASL_LearnVR.LearningModule
             if (rightPoseApplier != null)
                 rightPoseApplier.ApplyPose(pose);
 
-            // Mano izquierda siempre en neutro
+            // Hand izquierda siempre en neutro
             ApplyNeutralPose(leftPoseApplier);
         }
 
@@ -677,7 +677,7 @@ namespace ASL_LearnVR.LearningModule
         public GuideHandPoseApplier LeftPoseApplier => leftPoseApplier;
 
         /// <summary>
-        /// Configura qué mano mostrar.
+        /// Configura que mano mostrar.
         /// </summary>
         public void SetHandsToShow(bool showLeft, bool showRight)
         {
@@ -688,7 +688,7 @@ namespace ASL_LearnVR.LearningModule
                 rightGhostHand.SetActive(showRight);
         }
 
-        // Métodos legacy para compatibilidad
+        // Methods legacy para compatibilidad
         public void ApplyPoseFromProfile(FingerConstraintProfile profile)
         {
             if (profile == null) return;
@@ -697,20 +697,20 @@ namespace ASL_LearnVR.LearningModule
                 rightPoseApplier.ApplyPose(pose);
         }
 
-        #region Fade In/Out para modo práctica
+        #region Fade In/Out para practice mode
 
         /// <summary>
-        /// True si las manos están en transición de fade.
+        /// True si las manos estan en transicion de fade.
         /// </summary>
         public bool IsFading => isFading;
 
         /// <summary>
-        /// Fade out de las guide hands (para entrar en modo práctica).
+        /// Fade out de las guide hands (para entrar en practice mode).
         /// Las manos se desvanecen en fadeDuration segundos y luego se desactivan.
         /// </summary>
         public void FadeOut()
         {
-            // Detener animación en curso
+            // Detener animacion en curso
             if (currentAnimation != null)
             {
                 StopCoroutine(currentAnimation);
@@ -730,9 +730,9 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Fade in de las guide hands (para salir del modo práctica).
+        /// Fade in de las guide hands (para salir del practice mode).
         /// Las manos se activan y aparecen en fadeDuration segundos.
-        /// NO reproduce animación automáticamente - el usuario debe dar a "Repetir".
+        /// NO reproduce animacion automaticamente - el usuario debe dar a "Repeat".
         /// </summary>
         public void FadeIn()
         {
@@ -747,8 +747,8 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Actualiza el signo actual sin reproducir animación.
-        /// Útil cuando se navega entre signos en modo práctica.
+        /// Actualiza el current sign sin reproducir animacion.
+        /// Util cuando se navega entre signos en practice mode.
         /// </summary>
         public void SetCurrentSign(SignData sign)
         {
@@ -794,8 +794,8 @@ namespace ASL_LearnVR.LearningModule
                 SetGhostHandsVisible(true);
                 PositionHands();
 
-                // Aplicar la pose del signo actual (no neutro) para que las manos
-                // aparezcan mostrando el gesto correcto
+                // Aplicar la pose del current sign (no neutro) para que las manos
+                // aparezcan mostrando el gesto correct
                 if (currentSign != null && rightPoseApplier != null)
                 {
                     var pose = ASLPoseLibrary.GetPoseBySignName(currentSign.signName);
@@ -817,7 +817,7 @@ namespace ASL_LearnVR.LearningModule
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / fadeDuration);
-                // SmoothStep para un fade más progresivo (ease-in-out)
+                // SmoothStep para un fade mas progresivo (ease-in-out)
                 float smoothT = t * t * (3f - 2f * t);
                 float alpha = Mathf.Lerp(startAlpha, endAlpha, smoothT);
 
@@ -837,7 +837,7 @@ namespace ASL_LearnVR.LearningModule
                 ghostHandMaterial.color = new Color(c.r, c.g, c.b, endAlpha);
             }
 
-            // Si fade out completado, desactivar GameObjects
+            // Si fade out completed, desactivar GameObjects
             if (fadeOut)
             {
                 SetGhostHandsVisible(false);
@@ -846,7 +846,7 @@ namespace ASL_LearnVR.LearningModule
             isFading = false;
             currentFade = null;
 
-            Debug.Log($"[GhostHandPlayer] Fade {(fadeOut ? "OUT" : "IN")} completado");
+            Debug.Log($"[GhostHandPlayer] Fade {(fadeOut ? "OUT" : "IN")} completed");
         }
 
         #endregion

@@ -18,14 +18,14 @@ namespace ASL_LearnVR.Feedback
     }
 
     /// <summary>
-    /// Renderiza overlays visuales (cápsulas/cilindros) sobre los dedos de la mano.
+    /// Renderiza overlays visuales (capsulas/cilindros) sobre los dedos de la mano.
     /// Cada dedo se pinta con 3 segmentos (prox→inter, inter→dist, dist→tip).
-    /// No depende del mesh/material de XRHandVisualizer, usa geometría independiente.
+    /// No depende del mesh/material de XRHandVisualizer, usa geometria independiente.
     /// </summary>
     public class XRFingerOverlayRenderer : MonoBehaviour
     {
         [Header("XR Hands")]
-        [Tooltip("Mano a visualizar")]
+        [Tooltip("Hand a visualizar")]
         public Handedness handedness = Handedness.Right;
 
         [Header("Visual")]
@@ -33,20 +33,20 @@ namespace ASL_LearnVR.Feedback
         public Transform segmentPrefab;
 
         [Range(0.002f, 0.02f)]
-        [Tooltip("Radio de los segmentos")]
+        [Tooltip("Radius de los segmentos")]
         public float radius = 0.006f;
 
-        [Tooltip("Incluir el pulgar en la visualización")]
+        [Tooltip("Incluir el pulgar en la visualizacion")]
         public bool includeThumb = true;
 
         [Header("Colors")]
-        [Tooltip("Color cuando el dedo está correcto")]
+        [Tooltip("Color when finger is correct")]
         public Color correctColor = new Color(0.2f, 1f, 0.2f, 0.8f);
 
-        [Tooltip("Color cuando el dedo está casi correcto")]
+        [Tooltip("Color when finger is almost correct")]
         public Color almostColor = new Color(1f, 0.2f, 0.2f, 0.8f);
 
-        [Tooltip("Color cuando el dedo está incorrecto")]
+        [Tooltip("Color when finger is incorrect")]
         public Color wrongColor = new Color(1f, 0.2f, 0.2f, 0.8f);
 
         [Tooltip("Color cuando no hay estado (transparente/oculto)")]
@@ -77,7 +77,7 @@ namespace ASL_LearnVR.Feedback
 
         void Update()
         {
-            // Si está desactivado manualmente, no hacer nada
+            // Si esta desactivado manualmente, no hacer nada
             if (!_isVisible)
             {
                 return;
@@ -114,7 +114,7 @@ namespace ASL_LearnVR.Feedback
         #region Public API
 
         /// <summary>
-        /// Establece el estado visual de un dedo específico.
+        /// Establece el estado visual de un dedo especifico.
         /// </summary>
         public void SetFingerStatus(Finger finger, FingerOverlayStatus status)
         {
@@ -140,15 +140,15 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Convierte Severity a FingerOverlayStatus para integración con el sistema de feedback existente.
+        /// Convierte Severity a FingerOverlayStatus para integracion con el sistema de feedback existente.
         /// </summary>
         public static FingerOverlayStatus SeverityToOverlayStatus(Severity severity)
         {
             return severity switch
             {
-                Severity.None => FingerOverlayStatus.Correct,  // Sin error = correcto
+                Severity.None => FingerOverlayStatus.Correct,  // Sin error = correct
                 Severity.Minor => FingerOverlayStatus.Wrong,   // Error menor = corregir (rojo)
-                Severity.Major => FingerOverlayStatus.Wrong,   // Error mayor = incorrecto
+                Severity.Major => FingerOverlayStatus.Wrong,   // Error mayor = incorrect
                 _ => FingerOverlayStatus.None
             };
         }
@@ -164,7 +164,7 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // Si todo está correcto globalmente, mostrar todos en verde
+            // Si todo esta correct globalmente, mostrar todos en verde
             if (result.isMatchGlobal)
             {
                 SetAllStatuses(
@@ -219,8 +219,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa o desactiva la visualización de overlays.
-        /// Cuando está desactivado, el Update no actualiza posiciones.
+        /// Activa o desactiva la visualizacion de overlays.
+        /// Cuando esta desactivado, el Update no actualiza posiciones.
         /// </summary>
         public void SetVisible(bool visible)
         {
@@ -229,7 +229,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// True si los overlays están visibles.
+        /// True si los overlays estan visibles.
         /// </summary>
         public bool IsVisible => _isVisible;
 
@@ -254,7 +254,7 @@ namespace ASL_LearnVR.Feedback
         {
             if (segmentPrefab == null)
             {
-                Debug.LogWarning("[XRFingerOverlayRenderer] segmentPrefab no asignado. Asigna un prefab de Capsule/Cylinder.");
+                Debug.LogWarning("[XRFingerOverlayRenderer] segmentPrefab not assigned. Asigna un prefab de Capsule/Cylinder.");
                 return;
             }
 
@@ -263,7 +263,7 @@ namespace ASL_LearnVR.Feedback
                 if (f == Finger.Thumb && !includeThumb) continue;
                 if (_segments.ContainsKey(f)) continue;
 
-                // 3 segmentos por dedo (excepto pulgar que tiene 2 útiles)
+                // 3 segmentos por dedo (excepto pulgar que tiene 2 utiles)
                 int segmentCount = (f == Finger.Thumb) ? 2 : 3;
                 var arr = new Transform[segmentCount];
 
@@ -272,7 +272,7 @@ namespace ASL_LearnVR.Feedback
                     var seg = Instantiate(segmentPrefab, transform);
                     seg.name = $"{handedness}_{f}_seg{i}";
                     arr[i] = seg;
-                    SetSegmentScale(seg, 0.01f); // Tamaño inicial
+                    SetSegmentScale(seg, 0.01f); // Size inicial
                 }
 
                 _segments[f] = arr;
@@ -358,7 +358,7 @@ namespace ASL_LearnVR.Feedback
 
         private void SetSegmentScale(Transform seg, float length)
         {
-            // Asume que el prefab está alineado en Y y mide 1 unidad de alto.
+            // Asume que el prefab esta alineado en Y y mide 1 unidad de alto.
             // Ajusta si tu capsule/cylinder tiene otras dimensiones.
             seg.localScale = new Vector3(radius * 2f, length * 0.5f, radius * 2f);
         }

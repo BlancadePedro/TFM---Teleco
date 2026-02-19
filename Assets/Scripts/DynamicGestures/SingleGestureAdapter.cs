@@ -5,16 +5,16 @@ namespace ASL.DynamicGestures
 {
     /// <summary>
     /// Adaptador para GestureRecognizer (singular) cuando NO tienes MultiGestureRecognizer.
-    /// Úsalo cuando tienes LeftHandRecognizer y RightHandRecognizer en la escena.
+    /// Usalo cuando tienes LeftHandRecognizer y RightHandRecognizer en la escena.
     /// </summary>
     public class SingleGestureAdapter : MonoBehaviour, IPoseAdapter
     {
-        [Header("Referencias")]
-        [Tooltip("GestureRecognizer que detecta el gesto activo (ej: RightHandRecognizer)")]
+        [Header("References")]
+        [Tooltip("GestureRecognizer que detecta el gesto active (ej: RightHandRecognizer)")]
         [SerializeField] private GestureRecognizer gestureRecognizer;
 
-        [Header("Configuración")]
-        [Tooltip("Tiempo de tolerancia antes de considerar que la pose se perdió (segundos)")]
+        [Header("Configuration")]
+        [Tooltip("Time de tolerancia antes de considerar que la pose se perdio (segundos)")]
         [SerializeField] private float poseLossTolerance = 0.3f;
 
         private string currentPoseName = null;
@@ -30,7 +30,7 @@ namespace ASL.DynamicGestures
             }
             else
             {
-                Debug.LogWarning("[SingleGestureAdapter] GestureRecognizer no asignado o no tiene TargetSign configurado");
+                Debug.LogWarning("[SingleGestureAdapter] GestureRecognizer not assigned o no tiene TargetSign configured");
             }
         }
 
@@ -66,7 +66,7 @@ namespace ASL.DynamicGestures
                 if (timeSinceLoss > poseLossTolerance)
                 {
                     // DEBUG TEMPORAL - Mostrar cuando se pierde la pose definitivamente
-                    Debug.Log($"[SingleGestureAdapter] POSE PERDIDA: '{currentPoseName}' (después de {timeSinceLoss:F2}s)");
+                    Debug.Log($"[SingleGestureAdapter] POSE PERDIDA: '{currentPoseName}' (despues de {timeSinceLoss:F2}s)");
                     currentPoseName = null;
                 }
             }
@@ -106,7 +106,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Verifica si hay tracking activo
+        /// Verifica si hay tracking active
         /// </summary>
         public bool IsHandTracked()
         {
@@ -114,8 +114,8 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Cambia dinámicamente el GestureRecognizer a monitorear.
-        /// Útil cuando cambias entre diferentes gestos en Learning Module.
+        /// Cambia dinamicamente el GestureRecognizer a monitorear.
+        /// Util cuando cambias entre diferentes gestos en Learning Module.
         /// </summary>
         public void SetGestureRecognizer(GestureRecognizer newRecognizer)
         {

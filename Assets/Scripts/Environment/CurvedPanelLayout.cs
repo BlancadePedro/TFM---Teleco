@@ -3,8 +3,8 @@ using UnityEngine;
 namespace ASL_LearnVR
 {
     /// <summary>
-    /// Coloca paneles UI en forma de arco envolvente alrededor del usuario.
-    /// Los paneles se distribuyen radialmente y rotan para mirar al centro.
+    /// Places UI panels in a surrounding arc around the user.
+    /// Panels are distributed radially and rotate to face the center.
     /// </summary>
     public class CurvedPanelLayout : MonoBehaviour
     {
@@ -14,20 +14,20 @@ namespace ASL_LearnVR
         [SerializeField] private int panelCount = 5;
 
         [Header("Arc Settings")]
-        [Tooltip("Radio del arco en metros")]
+        [Tooltip("Arc radius in meters")]
         [SerializeField] private float arcRadius = 2.5f;
 
-        [Tooltip("Angulo total del arco en grados (ej: 120 crea un arco suave)")]
+        [Tooltip("Angulo total del arco en degrees (ej: 120 crea un arco suave)")]
         [SerializeField] private float arcAngle = 120f;
 
-        [Tooltip("Altura de los paneles (a nivel de ojos del usuario)")]
+        [Tooltip("Panel height (at user's eye level)")]
         [SerializeField] private float panelHeight = 1.6f;
 
         [Header("Advanced")]
-        [Tooltip("Centro del arco (por defecto, posicion del jugador)")]
+        [Tooltip("Arc center (defaults to player position)")]
         [SerializeField] private Vector3 arcCenter = Vector3.zero;
 
-        [Tooltip("Regenerar paneles en cada cambio (solo para testing)")]
+        [Tooltip("Regenerate panels on each change (testing only)")]
         [SerializeField] private bool autoUpdateInEditor = false;
 
         private GameObject[] instantiatedPanels;
@@ -38,7 +38,7 @@ namespace ASL_LearnVR
         }
 
         /// <summary>
-        /// Genera los paneles en formacion de arco
+        /// Generates panels in arc formation
         /// </summary>
         public void GeneratePanels()
         {
@@ -46,13 +46,13 @@ namespace ASL_LearnVR
 
             if (panelPrefab == null)
             {
-                Debug.LogError("[CurvedPanelLayout] Panel prefab no asignado!");
+                Debug.LogError("[CurvedPanelLayout] Panel prefab not assigned!");
                 return;
             }
 
             if (panelCount <= 0)
             {
-                Debug.LogWarning("[CurvedPanelLayout] Panel count debe ser mayor a 0");
+                Debug.LogWarning("[CurvedPanelLayout] Panel count must be greater than 0");
                 return;
             }
 
@@ -85,11 +85,11 @@ namespace ASL_LearnVR
                 instantiatedPanels[i] = panel;
             }
 
-            Debug.Log($"[CurvedPanelLayout] Generados {panelCount} paneles en arco de {arcAngle} grados");
+            Debug.Log($"[CurvedPanelLayout] Generated {panelCount} panels in arc of {arcAngle} degrees");
         }
 
         /// <summary>
-        /// Elimina todos los paneles generados
+        /// Removes all generated panels
         /// </summary>
         public void ClearPanels()
         {
@@ -121,7 +121,7 @@ namespace ASL_LearnVR
         }
 
         /// <summary>
-        /// Actualiza la posicion del centro del arco (util si el usuario se mueve)
+        /// Updates the arc center position (useful if the user moves)
         /// </summary>
         public void UpdateArcCenter(Vector3 newCenter)
         {
@@ -130,7 +130,7 @@ namespace ASL_LearnVR
         }
 
         /// <summary>
-        /// Obtiene referencia a un panel especifico por indice
+        /// Gets a reference to a specific panel by index
         /// </summary>
         public GameObject GetPanel(int index)
         {

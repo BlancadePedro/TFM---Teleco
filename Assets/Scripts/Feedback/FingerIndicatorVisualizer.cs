@@ -18,30 +18,30 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Prefab para indicador de advertencia (naranja)")]
         [SerializeField] private GameObject warningIndicatorPrefab;
 
-        [Tooltip("Prefab para indicador de correcto (verde)")]
+        [Tooltip("Prefab para indicador de correct (verde)")]
         [SerializeField] private GameObject correctIndicatorPrefab;
 
         [Tooltip("Prefab para indicador global de mano correcta")]
         [SerializeField] private GameObject handCorrectIndicatorPrefab;
 
         [Header("Settings")]
-        [Tooltip("Offset del indicador respecto al fingertip (en dirección forward)")]
+        [Tooltip("Offset del indicador regardingl fingertip (en direccion forward)")]
         [SerializeField] private float indicatorOffset = 0.015f;
 
-        [Tooltip("Escala de los indicadores")]
+        [Tooltip("Scale de los indicadores")]
         [SerializeField] private float indicatorScale = 0.025f;
 
         [Tooltip("Handedness de la mano a visualizar")]
         [SerializeField] private Handedness handedness = Handedness.Right;
 
-        [Tooltip("Componente XRHandTrackingEvents (opcional, para fallback)")]
+        [Tooltip("Component XRHandTrackingEvents (opcional, para fallback)")]
         [SerializeField] private XRHandTrackingEvents handTrackingEvents;
 
         [Header("Visibility")]
-        [Tooltip("Mostrar indicadores visuales")]
+        [Tooltip("Show indicatores visuales")]
         [SerializeField] private bool showIndicators = true;
 
-        [Tooltip("Mostrar indicador global cuando todos los dedos están correctos")]
+        [Tooltip("Show indicator global cuando todos los dedos estan corrects")]
         [SerializeField] private bool showHandCorrectIndicator = true;
 
         // Indicadores instanciados por dedo [5 dedos]
@@ -66,7 +66,7 @@ namespace ASL_LearnVR.Feedback
 
         void Start()
         {
-            // Crear indicadores iniciales (inactivos)
+            // Crear indicadores iniciales (inactives)
             InitializeIndicators();
         }
 
@@ -78,7 +78,7 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // Actualizar posiciones de indicadores activos
+            // Actualizar posiciones de indicadores actives
             UpdateIndicatorPositions();
         }
 
@@ -96,7 +96,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Inicializa los indicadores como objetos inactivos.
+        /// Inicializa los indicadores como objetos inactives.
         /// </summary>
         private void InitializeIndicators()
         {
@@ -104,7 +104,7 @@ namespace ASL_LearnVR.Feedback
             {
                 currentSeverities[i] = Severity.None;
 
-                // Crear un contenedor vacío que se llenará cuando sea necesario
+                // Crear un contenedor vacio que se llenara cuando sea necesario
                 fingerIndicators[i] = new GameObject($"FingerIndicator_{(Finger)i}");
                 fingerIndicators[i].transform.SetParent(transform);
                 fingerIndicators[i].SetActive(false);
@@ -120,7 +120,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Actualiza los indicadores basándose en los errores por dedo.
+        /// Actualiza los indicadores basandose en los errores por dedo.
         /// </summary>
         public void UpdateFromResult(StaticGestureResult result)
         {
@@ -130,7 +130,7 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // Si todo está correcto (el recognizer confirmó), mostrar solo indicador global
+            // Si todo esta correct (el recognizer confirmo), mostrar solo indicador global
             if (result.isMatchGlobal)
             {
                 ShowHandCorrect(true);
@@ -145,7 +145,7 @@ namespace ASL_LearnVR.Feedback
                 ShowHandCorrect(false);
             }
 
-            // Crear un array para rastrear qué dedos tienen errores
+            // Crear un array para rastrear que dedos tienen errores
             Severity[] fingerSeverities = new Severity[5];
             for (int i = 0; i < 5; i++)
                 fingerSeverities[i] = Severity.None;
@@ -158,7 +158,7 @@ namespace ASL_LearnVR.Feedback
                     if (error.severity != Severity.None)
                     {
                         int fingerIndex = (int)error.finger;
-                        // Mantener la severidad más alta si hay múltiples errores para el mismo dedo
+                        // Mantener la severidad mas alta si hay multiples errores para el mismo dedo
                         if ((int)error.severity > (int)fingerSeverities[fingerIndex])
                         {
                             fingerSeverities[fingerIndex] = error.severity;
@@ -167,7 +167,7 @@ namespace ASL_LearnVR.Feedback
                 }
             }
 
-            // Actualizar indicadores para TODOS los dedos (mostrar/ocultar según severidad)
+            // Actualizar indicadores para TODOS los dedos (mostrar/ocultar segun severidad)
             for (int i = 0; i < 5; i++)
             {
                 SetFingerIndicator((Finger)i, fingerSeverities[i]);
@@ -180,7 +180,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece el indicador para un dedo específico.
+        /// Establece el indicador para un dedo especifico.
         /// </summary>
         public void SetFingerIndicator(Finger finger, Severity severity)
         {
@@ -200,7 +200,7 @@ namespace ASL_LearnVR.Feedback
                 UpdateFingerIndicatorPrefab(index, severity);
             }
 
-            // Activar/desactivar según severidad
+            // Enable/desactivar segun severidad
             if (fingerIndicators[index] != null)
             {
                 bool shouldShow = showIndicators;
@@ -212,7 +212,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Actualiza el prefab del indicador según severidad.
+        /// Actualiza el prefab del indicador segun severidad.
         /// </summary>
         private void UpdateFingerIndicatorPrefab(int fingerIndex, Severity severity)
         {
@@ -230,11 +230,11 @@ namespace ASL_LearnVR.Feedback
                 fingerIndicators[fingerIndex].transform.SetParent(transform);
             }
 
-            // Seleccionar prefab según severidad
+            // Seleccionar prefab segun severidad
             GameObject prefab = severity switch
             {
                 Severity.Major => errorIndicatorPrefab,
-                Severity.Minor => errorIndicatorPrefab, // Sin estado naranja: los menores tambiÃ©n usan rojo
+                Severity.Minor => errorIndicatorPrefab, // No orange state: minor errors also use red
                 Severity.None => correctIndicatorPrefab,
                 _ => null
             };
@@ -248,7 +248,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Actualiza las posiciones de los indicadores según los joints de la mano.
+        /// Actualiza las posiciones de los indicadores segun los joints de la mano.
         /// </summary>
         private void UpdateIndicatorPositions()
         {
@@ -259,7 +259,7 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // Actualizar posición de cada indicador de dedo
+            // Actualizar posicion de cada indicador de dedo
             for (int i = 0; i < 5; i++)
             {
                 if (fingerIndicators[i] == null || !fingerIndicators[i].activeSelf)
@@ -275,7 +275,7 @@ namespace ASL_LearnVR.Feedback
                 }
             }
 
-            // Actualizar posición del indicador global (en la palma)
+            // Update indicator position global (en la palma)
             if (handIndicator != null && handIndicator.activeSelf)
             {
                 var palmJoint = hand.GetJoint(XRHandJointID.Palm);
@@ -352,7 +352,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa/desactiva la visualización de indicadores.
+        /// Activa/desactiva la visualizacion de indicadores.
         /// </summary>
         public void SetVisible(bool visible)
         {
@@ -364,7 +364,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// True si los indicadores están visibles.
+        /// True si los indicadores estan visibles.
         /// </summary>
         public bool IsVisible => showIndicators;
 

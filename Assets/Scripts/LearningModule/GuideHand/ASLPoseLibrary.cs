@@ -5,8 +5,8 @@ using System.Collections.Generic;
 namespace ASL_LearnVR.LearningModule.GuideHand
 {
     /// <summary>
-    /// Biblioteca de poses ASL predefinidas para las manos guía.
-    /// Convierte FingerConstraintProfile a HandPoseData con valores de rotación específicos.
+    /// Biblioteca de poses ASL predefinidas para las guide hands.
+    /// Converts FingerConstraintProfile to HandPoseData with specific rotation values.
     /// </summary>
     public static class ASLPoseLibrary
     {
@@ -33,7 +33,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             pose.ring = ConvertFingerConstraint(profile.ring);
             pose.pinky = ConvertFingerConstraint(profile.pinky);
 
-            // Orientación de muñeca si está definida
+            // Wrist orientation if defined
             if (profile.checkOrientation)
             {
                 pose.wristRotationOffset = CalculateWristRotation(profile.expectedPalmDirection);
@@ -51,11 +51,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
             if (string.IsNullOrEmpty(signName))
             {
-                Debug.LogWarning("[ASLPoseLibrary] signName vacío, retornando OpenHand");
+                Debug.LogWarning("[ASLPoseLibrary] signName is empty, returning OpenHand");
                 return HandPoseData.OpenHand();
             }
 
-            // PRIMERO: Buscar en poses predefinidas (tienen prioridad porque están ajustadas manualmente)
+            // FIRST: Search in predefined poses (they take priority as they are manually adjusted)
             var predefinedPose = GetPredefinedPose(signName.ToUpper());
             if (predefinedPose != null)
             {
@@ -71,7 +71,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 return FromConstraintProfile(profile);
             }
 
-            // TERCERO: Dígitos
+            // THIRD: Digits
             if (int.TryParse(signName, out int digit))
             {
                 profile = DigitConstraintProfiles.GetDigitProfile(digit);
@@ -82,7 +82,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 }
             }
 
-            Debug.LogWarning($"[ASLPoseLibrary] No se encontró pose para '{signName}', usando OpenHand");
+            Debug.LogWarning($"[ASLPoseLibrary] No found pose para '{signName}', usando OpenHand");
             return HandPoseData.OpenHand();
         }
 
@@ -140,7 +140,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
             var thumbPose = ThumbPoseData.FromCurlValue(targetCurl);
 
-            // Ajustar según posición especial
+            // Adjust according to special position
             if (constraint.shouldBeOverFingers)
             {
                 thumbPose = ThumbPoseData.OverFingers;
@@ -186,17 +186,17 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         private static Vector3 CalculateWristRotation(Vector3 expectedPalmDirection)
         {
-            // Convertir dirección de palma a rotación de muñeca
+            // Convert palm direction to wrist rotation
             if (expectedPalmDirection == Vector3.right)
-                return new Vector3(0, -90, 0); // Palma hacia la derecha
+                return new Vector3(0, -90, 0); // Palm hacia la derecha
             if (expectedPalmDirection == Vector3.left)
-                return new Vector3(0, 90, 0); // Palma hacia la izquierda
+                return new Vector3(0, 90, 0); // Palm hacia la izquierda
             if (expectedPalmDirection == Vector3.down)
-                return new Vector3(-90, 0, 0); // Palma hacia abajo
+                return new Vector3(-90, 0, 0); // Palm hacia abajo
             if (expectedPalmDirection == Vector3.up)
-                return new Vector3(90, 0, 0); // Palma hacia arriba
+                return new Vector3(90, 0, 0); // Palm hacia arriba
             if (expectedPalmDirection == Vector3.forward)
-                return Vector3.zero; // Palma hacia adelante (neutral)
+                return Vector3.zero; // Palm hacia adelante (neutral)
 
             return Vector3.zero;
         }
@@ -204,7 +204,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         #region Predefined ASL Poses
 
         /// <summary>
-        /// Letra A: Puño con pulgar al lado.
+        /// Letter A: Fist with thumb to the side.
         /// </summary>
         public static HandPoseData CreateLetterA()
         {
@@ -227,7 +227,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra B: Dedos extendidos y juntos (tocándose), pulgar cruzado en palma.
+        /// Letter B: Fingers extended and together (touching), thumb crossed over palm.
         /// </summary>
         public static HandPoseData CreateLetterB()
         {
@@ -235,15 +235,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "B",
                 thumb = ThumbPoseData.AcrossPalm,
-                // Dedos hacia el centro para que se junten y se toquen
-                // INVERTIDO: positivo = hacia centro para índice, negativo = hacia centro para meñique
+                // Fingers hacia el centro para que se junten y se toquen
+                // INVERTED: positive = toward center for index, negative = toward center for pinky
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 5f  // Índice hacia el centro (hacia meñique)
+                    spreadAngle = 5f  // Index toward center (toward pinky)
                 },
                 middle = new FingerPoseData
                 {
@@ -251,7 +251,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 1f// Corazón ligeramente hacia el centro
+                    spreadAngle = 1f// Middle ligeramente hacia el centro
                 },
                 ring = new FingerPoseData
                 {
@@ -259,7 +259,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -1f // Anular ligeramente hacia el centro
+                    spreadAngle = -1f // Ring ligeramente hacia el centro
                 },
                 pinky = new FingerPoseData
                 {
@@ -267,18 +267,18 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -5f  // Meñique hacia el centro (hacia índice)
+                    spreadAngle = -5f  // Pinky hacia el centro (hacia index)
                 }
             };
         }
 
         /// <summary>
-        /// Letra C: Mano curvada en forma de C.
-        /// Pulgar curvado hacia el índice pero sin llegar a tocar.
+        /// Letra C: Hand curvada en forma de C.
+        /// Thumb curvado hacia el index pero sin llegar a tocar.
         /// </summary>
         public static HandPoseData CreateLetterC()
         {
-            // Dedos curvados formando la parte superior de la C
+            // Fingers curvados formando la parte superior de la C
             var cCurve = new FingerPoseData
             {
                 metacarpalCurl = 0.1f,
@@ -291,10 +291,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "C",
-                // Rotación para ver la C desde el lado
+                // Rotation para ver la C desde el lado
                 wristRotationOffset = new Vector3(0f, 0f, 90f),
-                // Pulgar curvado formando la parte INFERIOR de la C
-                // Debe estar bien separado del índice para formar la apertura de la C
+                // Thumb curvado formando la parte INFERIOR de la C
+                // Debe estar bien separado del index para formar la apertura de la C
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.35f,
@@ -302,7 +302,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     distalCurl = 0.2f,
                     abductionAngle = 25f,
                     oppositionAngle = 15f,
-                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    distalTwist = -50f,    // Rotate nail upward
                     thumbPitch =-15f       // Hacia el usuario
                 },
                 index = cCurve,
@@ -313,7 +313,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra D: Índice extendido, otros tocan pulgar.
+        /// Letra D: Index extendido, otros tocan pulgar.
         /// </summary>
         public static HandPoseData CreateLetterD()
         {
@@ -373,14 +373,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra F: Índice y pulgar forman círculo (OK sign), otros extendidos.
+        /// Letter F: Index and thumb form a circle (OK sign), others extended.
         /// </summary>
         public static HandPoseData CreateLetterF()
         {
             return new HandPoseData
             {
                 poseName = "F",
-                // Pulgar curvado tocando el índice
+                // Thumb curvado tocando el index
                 wristRotationOffset = new Vector3(0f, 0f, 130f),
                 // RANGOS: abductionAngle [-45,45], oppositionAngle [-30,30]
                 thumb = new ThumbPoseData
@@ -390,10 +390,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     distalCurl = 0.2f,
                     abductionAngle = 25f,
                     oppositionAngle = 15f,
-                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    distalTwist = -50f,    // Rotate nail upward
                     thumbPitch =-15f       // Hacia el usuario
                 },
-                // Índice curvado para tocar el pulgar
+                // Index curvado para tocar el pulgar
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0.15f,
@@ -409,30 +409,30 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra G: Pulgar e índice extendidos en paralelo, apuntando al lado.
+        /// Letra G: Thumb e index extendidos en paralelo, apuntando al lado.
         /// </summary>
         public static HandPoseData CreateLetterG()
         {
             return new HandPoseData
             {
                 poseName = "G",
-                // Dedos apuntando a la izquierda (-90 Z) + girada sobre muñeca (-90 X) para ver pulgar-índice paralelos
+                // Fingers pointing left (-90 Z) + rotated over wrist (-90 X) to see thumb-index parallel
                 wristRotationOffset = new Vector3(0f, 70f, 90f),
                 wristPositionOffset = new Vector3(-0.08f, 0f, 0.12f), // Subir para no meter en la mesa
 
-                // Pulgar extendido en paralelo al índice
+                // Thumb extendido en paralelo al index
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     distalCurl = 0f,
-                    abductionAngle = 0f,       // Paralelo al índice (no separado)
+                    abductionAngle = 0f,       // Paralelo al index (no separado)
                     oppositionAngle = 0f,
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
 
-                // Índice completamente extendido
+                // Index completamente extendido
                 index = FingerPoseData.Extended,
 
                 middle = FingerPoseData.FullyCurled,
@@ -442,26 +442,26 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra H: Índice y corazón extendidos y juntos, horizontales.
+        /// Letter H: Index and middle extended and together, horizontal.
         /// </summary>
         public static HandPoseData CreateLetterH()
         {
             return new HandPoseData
             {
                 poseName = "H",
-                // Dedos apuntando a la izquierda, palma al usuario
+                // Fingers pointing a la izquierda, palma al usuario
                 wristRotationOffset = new Vector3(0f, 90f, 0f),
                 wristPositionOffset = new Vector3(-0.08f, 0f, 0.1f),
                 thumb = ThumbPoseData.AcrossPalm,
 
-                // Índice y corazón MUY juntos
+                // Index and middle VERY close together
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 1f   // Más hacia el corazón
+                    spreadAngle = 1f   // More toward the middle finger
                 },
                 middle = new FingerPoseData
                 {
@@ -469,7 +469,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -3f  // Más hacia el índice
+                    spreadAngle = -3f  // More toward index
                 },
 
                 ring = FingerPoseData.FullyCurled,
@@ -478,7 +478,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra I: Solo meñique extendido.
+        /// Letter I: Only pinky extended.
         /// </summary>
         public static HandPoseData CreateLetterI()
         {
@@ -494,7 +494,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra K: Índice y corazón en V, pulgar recto paralelo al índice tocándolo.
+        /// Letter K: Index and middle in V, thumb straight parallel to index touching it.
         /// </summary>
         public static HandPoseData CreateLetterK()
         {
@@ -503,26 +503,26 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = "K",
                 wristRotationOffset = new Vector3(0f, 0f, 30f),
 
-                // Pulgar recto, paralelo al índice, pegado a él
+                // Thumb straight, parallel to index, pressed against it
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     distalCurl = 0f,
-                    abductionAngle = 20f,          // Más hacia el índice
-                    oppositionAngle = 25f,         // Cruzar más hacia el índice
+                    abductionAngle = 20f,          // More toward index
+                    oppositionAngle = 25f,         // Cross further toward index
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
                 index = FingerPoseData.Extended,
-                // Corazón extendido y separado del índice (forma V)
+                // Middle extendido y separado del index (forma V)
                 middle = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 5f  // Separado del índice
+                    spreadAngle = 5f  // Separado del index
                 },
                 ring = FingerPoseData.FullyCurled,
                 pinky = FingerPoseData.FullyCurled
@@ -530,8 +530,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra L: Pulgar e índice extendidos en forma de L.
-        /// Pulgar más horizontal para formar una L más marcada.
+        /// Letra L: Thumb e index extendidos en forma de L.
+        /// Thumb more horizontal to form a more pronounced L.
         /// </summary>
         public static HandPoseData CreateLetterL()
         {
@@ -539,7 +539,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             {
                 poseName = "L",
                 wristRotationOffset = new Vector3(0f, 0f,-15f),
-                // Pulgar extendido y perpendicular al índice
+                // Thumb extendido y perpendicular al index
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0f,
@@ -558,15 +558,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra M: Índice, corazón y anular en tip curl, meñique full curl,
-        /// pulgar lo más cruzado posible (metido debajo de los dedos).
+        /// Letter M: Index, middle, and ring in tip curl, pinky full curl,
+        /// thumb as crossed as possible (tucked under the fingers).
         /// </summary>
         public static HandPoseData CreateLetterM()
         {
             return new HandPoseData
             {
                 poseName = "M",
-                // Pulgar cruzado pero más estirado
+                // Thumb crossed but more extended
              thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.4f,
@@ -585,7 +585,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra N: Índice y corazón en tip curl, anular y meñique full curl,
+        /// Letter N: Index and middle in tip curl, ring and pinky full curl,
         /// pulgar cruzado en mitad de la palma.
         /// </summary>
         public static HandPoseData CreateLetterN()
@@ -593,7 +593,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "N",
-                // Pulgar cruzado en mitad de palma
+                // Thumb cruzado en mitad de palma
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.4f,
@@ -612,11 +612,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra O: Pulgar tocando índice formando un círculo.
+        /// Letter O: Thumb touching index forming a circle.
         /// </summary>
         public static HandPoseData CreateLetterO()
         {
-            // Dedos curvados acompañando la O
+            // Fingers curled alongside the O
             var partiallyCurled = new FingerPoseData
             {
                 metacarpalCurl = 0.15f,
@@ -629,7 +629,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = "O",
-                // Pulgar curvado tocando el índice - forma círculo
+                // Thumb curled touching index - forms circle
                 wristRotationOffset = new Vector3(0f, 0f, 90f),
                 // RANGOS: abductionAngle [-45,45], oppositionAngle [-30,30]
                 thumb = new ThumbPoseData
@@ -639,10 +639,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     distalCurl = 0.2f,
                     abductionAngle = 25f,
                     oppositionAngle = 15f,
-                    distalTwist = -50f,    // Rotar uña hacia arriba
+                    distalTwist = -50f,    // Rotate nail upward
                     thumbPitch =-15f       // Hacia el usuario
                 },
-                // Índice más curvado para tocar el pulgar
+                // Index more curled to touch the thumb
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0.15f,
@@ -658,7 +658,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra P: Igual que K (pulgar e índice paralelos, corazón en V) pero apuntando hacia abajo.
+        /// Letter P: Same as K (thumb and index parallel, middle in V) but pointing downward.
         /// </summary>
         public static HandPoseData CreateLetterP()
         {
@@ -668,26 +668,26 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 // Como K pero apuntando abajo
                 wristRotationOffset = new Vector3(0f, 180f, 30f),
                 wristPositionOffset = new Vector3(0f, 0f, 0.2f),
-                // Pulgar recto, paralelo al índice, pegado a él
+                // Thumb straight, parallel to index, pressed against it
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     distalCurl = 0f,
-                    abductionAngle = 20f,          // Más hacia el índice
-                    oppositionAngle = 25f,         // Cruzar más hacia el índice
+                    abductionAngle = 20f,          // More toward index
+                    oppositionAngle = 25f,         // Cross further toward index
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
                 index = FingerPoseData.Extended,
-                // Corazón extendido y separado del índice (forma V)
+                // Middle extendido y separado del index (forma V)
                 middle = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 5f  // Separado del índice
+                    spreadAngle = 5f  // Separado del index
                 },
                 ring = FingerPoseData.FullyCurled,
                 pinky = FingerPoseData.FullyCurled
@@ -695,30 +695,30 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra Q: Igual que G (pulgar e índice paralelos) pero apuntando hacia abajo.
+        /// Letra Q: Igual que G (pulgar e index paralelos) pero apuntando hacia abajo.
         /// </summary>
         public static HandPoseData CreateLetterQ()
         {
             return new HandPoseData
             {
                 poseName = "Q",
-                // Mano girada para que índice apunte hacia abajo
+                // Hand girada para que index apunte hacia abajo
                 wristRotationOffset = new Vector3(0f, 180f, 90f),
                 wristPositionOffset = new Vector3(0f, 0f, 0.2f),
 
-                // Pulgar extendido en paralelo al índice
+                // Thumb extendido en paralelo al index
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     distalCurl = 0f,
-                    abductionAngle = 0f,       // Paralelo al índice
+                    abductionAngle = 0f,       // Paralelo al index
                     oppositionAngle = 0f,
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
 
-                // Índice completamente extendido
+                // Index completamente extendido
                 index = FingerPoseData.Extended,
 
                 middle = FingerPoseData.FullyCurled,
@@ -728,7 +728,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra R: Índice y corazón cruzados (corazón sobre índice).
+        /// Letter R: Index and middle crossed (middle over index).
         /// </summary>
         public static HandPoseData CreateLetterR()
         {
@@ -737,23 +737,23 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = "R",
                 thumb = ThumbPoseData.AcrossPalm,
 
-                // Índice extendido, ligeramente separado para dejar cruzar el corazón
+                // Index extended, slightly separated to let the middle cross over
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 10f  // Hacia fuera para que el corazón pase por encima
+                    spreadAngle = 10f  // Outward so the middle can pass over
                 },
-                // Corazón cruza sobre el índice
+                // Middle cruza sobre el index
                 middle = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -10f   // Cruza por encima del índice
+                    spreadAngle = -10f   // Cruza por encima del index
                 },
 
                 ring = FingerPoseData.FullyCurled,
@@ -762,7 +762,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra S: Puño con pulgar sobre los dedos.
+        /// Letter S: Fist with thumb over the fingers.
         /// </summary>
         public static HandPoseData CreateLetterS()
         {
@@ -778,22 +778,22 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 }
 
         /// <summary>
-        /// Letra T: Índice en tip curl, resto full curl,
-        /// pulgar cerca del índice (metido entre índice y corazón).
+        /// Letra T: Index in tip curl, resto full curl,
+        /// thumb close to index (tucked between index and middle).
         /// </summary>
         public static HandPoseData CreateLetterT()
         {
             return new HandPoseData
             {
                 poseName = "T",
-                // Pulgar cerca del índice, metido entre índice y corazón
+                // Thumb close to index, tucked between index and middle
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.3f,
                     proximalCurl = 0.5f,
                     distalCurl = 0.4f,
-                    abductionAngle = 10f,      // Hacia el índice
-                    oppositionAngle = 20f,     // Cruzar hacia el índice
+                    abductionAngle = 10f,      // Hacia el index
+                    oppositionAngle = 20f,     // Cruzar hacia el index
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
@@ -805,7 +805,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra U: Índice y corazón extendidos juntos, resto cerrados.
+        /// Letter U: Index and middle extended together, rest closed.
         /// </summary>
         public static HandPoseData CreateLetterU()
         {
@@ -814,14 +814,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = "U",
                 thumb = ThumbPoseData.AcrossPalm,
 
-                // Índice y corazón MUY juntos (como H pero sin girar muñeca)
+                // Index and middle VERY close together (como H pero sin girar muneca)
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0f,
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 0f   // Hacia el corazón
+                    spreadAngle = 0f   // Toward the middle
                 },
                 middle = new FingerPoseData
                 {
@@ -829,7 +829,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -3f  // Hacia el índice
+                    spreadAngle = -3f  // Hacia el index
                 },
 
                 // Resto cerrados
@@ -840,7 +840,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
 
         /// <summary>
-        /// Letra V: Índice y medio extendidos en V.
+        /// Letra V: Index y medio extendidos en V.
         /// </summary>
         public static HandPoseData CreateLetterV()
         {
@@ -856,39 +856,39 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra W: Índice, medio y anular extendidos.
+        /// Letra W: Index, medio y anular extendidos.
         /// </summary>
         public static HandPoseData CreateLetterW()
         {
             return new HandPoseData
             {
                 poseName = "W",
-                // Pulgar cruzado sobre la palma sujetando el meñique
+                // Thumb crossed over palm holding the pinky
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.4f,
                     proximalCurl = 0.6f,
                     distalCurl = 0.5f,
-                    abductionAngle = -25f,     // Más hacia dentro
-                    oppositionAngle = 30f      // Cruzar hacia meñique
+                    abductionAngle = -25f,     // More inward
+                    oppositionAngle = 30f      // Cross toward pinky
                 },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
-                // Meñique bien curvado hacia el pulgar, más diagonal
+                // Pinky well curled toward thumb, more diagonal
                 pinky = new FingerPoseData
                 {
                     metacarpalCurl = 0.3f,
                     proximalCurl = 0.6f,       // Muy curvado
                     intermediateCurl = 0.65f,  // Muy curvado
                     distalCurl = 0.4f,         // Muy curvado
-                    spreadAngle = 0f         // Mucho más hacia el pulgar (diagonal)
+                    spreadAngle = 0f         // Much more toward thumb (diagonal)
                 }
             };
         }
 
         /// <summary>
-        /// Letra X: Índice en forma de gancho, resto cerrados.
+        /// Letra X: Index en forma de gancho, resto cerrados.
         /// </summary>
         public static HandPoseData CreateLetterX()
         {
@@ -897,7 +897,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = "X",
                 thumb = ThumbPoseData.AcrossPalm,
 
-                // Índice en forma de GANCHO (hook)
+                // Index en forma de GANCHO (hook)
                 wristRotationOffset = new Vector3(0f, 0f, 60f),
                 // Proximal ligeramente curvado, intermediate y distal muy curvados
                 index = new FingerPoseData
@@ -916,7 +916,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra Y: Pulgar y meñique extendidos (hang loose).
+        /// Letter Y: Thumb and pinky extended (hang loose).
         /// </summary>
         public static HandPoseData CreateLetterY()
         {
@@ -948,7 +948,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 1: Índice extendido.
+        /// Digit 1: Index extended.
         /// </summary>
         public static HandPoseData CreateDigit1()
         {
@@ -964,7 +964,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 2: Índice y medio extendidos.
+        /// Digit 2: Index and middle extended.
         /// </summary>
         public static HandPoseData CreateDigit2()
         {
@@ -980,7 +980,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 3: Pulgar, índice y medio extendidos.
+        /// Digit 3: Thumb, index and middle extended.
         /// </summary>
         public static HandPoseData CreateDigit3()
         {
@@ -1005,7 +1005,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 4: Cuatro dedos extendidos, pulgar cerrado.
+        /// Digit 4: Four fingers extended, thumb closed.
         /// </summary>
         public static HandPoseData CreateDigit4()
         {
@@ -1021,11 +1021,11 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 5: Mano abierta, todos los dedos extendidos.
+        /// Digit 5: Open hand, all fingers extended.
         /// </summary>
         public static HandPoseData CreateDigit5()
         {
-            // Mano abierta con dedos separados entre sí
+            // Open hand with fingers spread apart
             return new HandPoseData
             {
                 poseName = "5",
@@ -1053,7 +1053,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = -2f  // Ligeramente hacia el índice
+                    spreadAngle = -2f  // Ligeramente hacia el index
                 },
                 ring = new FingerPoseData
                 {
@@ -1061,7 +1061,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0f,
                     intermediateCurl = 0f,
                     distalCurl = 0f,
-                    spreadAngle = 2f   // Ligeramente hacia el meñique
+                    spreadAngle = 2f   // Slightly toward pinky
                 },
                 pinky = new FingerPoseData
                 {
@@ -1075,41 +1075,41 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 6: Pulgar toca meñique (tip curl), resto extendidos.
+        /// Digit 6: Thumb touches pinky (tip curl), rest extended.
         /// </summary>
         public static HandPoseData CreateDigit6()
         {
             return new HandPoseData
             {
                 poseName = "6",
-                // Pulgar cruzado hacia meñique
+                // Thumb cruzado hacia menique
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.4f,
                     proximalCurl = 0.6f,
                     distalCurl = 0.5f,
-                    abductionAngle = -25f,     // Hacia dentro (meñique)
-                    oppositionAngle = 30f,     // Máximo cruce hacia meñique
+                    abductionAngle = -25f,     // Hacia dentro (menique)
+                    oppositionAngle = 30f,     // Maximum cruce hacia menique
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
-                // Meñique en tip curl para tocar el pulgar
+                // Pinky in tip curl para tocar el pulgar
                 pinky = FingerPoseData.TipCurl
             };
         }
 
         /// <summary>
-        /// Dígito 7: Pulgar toca anular (tip curl), índice+corazón+meñique extendidos.
+        /// Digito 7: Thumb toca anular (tip curl), index+corazon+menique extendidos.
         /// </summary>
         public static HandPoseData CreateDigit7()
         {
             return new HandPoseData
             {
                 poseName = "7",
-                // Pulgar cruzado hacia anular
+                // Thumb cruzado hacia anular
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.35f,
@@ -1122,33 +1122,33 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 },
                 index = FingerPoseData.Extended,
                 middle = FingerPoseData.Extended,
-                // Anular en tip curl para tocar el pulgar
+                // Ring in tip curl para tocar el pulgar
                 ring = FingerPoseData.TipCurl,
                 pinky = FingerPoseData.Extended
             };
         }
 
         /// <summary>
-        /// Dígito 8: Pulgar toca corazón (tip curl), índice+anular+meñique extendidos.
+        /// Digito 8: Thumb toca corazon (tip curl), index+anular+menique extendidos.
         /// </summary>
         public static HandPoseData CreateDigit8()
         {
             return new HandPoseData
             {
                 poseName = "8",
-                // Pulgar cruzado hacia corazón
+                // Thumb cruzado hacia corazon
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.3f,
                     proximalCurl = 0.45f,
                     distalCurl = 0.4f,
                     abductionAngle = -5f,      // Ligeramente hacia dentro
-                    oppositionAngle = 20f,     // Cruce hacia corazón
+                    oppositionAngle = 20f,     // Cruce hacia corazon
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
                 index = FingerPoseData.Extended,
-                // Corazón en tip curl para tocar el pulgar
+                // Middle in tip curl para tocar el pulgar
                 middle = FingerPoseData.TipCurl,
                 ring = FingerPoseData.Extended,
                 pinky = FingerPoseData.Extended
@@ -1156,25 +1156,25 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 9: Pulgar toca índice (tip curl), corazón+anular+meñique extendidos.
+        /// Digito 9: Thumb toca index (tip curl), corazon+anular+menique extendidos.
         /// </summary>
         public static HandPoseData CreateDigit9()
         {
             return new HandPoseData
             {
                 poseName = "9",
-                // Pulgar hacia índice (similar a F/O)
+                // Thumb hacia index (similar a F/O)
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.3f,
                     proximalCurl = 0.4f,
                     distalCurl = 0.35f,
-                    abductionAngle = 10f,      // Hacia el índice
-                    oppositionAngle = 15f,     // Cruce hacia índice
+                    abductionAngle = 10f,      // Hacia el index
+                    oppositionAngle = 15f,     // Cruce hacia index
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
-                // Índice en tip curl para tocar el pulgar
+                // Index in tip curl para tocar el pulgar
                 index = FingerPoseData.TipCurl,
                 middle = FingerPoseData.Extended,
                 ring = FingerPoseData.Extended,
@@ -1183,7 +1183,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Dígito 0: Igual que la letra O (pulgar toca índice formando círculo).
+        /// Digito 0: Igual que la letra O (pulgar toca index formando circulo).
         /// </summary>
         public static HandPoseData CreateDigit0()
         {
@@ -1230,7 +1230,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Obtiene una secuencia animada si el signo la requiere.
-        /// Retorna null si el signo no necesita animación.
+        /// Retorna null si el signo no necesita animacion.
         /// </summary>
         public static AnimatedPoseSequence GetAnimatedPose(string signName)
         {
@@ -1267,7 +1267,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 "BLACK" => CreateSignBlack(),
                 "GRAY" => CreateSignGray(),
                 "WHITE" => CreateSignWhite(),
-                // Meses (secuencias de 3 letras — signNames en español)
+                // Meses (secuencias de 3 letras — signNames en espanol)
                 "ENERO" => CreateMonthSequence("Enero", "J", "A", "N"),
                 "FEBRERO" => CreateMonthSequence("Febrero", "F", "E", "B"),
                 "MARZO" => CreateMonthSequence("Marzo", "M", "A", "R"),
@@ -1296,7 +1296,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Indica si un signo requiere animación de ambas manos.
+        /// Indica si un signo requiere animacion de ambas manos.
         /// </summary>
         public static bool IsDoubleHandedSign(string signName)
         {
@@ -1337,12 +1337,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra J: Pose de I (meñique extendido) + muñeca dibuja una J.
+        /// Letra J: Pose de I (menique extendido) + muneca dibuja una J.
         /// Movimiento: abajo + curva hacia la izquierda.
         /// </summary>
         private static AnimatedPoseSequence CreateLetterJ()
         {
-            // Pose base: igual que I (meñique extendido)
+            // Pose base: igual que I (menique extendido)
             var basePose = CreateLetterI();
 
             return new AnimatedPoseSequence
@@ -1388,7 +1388,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristRotationOffset = Vector3.zero,
                         wristPositionOffset = new Vector3(-0.06f, 0f, 0.02f)
                     }),
-                    // Final curva: más a la izquierda, subiendo un poco
+                    // Final curva: mas a la izquierda, subiendo un poco
                     new PoseKeyframe(0.5f, new HandPoseData
                     {
                         poseName = "J_end",
@@ -1417,12 +1417,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Letra Z: Pose de 1 (índice extendido) + muñeca dibuja una Z.
+        /// Letra Z: Pose de 1 (index extendido) + muneca dibuja una Z.
         /// Movimiento: derecha + diagonal abajo-izquierda + derecha.
         /// </summary>
         private static AnimatedPoseSequence CreateLetterZ()
         {
-            // Pose base: igual que 1 (índice extendido)
+            // Pose base: igual que 1 (index extendido)
             var basePose = CreateDigit1();
 
             return new AnimatedPoseSequence
@@ -1444,7 +1444,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristRotationOffset = Vector3.zero,
                         wristPositionOffset = new Vector3(0.04f, 0f, 0.08f)
                     }),
-                    // Trazo horizontal: arriba-izquierda (primera línea de la Z: der→izq)
+                    // Trazo horizontal: arriba-izquierda (primera linea de la Z: der→izq)
                     new PoseKeyframe(0.5f, new HandPoseData
                     {
                         poseName = "Z_left",
@@ -1456,7 +1456,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristRotationOffset = Vector3.zero,
                         wristPositionOffset = new Vector3(-0.04f, 0f, 0.08f)
                     }),
-                    // Diagonal: abajo-derecha (en el mismo plano X-Z, diagonal más corta)
+                    // Diagonal: abajo-derecha (en el mismo plano X-Z, diagonal mas corta)
                     new PoseKeyframe(1.0f, new HandPoseData
                     {
                         poseName = "Z_diag",
@@ -1468,7 +1468,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                         wristRotationOffset = Vector3.zero,
                         wristPositionOffset = new Vector3(0.04f, 0f, 0.02f)
                     }),
-                    // Trazo horizontal: abajo-izquierda (última línea de la Z: der→izq)
+                    // Trazo horizontal: abajo-izquierda (ultima linea de la Z: der→izq)
                     new PoseKeyframe(1.5f, new HandPoseData
                     {
                         poseName = "Z_end",
@@ -1500,7 +1500,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Pose base de pulgar arriba (para "Good").
-        /// Rotación Y+90 para que el pulgar apunte hacia arriba.
+        /// Rotation Y+90 para que el pulgar apunte hacia arriba.
         /// </summary>
         private static HandPoseData CreateThumbsUpPose(Vector3 wristPos)
         {
@@ -1528,7 +1528,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Pose base de pulgar abajo (para "Bad").
-        /// Rotación Y-90 para que el pulgar apunte hacia abajo.
+        /// Rotation Y-90 para que el pulgar apunte hacia abajo.
         /// </summary>
         private static HandPoseData CreateThumbsDownPose(Vector3 wristPos)
         {
@@ -1555,7 +1555,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Pose de mano para Hello/ThankYou: dedos juntos (como B), pulgar extendido pegado al índice.
+        /// Pose de mano para Hello/ThankYou: dedos juntos (como B), pulgar extendido pegado al index.
         /// </summary>
         private static HandPoseData CreateHelloHandPose(string name, Vector3 wristPos, Vector3 wristRot)
         {
@@ -1564,18 +1564,18 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = name,
                 wristRotationOffset = wristRot,
                 wristPositionOffset = wristPos,
-                // Pulgar extendido pero pegado al índice
+                // Thumb extendido pero pegado al index
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.1f,
                     proximalCurl = 0.15f,
                     distalCurl = 0.1f,
-                    abductionAngle = 15f,   // Cerca del índice
+                    abductionAngle = 15f,   // Cerca del index
                     oppositionAngle = 0f,
                     distalTwist = 0f,
                     thumbPitch = 0f
                 },
-                // Dedos juntos como B
+                // Fingers juntos como B
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0f, proximalCurl = 0f, intermediateCurl = 0f, distalCurl = 0f,
@@ -1609,7 +1609,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 poseName = name,
                 wristRotationOffset = new Vector3(0f, 20f, 0f),
                 wristPositionOffset = wristPos,
-                // Pulgar extendido pegado al índice (no doblado)
+                // Thumb extendido pegado al index (no doblado)
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.1f,
@@ -1644,7 +1644,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Hello: Palma abierta + oscilación de muñeca en Y (mismo movimiento que Good/Bad).
+        /// Hello: Palm abierta + oscilacion de muneca en Y (mismo movimiento que Good/Bad).
         /// </summary>
         private static AnimatedPoseSequence CreateSignHello()
         {
@@ -1653,7 +1653,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Bye: Palma abierta que se cierra (como A) repetidamente.
+        /// Bye: Palm abierta que se cierra (como A) repetidamente.
         /// </summary>
         private static AnimatedPoseSequence CreateSignBye()
         {
@@ -1663,7 +1663,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Alternar entre palma abierta y puño A
+                    // Alternar entre palma abierta y puno A
                     new PoseKeyframe(0f, CreateHelloHandPose("Bye_open1", new Vector3(0f, 0f, 0.1f), Vector3.zero)),
                     new PoseKeyframe(0.3f, WithWristOffset(CreateLetterA(), "Bye_close1", new Vector3(0f, 0f, 0.1f))),
                     new PoseKeyframe(0.6f, CreateHelloHandPose("Bye_open2", new Vector3(0f, 0f, 0.1f), Vector3.zero)),
@@ -1675,7 +1675,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Yes: Puño (S) con movimiento de muñeca adelante-atrás (rotación X, como tocar una puerta).
+        /// Yes: Puno (S) con movimiento de muneca adelante-atras (rotacion X, como tocar una puerta).
         /// </summary>
         private static AnimatedPoseSequence CreateSignYes()
         {
@@ -1688,7 +1688,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Knocking: rotación X de la muñeca (pivot adelante-atrás)
+                    // Knocking: rotacion X de la muneca (pivot adelante-atras)
                     new PoseKeyframe(0f,    WithWristTransform(fist, "Yes_up",     new Vector3(0f, 0f, 0f),    fixedPos)),
                     new PoseKeyframe(0.12f, WithWristTransform(fist, "Yes_knock1", new Vector3(-30f, 0f, 0f), fixedPos)),
                     new PoseKeyframe(0.22f, WithWristTransform(fist, "Yes_up2",    new Vector3(0f, 0f, 0f),    fixedPos)),
@@ -1700,7 +1700,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// No: Pose H (índice y corazón horizontales) oscilando lado a lado.
+        /// No: Pose H (index y corazon horizontales) oscilando lado a lado.
         /// </summary>
         private static AnimatedPoseSequence CreateSignNo()
         {
@@ -1713,7 +1713,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 keyframes = new PoseKeyframe[]
                 {
                     // H ya tiene wristRotationOffset=(0,90,0) → dedos horizontales
-                    // Más arriba y a la derecha para no superponerse con la otra mano
+                    // Mas arriba y a la derecha para no superponerse con la otra mano
                     new PoseKeyframe(0f, WithWristOffset(hPose, "No_center", new Vector3(-0.08f, 0f, 0.16f))),
                     new PoseKeyframe(0.12f, WithWristOffset(hPose, "No_right", new Vector3(-0.12f, 0f, 0.16f))),
                     new PoseKeyframe(0.3f, WithWristOffset(hPose, "No_left", new Vector3(-0.04f, 0f, 0.16f))),
@@ -1725,19 +1725,19 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Thank You (mano derecha): Empieza en posición default, manos ladeadas formando pico,
+        /// Thank You (mano derecha): Empieza en posicion default, manos ladeadas formando pico,
         /// luego se abren hacia adelante y horizontal.
         /// </summary>
         private static AnimatedPoseSequence CreateSignThankYou()
         {
-            // Mano DERECHA: meñique hacia el centro → Z negativo (inclina meñique a la izquierda)
+            // Hand DERECHA: menique hacia el centro → Z negativo (inclina menique a la izquierda)
             return new AnimatedPoseSequence
             {
                 poseName = "ThankYou",
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Inicio: posición de referencia, inclinada 45° (meñique hacia el centro)
+                    // Inicio: posicion de referencia, inclinada 45° (menique hacia el centro)
                     new PoseKeyframe(0f, CreateHelloHandPose("TY_start", new Vector3(0f, 0f, 0.08f), new Vector3(0f, 0f, 45f))),
                     // Intermedio: avanza hacia adelante (Y+), se va aplanando
                     new PoseKeyframe(0.3f, CreateHelloHandPose("TY_mid", new Vector3(0f, 0.05f, 0.06f), new Vector3(-25f, 0f, 30f))),
@@ -1750,7 +1750,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Thank You (mano izquierda): Z invertido (meñique hacia el centro = Z positivo).
+        /// Thank You (mano izquierda): Z invertido (menique hacia el centro = Z positivo).
         /// </summary>
         private static AnimatedPoseSequence CreateSignThankYouLeftHand()
         {
@@ -1760,7 +1760,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Mano IZQUIERDA: meñique hacia el centro → Z positivo (espejo a 45°)
+                    // Hand IZQUIERDA: menique hacia el centro → Z positivo (espejo a 45°)
                     new PoseKeyframe(0f, CreateHelloHandPose("TYL_start", new Vector3(0f, 0f, 0.08f), new Vector3(0f, 0f, -45f))),
                     new PoseKeyframe(0.3f, CreateHelloHandPose("TYL_mid", new Vector3(0f, 0.05f, 0.06f), new Vector3(-25f, 0f, -30f))),
                     new PoseKeyframe(0.7f, CreateHelloHandPose("TYL_end", new Vector3(0f, 0.1f, 0.04f), new Vector3(-50f, 0f, -15f))),
@@ -1775,10 +1775,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         private static AnimatedPoseSequence CreateSignPlease()
         {
-            float r = 0.04f;  // Radio del círculo
-            float cz = 0.06f; // Centro Z
+            float r = 0.04f;  // Radius del circulo
+            float cz = 0.06f; // Center Z
             float d = r * 0.707f; // cos(45°) para puntos diagonales
-            float lap = 0.56f; // Duración de una vuelta
+            float lap = 0.56f; // Duration de una vuelta
 
             return new AnimatedPoseSequence
             {
@@ -1812,22 +1812,22 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Good: Pulgar arriba, muñeca fija, mano pivota de abajo a arriba (rotación X).
+        /// Good: Thumb arriba, muneca fija, mano pivota de abajo a arriba (rotacion X).
         /// </summary>
         private static AnimatedPoseSequence CreateSignGood()
         {
-            // Mismo movimiento que Blue: oscilación Y ±30°, muñeca fija
+            // Same movement as Blue: Y oscillation ±30°, fixed wrist
             var basePose = CreateThumbsUpPose(Vector3.zero);
             basePose.wristPositionOffset = new Vector3(-0.08f, 0f, 0.14f);
             return CreateWristTwistAnimation("Good", basePose);
         }
 
         /// <summary>
-        /// Bad: Pulgar abajo + mismo movimiento que Blue (oscilación Y).
+        /// Bad: Thumb abajo + mismo movimiento que Blue (oscilacion Y).
         /// </summary>
         private static AnimatedPoseSequence CreateSignBad()
         {
-            // Mismo movimiento que Blue: oscilación Y ±30°, muñeca fija
+            // Same movement as Blue: Y oscillation ±30°, fixed wrist
             var basePose = CreateThumbsDownPose(Vector3.zero);
             basePose.wristPositionOffset = new Vector3(-0.08f, 0f, 0.14f);
             return CreateWristTwistAnimation("Bad", basePose);
@@ -1874,8 +1874,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         #region Days of the Week
 
         /// <summary>
-        /// Helper: crea una copia de una pose SUMANDO rotación extra a la rotación existente de la pose.
-        /// Así se preserva la orientación original de la letra (ej: G horizontal) al animar.
+        /// Helper: crea una copia de una pose SUMANDO rotacion extra a la rotacion existente de la pose.
+        /// Asi se preserva la orientacion original de la letra (ej: G horizontal) al animar.
         /// </summary>
         private static HandPoseData WithAddedWristRotation(HandPoseData basePose, string name, Vector3 addedRot, Vector3 wristPos)
         {
@@ -1893,15 +1893,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Helper: oscilación de muñeca en eje Y (gira de lado a lado).
-        /// La muñeca se queda fija en su sitio, la mano oscila en Y.
-        /// Usada por días de la semana y colores con "twist".
+        /// Helper: oscilacion de muneca en eje Y (gira de lado a lado).
+        /// La muneca se queda fija en su sitio, la mano oscila en Y.
+        /// Usada por dias de la semana y colores con "twist".
         /// </summary>
         private static AnimatedPoseSequence CreateWristTwistAnimation(
             string signName, HandPoseData basePose, float amplitude = 30f)
         {
             float a = amplitude;
-            // Posición fija: usar la de la pose base o un default
+            // Position fija: usar la de la pose base o un default
             var pos = basePose.wristPositionOffset;
             if (pos == Vector3.zero) pos = new Vector3(0f, 0f, 0.06f);
 
@@ -1911,7 +1911,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Oscilación Y: derecha → izquierda → derecha → izquierda → centro
+                    // Oscilacion Y: derecha → izquierda → derecha → izquierda → centro
                     new PoseKeyframe(0f,    WithAddedWristRotation(basePose, $"{signName}_r1",   new Vector3(0f, a, 0f),    pos)),
                     new PoseKeyframe(0.2f,  WithAddedWristRotation(basePose, $"{signName}_l1",   new Vector3(0f, -a, 0f),   pos)),
                     new PoseKeyframe(0.4f,  WithAddedWristRotation(basePose, $"{signName}_r2",   new Vector3(0f, a, 0f),    pos)),
@@ -1924,8 +1924,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Helper: oscilación de muñeca en eje Z (gira como Hello wave).
-        /// La muñeca se queda fija, la mano oscila en Z.
+        /// Helper: oscilacion de muneca en eje Z (gira como Hello wave).
+        /// La muneca se queda fija, la mano oscila en Z.
         /// </summary>
         private static AnimatedPoseSequence CreateZOscillationAnimation(
             string signName, HandPoseData basePose, float amplitude = 20f)
@@ -1951,9 +1951,9 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Helper: movimiento circular de muñeca (circumducción).
-        /// La muñeca se queda quieta y la mano gira en círculo combinando rotación (X,Z) y posición (X,Z).
-        /// Usada por los días de la semana (Mon, Tue, Wed, Fri, Sat).
+        /// Helper: movimiento circular de muneca (circumduccion).
+        /// La muneca se queda quieta y la mano gira en circulo combinando rotacion (X,Z) y posicion (X,Z).
+        /// Usada por los dias de la semana (Mon, Tue, Wed, Fri, Sat).
         /// </summary>
         private static AnimatedPoseSequence CreateWristCircleAnimation(
             string signName, HandPoseData basePose, float amplitude = 20f, float radius = 0.03f)
@@ -1971,7 +1971,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Círculo 1 (8 puntos)
+                    // Circulo 1 (8 puntos)
                     new PoseKeyframe(0f,    WithAddedWristRotation(basePose, $"{signName}_0",  new Vector3(a, 0f, 0f),       pos0 + new Vector3(0f, 0f, r))),
                     new PoseKeyframe(0.08f, WithAddedWristRotation(basePose, $"{signName}_1",  new Vector3(a*d, 0f, a*d),    pos0 + new Vector3(r*d, 0f, r*d))),
                     new PoseKeyframe(0.16f, WithAddedWristRotation(basePose, $"{signName}_2",  new Vector3(0f, 0f, a),        pos0 + new Vector3(r, 0f, 0f))),
@@ -1981,7 +1981,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0.48f, WithAddedWristRotation(basePose, $"{signName}_6",  new Vector3(0f, 0f, -a),       pos0 + new Vector3(-r, 0f, 0f))),
                     new PoseKeyframe(0.56f, WithAddedWristRotation(basePose, $"{signName}_7",  new Vector3(a*d, 0f, -a*d),   pos0 + new Vector3(-r*d, 0f, r*d))),
                     new PoseKeyframe(0.64f, WithAddedWristRotation(basePose, $"{signName}_8",  new Vector3(a, 0f, 0f),       pos0 + new Vector3(0f, 0f, r))),
-                    // Círculo 2
+                    // Circulo 2
                     new PoseKeyframe(0.72f, WithAddedWristRotation(basePose, $"{signName}_9",  new Vector3(a*d, 0f, a*d),    pos0 + new Vector3(r*d, 0f, r*d))),
                     new PoseKeyframe(0.80f, WithAddedWristRotation(basePose, $"{signName}_10", new Vector3(0f, 0f, a),        pos0 + new Vector3(r, 0f, 0f))),
                     new PoseKeyframe(0.88f, WithAddedWristRotation(basePose, $"{signName}_11", new Vector3(-a*d, 0f, a*d),   pos0 + new Vector3(r*d, 0f, -r*d))),
@@ -1997,7 +1997,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Monday: Letra M + círculos sobre la muñeca.
+        /// Monday: Letra M + circulos sobre la muneca.
         /// </summary>
         private static AnimatedPoseSequence CreateSignMonday()
         {
@@ -2005,7 +2005,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Tuesday: Letra T + círculos sobre la muñeca.
+        /// Tuesday: Letra T + circulos sobre la muneca.
         /// </summary>
         private static AnimatedPoseSequence CreateSignTuesday()
         {
@@ -2013,7 +2013,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Wednesday: Letra W + círculos sobre la muñeca.
+        /// Wednesday: Letra W + circulos sobre la muneca.
         /// </summary>
         private static AnimatedPoseSequence CreateSignWednesday()
         {
@@ -2039,7 +2039,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0f, WithWristOffset(tPose, "Thu_T_start", pos)),
                     // Mantener T un momento
                     new PoseKeyframe(0.5f, WithWristOffset(tPose, "Thu_T_hold", pos)),
-                    // Transición a H (los dedos se abren)
+                    // Transition a H (los dedos se abren)
                     new PoseKeyframe(0.9f, WithWristOffset(hPose, "Thu_H_arrive", pos)),
                     // Mantener H
                     new PoseKeyframe(2.0f, WithWristOffset(hPose, "Thu_H_hold", pos))
@@ -2048,7 +2048,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Friday: Letra F + círculos sobre la muñeca.
+        /// Friday: Letra F + circulos sobre la muneca.
         /// </summary>
         private static AnimatedPoseSequence CreateSignFriday()
         {
@@ -2056,7 +2056,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Saturday: Letra S + círculos sobre la muñeca.
+        /// Saturday: Letra S + circulos sobre la muneca.
         /// </summary>
         private static AnimatedPoseSequence CreateSignSaturday()
         {
@@ -2069,21 +2069,21 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         /// </summary>
         private static HandPoseData CreateSundayHandPose(string name, Vector3 wristPos, Vector3 wristRot)
         {
-            // Usa la misma mano plana de Hello/ThankYou (dedos juntos, pulgar junto al índice)
+            // Usa la misma mano plana de Hello/ThankYou (dedos juntos, pulgar junto al index)
             return CreateHelloHandPose(name, wristPos, wristRot);
         }
 
         /// <summary>
-        /// Sunday (mano derecha): Mano abierta con dedos separados haciendo círculos.
-        /// Ambas manos hacen el gesto simultáneamente. Mano derecha desplazada a la derecha.
+        /// Sunday (mano derecha): Hand abierta con dedos separados haciendo circulos.
+        /// Both hands hacen el gesto simultaneamente. Hand derecha desplazada a la derecha.
         /// </summary>
         private static AnimatedPoseSequence CreateSignSunday()
         {
             float r = 0.04f;
             float cz = 0.06f;
             float d = r * 0.707f;
-            float ox = 0.18f; // Más separación lateral para evitar solapes
-            Vector3 tilt = new Vector3(0f, 0f, -15f); // Leve inclinación
+            float ox = 0.18f; // Mas separacion lateral para evitar solapes
+            Vector3 tilt = new Vector3(0f, 0f, -15f); // Leve inclinacion
 
             return new AnimatedPoseSequence
             {
@@ -2091,7 +2091,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Círculo 1
+                    // Circulo 1
                     new PoseKeyframe(0f,    CreateSundayHandPose("Sun_0",  new Vector3(ox, 0f, cz + r),       tilt)),
                     new PoseKeyframe(0.07f, CreateSundayHandPose("Sun_1",  new Vector3(ox + d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.14f, CreateSundayHandPose("Sun_2",  new Vector3(ox + r, 0f, cz),       tilt)),
@@ -2101,7 +2101,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0.42f, CreateSundayHandPose("Sun_6",  new Vector3(ox - r, 0f, cz),       tilt)),
                     new PoseKeyframe(0.49f, CreateSundayHandPose("Sun_7",  new Vector3(ox - d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.56f, CreateSundayHandPose("Sun_8",  new Vector3(ox, 0f, cz + r),       tilt)),
-                    // Círculo 2
+                    // Circulo 2
                     new PoseKeyframe(0.63f, CreateSundayHandPose("Sun_9",  new Vector3(ox + d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.70f, CreateSundayHandPose("Sun_10", new Vector3(ox + r, 0f, cz),       tilt)),
                     new PoseKeyframe(0.77f, CreateSundayHandPose("Sun_11", new Vector3(ox + d, 0f, cz - d),   tilt)),
@@ -2117,16 +2117,16 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Sunday (mano izquierda): Misma animación espejada.
-        /// Círculos en dirección opuesta, mano desplazada a la izquierda.
+        /// Sunday (mano izquierda): Misma animacion espejada.
+        /// Circulos en direccion opuesta, mano desplazada a la izquierda.
         /// </summary>
         private static AnimatedPoseSequence CreateSignSundayLeftHand()
         {
             float r = 0.04f;
             float cz = 0.06f;
             float d = r * 0.707f;
-            float ox = -0.18f; // Más separación lateral (espejo)
-            Vector3 tilt = new Vector3(0f, 0f, 15f); // Inclinación espejada
+            float ox = -0.18f; // Mas separacion lateral (espejo)
+            Vector3 tilt = new Vector3(0f, 0f, 15f); // Inclinacion espejada
 
             return new AnimatedPoseSequence
             {
@@ -2134,7 +2134,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Círculo 1 (espejado: dirección opuesta en X)
+                    // Circulo 1 (espejado: direccion opuesta en X)
                     new PoseKeyframe(0f,    CreateSundayHandPose("SunL_0",  new Vector3(ox, 0f, cz + r),       tilt)),
                     new PoseKeyframe(0.07f, CreateSundayHandPose("SunL_1",  new Vector3(ox - d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.14f, CreateSundayHandPose("SunL_2",  new Vector3(ox - r, 0f, cz),       tilt)),
@@ -2144,7 +2144,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0.42f, CreateSundayHandPose("SunL_6",  new Vector3(ox + r, 0f, cz),       tilt)),
                     new PoseKeyframe(0.49f, CreateSundayHandPose("SunL_7",  new Vector3(ox + d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.56f, CreateSundayHandPose("SunL_8",  new Vector3(ox, 0f, cz + r),       tilt)),
-                    // Círculo 2 (espejado)
+                    // Circulo 2 (espejado)
                     new PoseKeyframe(0.63f, CreateSundayHandPose("SunL_9",  new Vector3(ox - d, 0f, cz + d),   tilt)),
                     new PoseKeyframe(0.70f, CreateSundayHandPose("SunL_10", new Vector3(ox - r, 0f, cz),       tilt)),
                     new PoseKeyframe(0.77f, CreateSundayHandPose("SunL_11", new Vector3(ox - d, 0f, cz - d),   tilt)),
@@ -2164,7 +2164,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         #region Colors
 
         /// <summary>
-        /// Helper: animación arriba-abajo (muñeca fija, mano pivota en X).
+        /// Helper: animacion arriba-abajo (muneca fija, mano pivota en X).
         /// Usada por RED y PINK.
         /// </summary>
         private static AnimatedPoseSequence CreateUpDownAnimation(string colorName, HandPoseData basePose)
@@ -2190,7 +2190,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Pose de mano horizontal abierta para GREY.
-        /// Dedos juntos, palma hacia abajo.
+        /// Fingers juntos, palma hacia abajo.
         /// </summary>
         private static HandPoseData CreateGrayHandPose(string name, Vector3 wristPos)
         {
@@ -2233,7 +2233,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Pose de dedos estirados juntos (sin separación) para WHITE final.
+        /// Pose de dedos estirados juntos (sin separacion) para WHITE final.
         /// Como B pero con los dedos totalmente pegados.
         /// </summary>
         private static HandPoseData CreateFingersTogetherPose(string name, Vector3 wristPos)
@@ -2268,7 +2268,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Blue: Signo B + oscilación Z (como Hello wave).
+        /// Blue: Sign B + oscilacion Z (como Hello wave).
         /// </summary>
         private static AnimatedPoseSequence CreateSignBlue()
         {
@@ -2276,7 +2276,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Green: Signo G con muñeca fija, movimiento adelante/atrás rotando desde la muñeca (eje X).
+        /// Green: Sign G con muneca fija, movimiento adelante/atras rotando desde la muneca (eje X).
         /// </summary>
         private static AnimatedPoseSequence CreateSignGreen()
         {
@@ -2285,7 +2285,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             var pos = basePose.wristPositionOffset;
             if (pos == Vector3.zero) pos = new Vector3(0f, 0f, 0.06f);
 
-            // Rotación X: positivo = mano hacia el usuario, negativo = mano alejándose
+            // Rotation X: positivo = mano hacia el usuario, negativo = mano alejandose
             float forward = 25f;
             float back = -15f;
 
@@ -2306,7 +2306,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Red: Signo R + movimiento arriba-abajo.
+        /// Red: Sign R + movimiento arriba-abajo.
         /// </summary>
         private static AnimatedPoseSequence CreateSignRed()
         {
@@ -2314,7 +2314,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Yellow: Signo Y + oscilación Z (como Hello wave).
+        /// Yellow: Sign Y + oscilacion Z (como Hello wave).
         /// </summary>
         private static AnimatedPoseSequence CreateSignYellow()
         {
@@ -2322,7 +2322,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Pink: Signo K + movimiento arriba-abajo.
+        /// Pink: Sign K + movimiento arriba-abajo.
         /// </summary>
         private static AnimatedPoseSequence CreateSignPink()
         {
@@ -2331,8 +2331,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Purple: Signo P + oscilación Z (como Hello wave).
-        /// P apunta hacia abajo (Y180), así que subimos la posición para compensar.
+        /// Purple: Sign P + oscilacion Z (como Hello wave).
+        /// P apunta hacia abajo (Y180), asi que subimos la posicion para compensar.
         /// </summary>
         private static AnimatedPoseSequence CreateSignPurple()
         {
@@ -2341,7 +2341,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Orange: O → S (puño cerrado). Una sola transición.
+        /// Orange: O → S (puno cerrado). Una sola transicion.
         /// </summary>
         private static AnimatedPoseSequence CreateSignOrange()
         {
@@ -2385,7 +2385,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Black: Signo 1 horizontal (como H/G, tumbado) + movimiento lado a lado como No.
+        /// Black: Sign 1 horizontal (como H/G, tumbado) + movimiento lado a lado como No.
         /// </summary>
         private static AnimatedPoseSequence CreateSignBlack()
         {
@@ -2411,15 +2411,15 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Grey (mano derecha): Palmas horizontales (GreyHandPose) con movimiento adelante-atrás,
+        /// Grey (mano derecha): Palms horizontales (GreyHandPose) con movimiento adelante-atras,
         /// desfasado con la izquierda.
         /// </summary>
         private static AnimatedPoseSequence CreateSignGray()
         {
-            float y = 0.06f;      // Altura fija para evitar colisión con la mesa
-            float zFront = 0.20f; // Adelante (más visible)
-            float zBack = -0.10f; // Atrás (más visible)
-            float ox = 0f;     // Más separación lateral derecha
+            float y = 0.06f;      // Height fija para evitar colision con la mesa
+            float zFront = 0.20f; // Adelante (mas visible)
+            float zBack = -0.10f; // Atras (mas visible)
+            float ox = 0f;     // Mas separacion lateral derecha
 
             return new AnimatedPoseSequence
             {
@@ -2439,14 +2439,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Gray (mano izquierda): Misma pose horizontal, desfasada (empieza atrás).
+        /// Gray (mano izquierda): Misma pose horizontal, desfasada (empieza atras).
         /// </summary>
         private static AnimatedPoseSequence CreateSignGrayLeftHand()
         {
             float y = 0.06f;
             float zFront = 0.20f;
             float zBack = -0.10f;
-            float ox =0f; // Más separación lateral izquierda
+            float ox =0f; // Mas separacion lateral izquierda
 
             return new AnimatedPoseSequence
             {
@@ -2454,7 +2454,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Izquierda empieza ATRÁS
+                    // Izquierda empieza ATRAS
                     new PoseKeyframe(0f,    CreateGrayHandPose("GryL_b1",   new Vector3(ox, zBack, y))),
                     new PoseKeyframe(0.3f,  CreateGrayHandPose("GryL_f1",   new Vector3(ox, zFront, y))),
                     new PoseKeyframe(0.6f,  CreateGrayHandPose("GryL_b2",   new Vector3(ox, zBack, y))),
@@ -2523,12 +2523,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// White: Flat O (dedos convergiendo) → mano cerrada.
-        /// Una sola transición.
+        /// Una sola transicion.
         /// </summary>
         private static AnimatedPoseSequence CreateSignWhite()
         {
             var pos = new Vector3(0f, 0f, 0.06f);
-            // Mano con dedos apuntando hacia el pecho (hacia el usuario)
+            // Hand con dedos apuntando hacia el pecho (hacia el usuario)
             var wristRot = new Vector3(0f, 0f, 0f);
 
             // Open: mano abierta extendida
@@ -2557,7 +2557,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Pose "Flat O" / "Shelf": 5 dedos con tejadito (doblados 90° en base, resto recto)
-        /// convergiendo hacia el punto central (como si todos tocaran el dedo corazón).
+        /// convergiendo hacia el punto central (como si todos tocaran el dedo corazon).
         /// Usado en: Eat, Sleep, White.
         /// </summary>
         private static HandPoseData CreateFlatOPose(string name, Vector3 wristPos, Vector3 wristRot)
@@ -2568,7 +2568,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 wristRotationOffset = wristRot,
                 wristPositionOffset = wristPos,
 
-                // Pulgar: mismo tejadito + orientado hacia el centro
+                // Thumb: mismo tejadito + orientado hacia el centro
                 thumb = new ThumbPoseData
                 {
                     metacarpalCurl = 0.0f,
@@ -2581,14 +2581,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     thumbPitch      = 5f        // Ligeramente hacia arriba
                 },
 
-                // Índice: ligeramente hacia el medio
+                // Index: ligeramente hacia el medio
                 index = new FingerPoseData
                 {
                     metacarpalCurl = 0.0f,
                     proximalCurl = 0.95f,       // Tejadito
                     intermediateCurl = 0.15f,   // Curvatura natural
                     distalCurl = 0.2f,          // Puntas ligeramente curvadas
-                    spreadAngle = 5f            // Suave hacia dentro (más natural)
+                    spreadAngle = 5f            // Suave hacia dentro (mas natural)
                 },
 
                 // Medio: centro de referencia (spread = 0)
@@ -2598,34 +2598,34 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     proximalCurl = 0.95f,       // Tejadito
                     intermediateCurl = 0.15f,   // Curvatura natural
                     distalCurl = 0.2f,          // Puntas ligeramente curvadas
-                    spreadAngle = 0f            // Centro (neutral)
+                    spreadAngle = 0f            // Center (neutral)
                 },
 
-                // Anular: ligeramente hacia el medio
+                // Ring: ligeramente hacia el medio
                 ring = new FingerPoseData
                 {
                     metacarpalCurl = 0.0f,
                     proximalCurl = 0.95f,       // Tejadito
                     intermediateCurl = 0.15f,   // Curvatura natural
                     distalCurl = 0.2f,          // Puntas ligeramente curvadas
-                    spreadAngle = -5f           // Suave hacia dentro (más natural)
+                    spreadAngle = -5f           // Suave hacia dentro (mas natural)
                 },
 
-                // Meñique: un poco más hacia dentro
+                // Pinky: un poco mas hacia dentro
                 pinky = new FingerPoseData
                 {
                     metacarpalCurl = 0.0f,
                     proximalCurl = 0.95f,       // Tejadito
-                    intermediateCurl = 0.18f,   // Un poco más curvado (natural para meñique)
+                    intermediateCurl = 0.18f,   // Un poco mas curvado (natural para menique)
                     distalCurl = 0.25f,         // Puntas ligeramente curvadas
-                    spreadAngle = -8f           // Un poco más hacia dentro
+                    spreadAngle = -8f           // Un poco mas hacia dentro
                 }
             };
         }
 
         /// <summary>
-        /// Eat: Flat O (dedos convergiendo) con misma animación que Drink:
-        /// inclinación hacia la boca (tip) y vuelta, repetida.
+        /// Eat: Flat O (dedos convergiendo) con misma animacion que Drink:
+        /// inclinacion hacia la boca (tip) y vuelta, repetida.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignEat()
@@ -2646,7 +2646,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0f,    CreateFlatOPose("Eat_start", new Vector3(px, -0.04f, zUp), startRot)),
                     // Inclinar hacia la boca
                     new PoseKeyframe(0.4f,  CreateFlatOPose("Eat_tip1",  new Vector3(px, 0f, zUp), tipRot)),
-                    // Volver
+                    // Back
                     new PoseKeyframe(0.7f,  CreateFlatOPose("Eat_back1", new Vector3(px, -0.04f, zUp), startRot)),
                     // Segundo acercamiento
                     new PoseKeyframe(1.0f,  CreateFlatOPose("Eat_tip2",  new Vector3(px, 0f, zUp), tipRot)),
@@ -2657,7 +2657,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Drink: Forma C (como sujetando un vaso, curvatura mirando al usuario) inclinándose hacia la boca.
+        /// Drink: Forma C (como sujetando un vaso, curvatura mirando al usuario) inclinandose hacia la boca.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignDrink()
@@ -2665,7 +2665,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             var cPose = CreateLetterC();
             float px = 0f;
             float zUp = 0.1f;
-            // C base tiene wristRotationOffset=(0,0,90). Añadir Y=90 para girar la apertura
+            // C base tiene wristRotationOffset=(0,0,90). Anadir Y=90 para girar la apertura
             // de la C hacia el usuario (Y+). Resultado: (0, 90, 90).
             var startRot = new Vector3(-60f, 0f, 90f);
             var tipRot   = new Vector3(-0f, 0f, 90f);
@@ -2680,7 +2680,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0f,    WithWristTransform(cPose, "Drk_start", startRot, new Vector3(px, -0.04f, zUp))),
                     // Inclinar hacia la boca (rotar X negativo = tip hacia boca)
                     new PoseKeyframe(0.4f,  WithWristTransform(cPose, "Drk_tip1",  tipRot,   new Vector3(px, 0f, zUp))),
-                    // Volver
+                    // Back
                     new PoseKeyframe(0.7f,  WithWristTransform(cPose, "Drk_back1", startRot, new Vector3(px, -0.04f, zUp))),
                     // Segundo trago
                     new PoseKeyframe(1.0f,  WithWristTransform(cPose, "Drk_tip2",  tipRot,   new Vector3(px, 0f, zUp))),
@@ -2691,7 +2691,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Sleep: Mano abierta (5) delante de la cara, baja y se cierra en Flat O.
+        /// Sleep: Hand abierta (5) delante de la cara, baja y se cierra en Flat O.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignSleep()
@@ -2701,7 +2701,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
             // Abierta arriba, delante de la cara
             var openPose = CreateHelloHandPose("Sleep_open", new Vector3(px, yBase, 0.1f), Vector3.zero);
-            // Cerrada un poco más abajo (baja al cerrar) → Flat O
+            // Cerrada un poco mas abajo (baja al cerrar) → Flat O
             var closedPose = CreateFlatOPose("Sleep_closed", new Vector3(px, yBase, 0.06f), Vector3.zero);
 
             return new AnimatedPoseSequence
@@ -2722,7 +2722,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Play: Forma Y (pulgar y meñique extendidos) con sacudida de muñeca (twist Z).
+        /// Play: Forma Y (pulgar y menique extendidos) con sacudida de muneca (twist Z).
         /// </summary>
         private static AnimatedPoseSequence CreateSignPlay()
         {
@@ -2757,7 +2757,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             return new HandPoseData
             {
                 poseName = name,
-                wristRotationOffset = new Vector3(-90f, 0f, 180f),  // Palma hacia abajo
+                wristRotationOffset = new Vector3(-90f, 0f, 180f),  // Palm hacia abajo
                 wristPositionOffset = wristPos,
                 thumb = new ThumbPoseData
                 {
@@ -2793,12 +2793,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Tap (mano derecha): Palma hacia abajo, palmadas sobre la mesa (movimiento Z arriba-abajo).
+        /// Tap (mano derecha): Palm hacia abajo, palmadas sobre la mesa (movimiento Z arriba-abajo).
         /// Desfasada con la izquierda (derecha baja cuando izquierda sube).
         /// </summary>
         private static AnimatedPoseSequence CreateSignTap()
         {
-            float ox = -0.05f;    // Separación lateral derecha
+            float ox = -0.05f;    // Separacion lateral derecha
             float yDepth = 0f;     // Profundidad fija
             float zUp = 0.12f;    // Arriba (lejos de la mesa)
             float zDown = 0.02f;  // Abajo (palmada sobre la mesa)
@@ -2822,12 +2822,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Tap (mano izquierda): Palma hacia abajo, palmadas sobre la mesa desfasadas
+        /// Tap (mano izquierda): Palm hacia abajo, palmadas sobre la mesa desfasadas
         /// (izquierda baja cuando derecha sube).
         /// </summary>
         private static AnimatedPoseSequence CreateSignTapLeftHand()
         {
-            float ox = 0.05f;     // Separación lateral izquierda
+            float ox = 0.05f;     // Separacion lateral izquierda
             float yDepth = 0f;     // Profundidad fija
             float zUp = 0.12f;    // Arriba
             float zDown = 0.02f;  // Abajo (palmada)
@@ -2851,23 +2851,23 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         // ====== VERBOS DE DOS MANOS ======
-        // Mano izquierda = palma abierta plana (papel) para Write, Read, Draw.
+        // Hand izquierda = palma abierta plana (papel) para Write, Read, Draw.
 
         /// <summary>
-        /// Write (mano derecha): Forma F (pinza pulgar-índice) trazando línea ondulada sobre la palma izquierda vertical.
+        /// Write (mano derecha): Forma F (pinza pulgar-index) trazando linea ondulada sobre la palma izquierda vertical.
         /// Movimiento ondulante en Z (arriba/abajo) delante de la palma izquierda.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignWrite()
         {
             var fPose = CreateLetterF();
-            // Dedos apuntando hacia la palma izquierda (a la izquierda del usuario)
+            // Fingers pointing hacia la palma izquierda (a la izquierda del usuario)
             var baseRot = new Vector3(-25f, 15f, 90f);
             float xBase = -0.04f;   // desplazado hacia la mano izquierda (papel)
             float yBase = 0f;
             float zTop = 0.14f;    // arriba de la palma
             float zBot = 0.08f;    // abajo de la palma
-            float amp = 0.02f;     // amplitud ondulación Y (profundidad)
+            float amp = 0.02f;     // amplitud ondulacion Y (profundidad)
 
             return new AnimatedPoseSequence
             {
@@ -2875,7 +2875,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 loop = false,
                 keyframes = new PoseKeyframe[]
                 {
-                    // Trazar línea ondulada de arriba a abajo sobre palma vertical
+                    // Trazar linea ondulada de arriba a abajo sobre palma vertical
                     new PoseKeyframe(0f,    WithWristTransform(fPose, "Wr_s",    baseRot, new Vector3(xBase, yBase + amp,  zTop))),
                     new PoseKeyframe(0.15f, WithWristTransform(fPose, "Wr_1",    baseRot, new Vector3(xBase, yBase - amp,  zTop - 0.02f))),
                     new PoseKeyframe(0.30f, WithWristTransform(fPose, "Wr_2",    baseRot, new Vector3(xBase, yBase + amp,  zTop - 0.04f))),
@@ -2892,8 +2892,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Write/Read/Draw (mano izquierda): Palma abierta plana VERTICAL, quieta (como sujetando una página).
-        /// Palma mirando a la derecha (hacia la mano que escribe).
+        /// Write/Read/Draw (mano izquierda): Palm abierta plana VERTICAL, quieta (como sujetando una pagina).
+        /// Palm mirando a la derecha (hacia la mano que escribe).
         /// </summary>
         private static AnimatedPoseSequence CreateSignWriteLeftHand()
         {
@@ -2917,8 +2917,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Read (mano derecha): Forma V (índice y corazón) moviéndose arriba-abajo
-        /// delante de la palma izquierda vertical, como ojos escaneando una página.
+        /// Read (mano derecha): Forma V (index y corazon) moviendose arriba-abajo
+        /// delante de la palma izquierda vertical, como ojos escaneando una pagina.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignRead()
@@ -2942,7 +2942,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0f,    WithWristTransform(vPose, "Rd_top",  baseRot, new Vector3(xBase, yBase, zTop))),
                     new PoseKeyframe(0.3f,  WithWristTransform(vPose, "Rd_mid1", baseRot, new Vector3(xBase, yBase, zMid))),
                     new PoseKeyframe(0.6f,  WithWristTransform(vPose, "Rd_bot",  baseRot, new Vector3(xBase, yBase, zBot))),
-                    // Volver arriba
+                    // Back arriba
                     new PoseKeyframe(0.8f,  WithWristTransform(vPose, "Rd_mid2", baseRot, new Vector3(xBase, yBase, zMid))),
                     new PoseKeyframe(1.0f,  WithWristTransform(vPose, "Rd_top2", baseRot, new Vector3(xBase, yBase, zTop))),
                     // Hold
@@ -2952,7 +2952,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Read (mano izquierda): Palma abierta plana vertical, quieta. Igual que Write.
+        /// Read (mano izquierda): Palm abierta plana vertical, quieta. Igual que Write.
         /// </summary>
         private static AnimatedPoseSequence CreateSignReadLeftHand()
         {
@@ -2960,8 +2960,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Draw (mano derecha): Forma I (meñique extendido) trazando línea ondulada sobre la palma vertical.
-        /// Mismo patrón que Write pero con pose I.
+        /// Draw (mano derecha): Forma I (menique extendido) trazando linea ondulada sobre la palma vertical.
+        /// Mismo patron que Write pero con pose I.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignDraw()
@@ -2995,7 +2995,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Draw (mano izquierda): Palma abierta plana vertical, quieta. Igual que Write.
+        /// Draw (mano izquierda): Palm abierta plana vertical, quieta. Igual que Write.
         /// </summary>
         private static AnimatedPoseSequence CreateSignDrawLeftHand()
         {
@@ -3003,21 +3003,21 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Hurt (mano derecha): Índice extendido (1) casi horizontal, señalando a la mano izquierda,
-        /// con twist repetido. Los dos dedos se señalan mutuamente.
+        /// Hurt (mano derecha): Index extendido (1) casi horizontal, senalando a la mano izquierda,
+        /// con twist repetido. Los dos dedos se senalan mutuamente.
         /// Ejes: X=izq/der, Y=profundidad, Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignHurt()
         {
             var onePose = CreateDigit1();
-            // Mano derecha: desplazada hacia la izquierda (hacia la mano izquierda)
+            // Hand derecha: desplazada hacia la izquierda (hacia la mano izquierda)
             float px = -0.14f;
             float zCenter = 0.10f;
             float zUp = 0.16f;
             float zDown = 0.04f;
 
-            // Y=90 para que el índice apunte a la IZQUIERDA (hacia la mano izquierda)
-            // Muñeca fija, oscilación solo en rotación X (dedo sube/baja pivotando en la muñeca)
+            // Y=90 para que el index apunte a la IZQUIERDA (hacia la mano izquierda)
+            // Wrist fija, oscilacion solo en rotacion X (dedo sube/baja pivotando en la muneca)
             float yaw = 90f;
             float tilt = 20f;
             var pos = new Vector3(px, 0f, zCenter);
@@ -3040,20 +3040,20 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Hurt (mano izquierda): Índice extendido (1) casi horizontal espejo, twist en Z opuesto.
-        /// Muñeca fija como eje. Movimiento arriba-abajo en Z.
+        /// Hurt (mano izquierda): Index extendido (1) casi horizontal espejo, twist en Z opuesto.
+        /// Wrist fija como eje. Movimiento arriba-abajo en Z.
         /// </summary>
         private static AnimatedPoseSequence CreateSignHurtLeftHand()
         {
             var onePose = CreateDigit1();
-            // Mano izquierda: desplazada hacia la derecha (hacia la mano derecha)
+            // Hand izquierda: desplazada hacia la derecha (hacia la mano derecha)
             float px = 0.14f;
             float zCenter = 0.10f;
             float zUp = 0.16f;
             float zDown = 0.04f;
 
-            // Espejo: Y=-90 para que el índice apunte a la DERECHA (hacia la mano derecha)
-            // Muñeca fija, oscilación solo en rotación X invertida
+            // Espejo: Y=-90 para que el index apunte a la DERECHA (hacia la mano derecha)
+            // Wrist fija, oscilacion solo en rotacion X invertida
             float yaw = -90f;
             float tilt = 20f;
             var pos = new Vector3(px, 0f, zCenter);
@@ -3076,7 +3076,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Get (mano derecha): Mano abierta (5) que se cierra a puño (S) mientras se acerca al cuerpo.
+        /// Get (mano derecha): Hand abierta (5) que se cierra a puno (S) mientras se acerca al cuerpo.
         /// Ejes: X=izq/der, Y=profundidad (+ = hacia usuario), Z=altura.
         /// </summary>
         private static AnimatedPoseSequence CreateSignGet()
@@ -3097,7 +3097,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     new PoseKeyframe(0f,   openPose),
                     new PoseKeyframe(0.4f, closedPose),
                     new PoseKeyframe(0.6f, closedPose),
-                    // Repetir
+                    // Repeat
                     new PoseKeyframe(0.8f,  CreateHelloHandPose("Get_open2", new Vector3(0f, yFar, 0.08f), Vector3.zero)),
                     new PoseKeyframe(1.2f,  WithWristOffset(CreateLetterS(), "Get_closed2", new Vector3(0f, yNear, 0.08f))),
                     new PoseKeyframe(1.8f,  WithWristOffset(CreateLetterS(), "Get_hold", new Vector3(0f, yNear, 0.08f)))
@@ -3137,7 +3137,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         /// <summary>
         /// Crea una secuencia animada para un mes: 3 letras encadenadas con transiciones naturales.
-        /// Si alguna letra es dinámica (J, Z), se incrustan sus keyframes completos.
+        /// Si alguna letra es dinamica (J, Z), se incrustan sus keyframes completos.
         /// </summary>
         private static AnimatedPoseSequence CreateMonthSequence(
             string monthName, string letter1, string letter2, string letter3)
@@ -3152,12 +3152,12 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 string letter = letters[i];
                 string prefix = $"{monthName}_{letter}";
 
-                // Comprobar si la letra es dinámica (J, Z)
+                // Comprobar si la letra es dinamica (J, Z)
                 var animated = GetAnimatedLetterOnly(letter);
 
                 if (animated != null)
                 {
-                    // Incrustar todos los keyframes de la letra dinámica, desplazados en el tiempo
+                    // Incrustar todos los keyframes de la letra dinamica, desplazados en el tiempo
                     float offsetT = t;
                     for (int k = 0; k < animated.keyframes.Length; k++)
                     {
@@ -3169,13 +3169,13 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 }
                 else
                 {
-                    // Letra estática: mostrar la pose con un hold
+                    // Letra estatica: mostrar la pose con un hold
                     var pose = GetPredefinedPose(letter);
                     if (pose == null) pose = HandPoseData.OpenHand();
 
                     // Respetar el wristPositionOffset original de la letra (ej: P tiene Z=0.2
                     // para compensar que la mano apunta abajo y no se meta en la mesa).
-                    // Solo usar fallback (0,0,0.06) si la letra no tiene posición definida.
+                    // Solo usar fallback (0,0,0.06) si la letra no tiene posicion definida.
                     var pos = pose.wristPositionOffset;
                     if (pos == Vector3.zero) pos = new Vector3(0f, 0f, 0.06f);
 
@@ -3186,10 +3186,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                     keyframes.Add(new PoseKeyframe(t, letterPose));
                 }
 
-                // Transición natural entre letras (no después de la última)
+                // Transition natural entre letras (no despues de la ultima)
                 if (i < letters.Length - 1)
                 {
-                    t += 0.3f; // tiempo de transición (el Lerp del SampleAtTime lo interpola)
+                    t += 0.3f; // tiempo de transicion (el Lerp del SampleAtTime lo interpola)
                 }
             }
 
@@ -3211,8 +3211,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Retorna la secuencia animada SOLO para letras dinámicas individuales (J, Z).
-        /// NO incluye signos compuestos (colores, días, meses) para evitar recursión.
+        /// Retorna la secuencia animada SOLO para letras dinamicas individuales (J, Z).
+        /// NO incluye signos compuestos (colores, dias, meses) para evitar recursion.
         /// </summary>
         private static AnimatedPoseSequence GetAnimatedLetterOnly(string letter)
         {

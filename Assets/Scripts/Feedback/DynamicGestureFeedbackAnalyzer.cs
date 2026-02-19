@@ -4,40 +4,40 @@ using ASL.DynamicGestures;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Analiza el estado de un gesto dinámico en progreso y genera feedback por fases.
+    /// Analiza el estado de un dynamic gesture en progreso y genera feedback por fases.
     ///
-    /// A diferencia del feedback estático (que corrige dedos individuales),
-    /// el feedback dinámico se centra en propiedades globales del movimiento:
-    /// - Dirección
-    /// - Velocidad
+    /// A diferencia del feedback static (que corrige dedos individuales),
+    /// el feedback dynamic se centra en propiedades globales del movimiento:
+    /// - Direccion
+    /// - Speed
     /// - Amplitud
     /// - Continuidad
     ///
     /// El feedback se organiza en 6 fases:
-    /// 0. Idle: Esperando pose inicial
+    /// 0. Idle: Esperando initial pose
     /// 1. StartDetected: Pose inicial correcta, listo para moverse
-    /// 2. InProgress: Movimiento en curso, guía sobre el movimiento
-    /// 3. NearCompletion: Casi completado (>80%)
-    /// 4. Completed: Gesto correcto
-    /// 5. Failed: Gesto fallido con explicación
+    /// 2. InProgress: Movimiento en curso, guia sobre el movimiento
+    /// 3. NearCompletion: Casi completed (>80%)
+    /// 4. Completed: Gesture correct
+    /// 5. Failed: Gesture failed con explicacion
     /// </summary>
     public class DynamicGestureFeedbackAnalyzer
     {
-        // Configuración de umbrales
+        // Configuration de umbrales
         private const float NEAR_COMPLETION_THRESHOLD = 0.8f; // 80% del gesto
-        private const float SPEED_TOO_SLOW_FACTOR = 0.5f;     // 50% de la velocidad mínima
-        private const float SPEED_TOO_FAST_FACTOR = 2.5f;     // 250% de la velocidad máxima estimada
-        private const float DISTANCE_SHORT_FACTOR = 0.5f;     // 50% de la distancia mínima
-        private const float CIRCULARITY_LOW_FACTOR = 0.7f;    // 70% del score mínimo
+        private const float SPEED_TOO_SLOW_FACTOR = 0.5f;     // 50% de la velocidad minima
+        private const float SPEED_TOO_FAST_FACTOR = 2.5f;     // 250% de la velocidad maxima estimada
+        private const float DISTANCE_SHORT_FACTOR = 0.5f;     // 50% de la distancia minima
+        private const float CIRCULARITY_LOW_FACTOR = 0.7f;    // 70% del score minimo
 
-        // Estado actual
+        // State actual
         private DynamicFeedbackPhase currentPhase = DynamicFeedbackPhase.Idle;
         private DynamicMovementIssue currentIssue = DynamicMovementIssue.None;
         private string currentMessage = "";
         private float phaseStartTime = 0f;
         private string activeGestureName = "";
 
-        // Cache del último resultado para evitar spam de mensajes
+        // Cache del ultimo resultado para evitar spam de mensajes
         private DynamicMovementIssue lastReportedIssue = DynamicMovementIssue.None;
         private float lastMessageTime = 0f;
         private const float MESSAGE_COOLDOWN = 0.5f; // 500ms entre mensajes de la misma fase
@@ -48,7 +48,7 @@ namespace ASL_LearnVR.Feedback
         public DynamicFeedbackPhase CurrentPhase => currentPhase;
 
         /// <summary>
-        /// Problema actual detectado durante el movimiento.
+        /// Problema actual detected durante el movimiento.
         /// </summary>
         public DynamicMovementIssue CurrentIssue => currentIssue;
 
@@ -58,17 +58,17 @@ namespace ASL_LearnVR.Feedback
         public string CurrentMessage => currentMessage;
 
         /// <summary>
-        /// Nombre del gesto activo.
+        /// Name del gesto active.
         /// </summary>
         public string ActiveGestureName => activeGestureName;
 
         /// <summary>
-        /// Evento cuando cambia la fase del feedback.
+        /// Event cuando cambia la fase del feedback.
         /// </summary>
         public System.Action<DynamicFeedbackPhase, string> OnPhaseChanged;
 
         /// <summary>
-        /// Evento cuando hay un nuevo mensaje de feedback.
+        /// Event cuando hay un nuevo mensaje de feedback.
         /// </summary>
         public System.Action<string> OnFeedbackMessage;
 
@@ -85,7 +85,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Notifica que el sistema está esperando la pose inicial.
+        /// Notifica que el sistema esta esperando la initial pose.
         /// </summary>
         public void NotifyIdle(string gestureName)
         {
@@ -95,7 +95,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Notifica que la pose inicial fue detectada correctamente.
+        /// Notifica que la initial pose fue detectada correctamente.
         /// </summary>
         public void NotifyStartDetected(string gestureName)
         {
@@ -107,10 +107,10 @@ namespace ASL_LearnVR.Feedback
         /// <summary>
         /// Analiza el progreso del gesto y genera feedback apropiado.
         /// </summary>
-        /// <param name="gestureName">Nombre del gesto</param>
-        /// <param name="progress">Progreso del gesto (0-1)</param>
-        /// <param name="metrics">Métricas actuales del movimiento</param>
-        /// <param name="gestureDefinition">Definición del gesto para comparar requisitos</param>
+        /// <param name="gestureName">Name del gesto</param>
+        /// <param name="progress">Progress del gesto (0-1)</param>
+        /// <param name="metrics">Metricas actuales del movimiento</param>
+        /// <param name="gestureDefinition">Definicion del gesto para comparar requisitos</param>
         public void AnalyzeProgress(
             string gestureName,
             float progress,
@@ -138,7 +138,7 @@ namespace ASL_LearnVR.Feedback
                 issue = FeedbackMessages.DetectMovementIssue(
                     metrics,
                     expectedMinSpeed: gestureDefinition.minSpeed,
-                    expectedMaxSpeed: gestureDefinition.minSpeed * 3f, // Estimación
+                    expectedMaxSpeed: gestureDefinition.minSpeed * 3f, // Estimacion
                     expectedMinDistance: gestureDefinition.minDistance,
                     requiresCircular: gestureDefinition.requiresCircularMotion,
                     minCircularityScore: gestureDefinition.minCircularityScore,
@@ -180,7 +180,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Notifica que el gesto fue completado exitosamente.
+        /// Notifica que el gesto fue completed exitosamente.
         /// </summary>
         public void NotifyCompleted(string gestureName, DynamicMetrics metrics)
         {
@@ -191,7 +191,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Notifica que el gesto falló.
+        /// Notifica que el gesto fallo.
         /// </summary>
         public void NotifyFailed(string gestureName, FailureReason reason, GesturePhase failedPhase, DynamicMetrics metrics)
         {
@@ -202,7 +202,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Obtiene un resultado estructurado del análisis actual.
+        /// Obtiene un resultado estructurado del analisis actual.
         /// </summary>
         public DynamicFeedbackResult GetCurrentResult()
         {
@@ -241,7 +241,7 @@ namespace ASL_LearnVR.Feedback
             if (Time.time - lastMessageTime < MESSAGE_COOLDOWN)
                 return false;
 
-            // Actualizar si cambió la fase
+            // Actualizar si cambio la fase
             if (currentPhase != targetPhase)
                 return true;
 
@@ -259,7 +259,7 @@ namespace ASL_LearnVR.Feedback
                 FailureReason.DirectionChangesInsufficient => DynamicMovementIssue.NeedMoreDirectionChanges,
                 FailureReason.RotationInsufficient => DynamicMovementIssue.RotationInsufficient,
                 FailureReason.NotCircular => DynamicMovementIssue.NotCircular,
-                FailureReason.OutOfZone => DynamicMovementIssue.DirectionWrong, // Similar a dirección incorrecta
+                FailureReason.OutOfZone => DynamicMovementIssue.DirectionWrong, // Similar a direccion incorrecta
                 FailureReason.PoseLost => DynamicMovementIssue.None, // Pose, no movimiento
                 FailureReason.Timeout => DynamicMovementIssue.TooSlow, // Si hay timeout, probablemente fue lento
                 _ => DynamicMovementIssue.None
@@ -268,7 +268,7 @@ namespace ASL_LearnVR.Feedback
     }
 
     /// <summary>
-    /// Resultado estructurado del análisis de feedback dinámico.
+    /// Resultado estructurado del analisis de feedback dynamic.
     /// </summary>
     public struct DynamicFeedbackResult
     {
@@ -279,7 +279,7 @@ namespace ASL_LearnVR.Feedback
         public float timestamp;
 
         /// <summary>
-        /// True si el gesto está en progreso (fases 1-3).
+        /// True si el gesto esta en progreso (fases 1-3).
         /// </summary>
         public bool IsInProgress =>
             phase == DynamicFeedbackPhase.StartDetected ||
@@ -287,7 +287,7 @@ namespace ASL_LearnVR.Feedback
             phase == DynamicFeedbackPhase.NearCompletion;
 
         /// <summary>
-        /// True si el gesto terminó (completado o fallido).
+        /// True si el gesto termino (completed o failed).
         /// </summary>
         public bool IsTerminal =>
             phase == DynamicFeedbackPhase.Completed ||

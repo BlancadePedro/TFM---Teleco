@@ -5,18 +5,18 @@ namespace ASL.DynamicGestures
 {
     /// <summary>
     /// Script de ejemplo que escucha eventos del DynamicGestureRecognizer.
-    /// Muestra en consola y opcionalmente en UI el estado de los gestos detectados.
+    /// Muestra en consola y opcionalmente en UI el estado de los gestos detecteds.
     /// </summary>
     public class DynamicGestureListener : MonoBehaviour
     {
-        [Header("Referencias")]
+        [Header("References")]
         [Tooltip("DynamicGestureRecognizer del que escuchar eventos")]
         [SerializeField] private DynamicGestureRecognizer gestureRecognizer;
 
-        [Tooltip("SingleGestureAdapter para detectar pose inicial (opcional)")]
+        [Tooltip("SingleGestureAdapter para detectar initial pose (opcional)")]
         [SerializeField] private SingleGestureAdapter poseAdapter;
 
-        [Header("UI Feedback (Opcional)")]
+        [Header("UI Feedback (Optional)")]
         [Tooltip("Text UI para mostrar nombre del gesto actual")]
         [SerializeField] private Text gestureNameText;
 
@@ -29,7 +29,7 @@ namespace ASL.DynamicGestures
         [Header("Debug")]
         [SerializeField] private bool showConsoleLogs = true;
 
-        [Tooltip("Tamaño de fuente para UI debug en VR (recomendado: 24-36)")]
+        [Tooltip("Size de fuente para UI debug en VR (recomendado: 24-36)")]
         [SerializeField] private int debugFontSize = 32;
 
         void OnEnable()
@@ -46,18 +46,18 @@ namespace ASL.DynamicGestures
                 Debug.LogError("[DynamicGestureListener] Falta asignar DynamicGestureRecognizer en el Inspector!");
             }
 
-            // Auto-buscar SingleGestureAdapter si no está asignado
+            // Auto-buscar SingleGestureAdapter si no esta assigned
             if (poseAdapter == null)
             {
                 poseAdapter = FindObjectOfType<SingleGestureAdapter>();
             }
 
-            // Configurar UI para VR si existe
+            // Configure UI para VR si existe
             ConfigureUIForVR();
         }
 
         /// <summary>
-        /// Configura el tamaño de fuente para que sea visible en VR
+        /// Configura el tamano de fuente para que sea visible en VR
         /// </summary>
         private void ConfigureUIForVR()
         {
@@ -110,7 +110,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Callback cuando un gesto es iniciado
+        /// Callback cuando un gesto es started
         /// </summary>
         private void HandleGestureStarted(string gestureName)
         {
@@ -134,14 +134,14 @@ namespace ASL.DynamicGestures
 
             if (statusText != null)
             {
-                statusText.text = $"¡GESTO {gestureName} INICIADO!\nCompleta el movimiento...";
+                statusText.text = $"GESTURE {gestureName} STARTED!\nComplete the movement...";
                 statusText.color = Color.yellow;
             }
 
-            // Aquí puedes añadir tu lógica personalizada:
+            // Aqui puedes anadir tu logica personalizada:
             // - Reproducir audio de feedback
-            // - Mostrar animación de inicio
-            // - Enviar analítica
+            // - Mostrar animacion de inicio
+            // - Enviar analitica
         }
 
         /// <summary>
@@ -160,9 +160,9 @@ namespace ASL.DynamicGestures
                 gestureProgressSlider.value = progress;
             }
 
-            // Aquí puedes añadir tu lógica personalizada:
+            // Aqui puedes anadir tu logica personalizada:
             // - Actualizar barra de progreso
-            // - Cambiar color de feedback según progreso
+            // - Cambiar color de feedback segun progreso
             // - Reproducir audio incremental
         }
 
@@ -173,13 +173,13 @@ namespace ASL.DynamicGestures
         {
             if (showConsoleLogs)
             {
-                Debug.Log($"<color=green>[GESTO COMPLETADO]</color> {gestureName} ✓");
+                Debug.Log($"<color=green>[GESTURE COMPLETED]</color> {gestureName} ✓");
             }
 
             // Actualizar UI
             if (gestureNameText != null)
             {
-                gestureNameText.text = $"¡{gestureName}!";
+                gestureNameText.text = $"{gestureName}!";
                 gestureNameText.color = Color.green;
             }
 
@@ -190,19 +190,19 @@ namespace ASL.DynamicGestures
 
             if (statusText != null)
             {
-                statusText.text = $"¡PERFECTO!\nGesto '{gestureName}' completado";
+                statusText.text = $"PERFECT!\nGesture '{gestureName}' completed";
                 statusText.color = Color.green;
             }
 
-            // Limpiar UI después de 3 segundos
+            // Limpiar UI despues de 3 segundos
             Invoke(nameof(ClearUI), 3f);
 
-            // Aquí puedes añadir tu lógica personalizada:
-            // - Reproducir animación de éxito
-            // - Reproducir audio de confirmación
+            // Aqui puedes anadir tu logica personalizada:
+            // - Reproducir animacion de exito
+            // - Reproducir audio de confirmacion
             // - Dar recompensa al usuario
             // - Avanzar a siguiente nivel
-            // - Actualizar puntuación
+            // - Actualizar puntuacion
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace ASL.DynamicGestures
             // Actualizar UI
             if (gestureNameText != null)
             {
-                gestureNameText.text = $"{gestureName} (fallido)";
+                gestureNameText.text = $"{gestureName} (failed)";
                 gestureNameText.color = Color.red;
             }
 
@@ -228,14 +228,14 @@ namespace ASL.DynamicGestures
                 statusText.color = Color.red;
             }
 
-            // Limpiar UI después de 2 segundos
+            // Limpiar UI despues de 2 segundos
             Invoke(nameof(ClearUI), 2f);
 
-            // Aquí puedes añadir tu lógica personalizada:
+            // Aqui puedes anadir tu logica personalizada:
             // - Reproducir audio de error
-            // - Mostrar hint de cómo ejecutar correctamente
+            // - Mostrar hint de como ejecutar correctamente
             // - Permitir reintento
-            // - Analizar razón de fallo para sugerencias
+            // - Analizar razon de fallo para sugerencias
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Método público para testing desde Inspector/otros scripts
+        /// Method publico para testing desde Inspector/otros scripts
         /// </summary>
         public void TestGestureCompleted(string gestureName)
         {

@@ -5,16 +5,16 @@ using UnityEngine.XR.Hands;
 namespace ASL_LearnVR.Core
 {
     /// <summary>
-    /// Monitorea el estado del hand tracking y emite eventos cuando cambia.
-    /// Compatible con Unity XR Hands.
+    /// Monitors hand tracking status and emits events when it changes.
+    /// Compatible with Unity XR Hands.
     /// </summary>
     public class HandTrackingStatus : MonoBehaviour
     {
         [Header("Events")]
-        [Tooltip("Ambas manos están siendo trackeadas")]
+        [Tooltip("Both hands are being tracked")]
         public UnityEvent onBothHandsTracked;
 
-        [Tooltip("Al menos una mano deja de ser trackeada")]
+        [Tooltip("At least one hand is no longer tracked")]
         public UnityEvent onHandsLost;
 
         [Header("Status")]
@@ -25,23 +25,23 @@ namespace ASL_LearnVR.Core
         private bool bothHandsWereTracked = false;
 
         /// <summary>
-        /// True si la mano izquierda está siendo trackeada.
+        /// True si la mano izquierda esta being tracked.
         /// </summary>
         public bool IsLeftHandTracked => leftHandTracked;
 
         /// <summary>
-        /// True si la mano derecha está siendo trackeada.
+        /// True si la mano derecha esta being tracked.
         /// </summary>
         public bool IsRightHandTracked => rightHandTracked;
 
         /// <summary>
-        /// True si ambas manos están siendo trackeadas.
+        /// True si ambas manos estan being trackeds.
         /// </summary>
         public bool AreBothHandsTracked => leftHandTracked && rightHandTracked;
 
         void Update()
         {
-            // Busca el XRHandSubsystem activo
+            // Busca el XRHandSubsystem active
             if (handSubsystem == null || !handSubsystem.running)
             {
                 handSubsystem = GetActiveHandSubsystem();
@@ -49,12 +49,12 @@ namespace ASL_LearnVR.Core
                     return;
             }
 
-            // Actualiza el estado de tracking
+            // Update tracking state
             UpdateTrackingStatus();
         }
 
         /// <summary>
-        /// Obtiene el XRHandSubsystem activo.
+        /// Obtiene el XRHandSubsystem active.
         /// </summary>
         private XRHandSubsystem GetActiveHandSubsystem()
         {
@@ -71,7 +71,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Actualiza el estado de tracking de ambas manos.
+        /// Updates the tracking state of both hands.
         /// </summary>
         private void UpdateTrackingStatus()
         {
@@ -83,13 +83,13 @@ namespace ASL_LearnVR.Core
 
             bool bothTrackedNow = AreBothHandsTracked;
 
-            // Detecta cuando ambas manos empiezan a ser trackeadas
+            // Detects when both hands start being tracked
             if (bothTrackedNow && !bothHandsWereTracked)
             {
                 onBothHandsTracked?.Invoke();
                 bothHandsWereTracked = true;
             }
-            // Detecta cuando al menos una mano deja de ser trackeada
+            // Detects when at least one hand stops being tracked
             else if (!bothTrackedNow && bothHandsWereTracked)
             {
                 onHandsLost?.Invoke();
@@ -98,7 +98,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Obtiene una descripción legible del estado actual.
+        /// Gets a human-readable description of the current state.
         /// </summary>
         public string GetStatusDescription()
         {

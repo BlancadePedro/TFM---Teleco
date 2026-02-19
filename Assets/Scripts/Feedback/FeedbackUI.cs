@@ -6,41 +6,41 @@ namespace ASL_LearnVR.Feedback
 {
     /// <summary>
     /// Panel UI en World Space para mostrar feedback textual al usuario.
-    /// Muestra 1-2 mensajes de corrección priorizados según severidad.
+    /// Muestra 1-2 mensajes de correccion priorizados segun severidad.
     /// </summary>
     public class FeedbackUI : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Texto principal del mensaje de feedback")]
+        [Tooltip("Text principal del mensaje de feedback")]
         [SerializeField] private TextMeshProUGUI feedbackText;
 
-        [Tooltip("Texto secundario para mensaje adicional (opcional)")]
+        [Tooltip("Text secundario para mensaje adicional (opcional)")]
         [SerializeField] private TextMeshProUGUI secondaryText;
 
-        [Tooltip("Icono de estado (check/warning/error)")]
+        [Tooltip("Icon de estado (check/warning/error)")]
         [SerializeField] private Image statusIcon;
 
         [Tooltip("Panel contenedor del feedback")]
         [SerializeField] private GameObject feedbackPanel;
 
-        [Tooltip("Panel de éxito (se muestra brevemente al completar gesto)")]
+        [Tooltip("Panel de exito (se muestra brevemente al completar gesto)")]
         [SerializeField] private GameObject successPanel;
 
         [Header("Icons")]
-        [Tooltip("Icono para estado correcto")]
+        [Tooltip("Icon para estado correct")]
         [SerializeField] private Sprite iconSuccess;
 
-        [Tooltip("Icono para advertencia/ajuste menor")]
+        [Tooltip("Icon para advertencia/ajuste menor")]
         [SerializeField] private Sprite iconWarning;
 
-        [Tooltip("Icono para error mayor")]
+        [Tooltip("Icon para error mayor")]
         [SerializeField] private Sprite iconError;
 
-        [Tooltip("Icono para estado en progreso")]
+        [Tooltip("Icon para estado en progreso")]
         [SerializeField] private Sprite iconProgress;
 
         [Header("Colors")]
-        [Tooltip("Color para estado correcto")]
+        [Tooltip("Color para estado correct")]
         [SerializeField] private Color colorSuccess = new Color(0.2f, 0.8f, 0.2f);
 
         [Tooltip("Color para advertencia")]
@@ -53,20 +53,20 @@ namespace ASL_LearnVR.Feedback
         [SerializeField] private Color colorNeutral = Color.white;
 
         [Header("Animation")]
-        [Tooltip("Duración del fade in/out")]
+        [Tooltip("Duration del fade in/out")]
         [SerializeField] private float fadeDuration = 0.2f;
 
-        [Tooltip("Duración que se muestra el panel de éxito")]
+        [Tooltip("Duration que se muestra el panel de exito")]
         [SerializeField] private float successDisplayDuration = 2f;
 
-        // Estado actual
+        // State actual
         private FeedbackState currentState = FeedbackState.Inactive;
         private CanvasGroup canvasGroup;
         private float successHideTime;
 
         void Awake()
         {
-            // Usar el propio GameObject como panel por defecto si no se asignÃ³
+            // Use own GameObject as default panel if not assigned
             if (feedbackPanel == null)
                 feedbackPanel = gameObject;
 
@@ -79,14 +79,14 @@ namespace ASL_LearnVR.Feedback
 
         void Start()
         {
-            // Solo ocultar el panel de éxito al inicio; el panel principal se controla desde FeedbackSystem.SetActive
+            // Solo ocultar el panel de exito al inicio; el panel principal se controla desde FeedbackSystem.SetActive
             if (successPanel != null)
                 successPanel.SetActive(false);
         }
 
         void Update()
         {
-            // Auto-ocultar panel de éxito después del tiempo configurado
+            // Auto-ocultar panel de exito despues del tiempo configured
             if (successPanel != null && successPanel.activeSelf &&
                 Time.time > successHideTime)
             {
@@ -106,11 +106,11 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Actualiza el feedback basándose en el resultado del análisis de gesto estático.
+        /// Actualiza el feedback basandose en el resultado del analisis de gesto static.
         /// </summary>
         public void UpdateFromStaticResult(StaticGestureResult result)
         {
-            // Asegurar que el panel estÃ© visible cuando recibimos resultados
+            // Ensure panel is visible when results are received
             if (feedbackPanel != null && !feedbackPanel.activeSelf)
                 feedbackPanel.SetActive(true);
 
@@ -120,7 +120,7 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // Solo mostrar éxito cuando el recognizer confirma el match global
+            // Solo mostrar exito cuando el recognizer confirma el match global
             if (result.isMatchGlobal)
             {
                 SetSuccessState(result.summaryMessage);
@@ -131,12 +131,12 @@ namespace ASL_LearnVR.Feedback
             }
             else if (result.minorErrorCount > 0)
             {
-                // Sin color naranja: los ajustes menores tambiÃ©n se muestran en rojo
+                // No orange color: minor adjustments also shown in red
                 SetErrorState(result.summaryMessage);
             }
             else
             {
-                // Sin errores pero tampoco match global: usar mensaje generado (ej. "Hand not tracked")
+                // Sin errores pero tampoco match global: usar mensaje generated (ej. "Hand not tracked")
                 SetWaitingState(string.IsNullOrEmpty(result.summaryMessage)
                     ? "Haz el signo para practicar..."
                     : result.summaryMessage);
@@ -144,7 +144,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Actualiza el feedback basándose en el resultado del análisis de gesto dinámico.
+        /// Actualiza el feedback basandose en el resultado del analisis de dynamic gesture.
         /// </summary>
         public void UpdateFromDynamicResult(DynamicGestureResult result)
         {
@@ -153,7 +153,7 @@ namespace ASL_LearnVR.Feedback
 
             if (result.isSuccess)
             {
-                ShowSuccessMessage($"¡'{result.gestureName}' completado!");
+                ShowSuccessMessage($"'{result.gestureName}' completed!");
             }
             else
             {
@@ -162,7 +162,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Muestra progreso de un gesto dinámico.
+        /// Muestra progreso de un dynamic gesture.
         /// </summary>
         public void ShowDynamicProgress(string gestureName, float progress)
         {
@@ -180,9 +180,9 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece estado de éxito.
+        /// Establece estado de exito.
         /// </summary>
-        public void SetSuccessState(string message = "¡Perfecto! Posición correcta.")
+        public void SetSuccessState(string message = "Perfect! Correct position.")
         {
             currentState = FeedbackState.Success;
             SetText(message);
@@ -211,7 +211,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece estado de progreso (gesto dinámico).
+        /// Establece estado de progreso (dynamic gesture).
         /// </summary>
         public void SetProgressState(string message)
         {
@@ -221,17 +221,17 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Muestra mensaje de éxito temporal.
+        /// Muestra mensaje de exito temporal.
         /// </summary>
         public void ShowSuccessMessage(string message)
         {
             if (successPanel != null)
             {
-                // Activar panel de éxito
+                // Enable panel de exito
                 successPanel.SetActive(true);
                 successHideTime = Time.time + successDisplayDuration;
 
-                // Buscar texto en el panel de éxito si existe
+                // Buscar texto en el panel de exito si existe
                 var successText = successPanel.GetComponentInChildren<TextMeshProUGUI>();
                 if (successText != null)
                     successText.text = message;
@@ -244,7 +244,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Muestra mensaje de error específico de dedo.
+        /// Muestra mensaje de error especifico de dedo.
         /// </summary>
         public void ShowFingerErrors(FingerError[] errors, int maxDisplay = 2)
         {
@@ -256,7 +256,7 @@ namespace ASL_LearnVR.Feedback
 
             string message = FeedbackMessages.GenerateSummary(errors, maxDisplay);
 
-            // Determinar severidad más alta
+            // Determinar severidad mas alta
             bool hasMajor = false;
             foreach (var e in errors)
             {
@@ -319,7 +319,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Estado actual del feedback.
+        /// State actual del feedback.
         /// </summary>
         public FeedbackState CurrentState => currentState;
 

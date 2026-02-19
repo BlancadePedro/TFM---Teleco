@@ -9,94 +9,90 @@ using ASL_LearnVR.Feedback;
 namespace ASL_LearnVR.LearningModule
 {
     /// <summary>
-    /// Controla el módulo de aprendizaje donde el usuario aprende signos individuales.
-    /// Permite repetir el gesto con ghost hands y practicar con feedback en tiempo real.
+    /// Controls the learning module where the user learns individual signs.
+    /// Allows repeating the gesture with ghost hands and practicing with real-time feedback.
     /// </summary>
-    public class LearningController : MonoBehaviour
+    public partial class LearningController : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Texto que muestra el nombre del signo actual")]
+        [Tooltip("Text showing the current sign name")]
         [SerializeField] private TextMeshProUGUI signNameText;
 
-        [Tooltip("Texto que muestra la descripción del signo")]
+        [Tooltip("Text showing the sign description")]
         [SerializeField] private TextMeshProUGUI signDescriptionText;
 
-        [Tooltip("Botón 'Repetir' que muestra las ghost hands")]
+        [Tooltip("Button 'Repeat' that shows the ghost hands")]
         [SerializeField] private Button repeatButton;
 
-        [Tooltip("Botón 'Practicar' que activa el feedback en tiempo real")]
+        [Tooltip("Button 'Practice' that enables real-time feedback")]
         [SerializeField] private Button practiceButton;
 
-        [Tooltip("Botón para ir al modo autoevaluación")]
+        [Tooltip("Button to go to self-assessment mode")]
         [SerializeField] private Button selfAssessmentButton;
 
-        [Tooltip("Botón para volver a la selección de nivel")]
+        [Tooltip("Button to return to level selection")]
         [SerializeField] private Button backButton;
 
         [Header("Components")]
-        [Tooltip("Componente GhostHandPlayer")]
+        [Tooltip("GhostHandPlayer component")]
         [SerializeField] private GhostHandPlayer ghostHandPlayer;
 
-        [Tooltip("Componente GestureRecognizer para la mano derecha")]
+        [Tooltip("GestureRecognizer component for the right hand")]
         [SerializeField] private GestureRecognizer rightHandRecognizer;
 
-        [Tooltip("Componente GestureRecognizer para la mano izquierda")]
+        [Tooltip("GestureRecognizer component for the left hand")]
         [SerializeField] private GestureRecognizer leftHandRecognizer;
 
         [Header("Dynamic Gestures (J, Z)")]
-        [Tooltip("Componente DynamicGestureRecognizer para gestos dinámicos")]
+        [Tooltip("DynamicGestureRecognizer component for dynamic gestures")]
         [SerializeField] private ASL.DynamicGestures.DynamicGestureRecognizer dynamicGestureRecognizer;
 
         [Header("Feedback UI")]
-        [Tooltip("Panel que muestra feedback durante la práctica")]
+        [Tooltip("Panel showing feedback during practice")]
         [SerializeField] private GameObject feedbackPanel;
 
-        [Tooltip("Texto del feedback")]
+        [Tooltip("Feedback text")]
         [SerializeField] private TextMeshProUGUI feedbackText;
 
-        // NOTA: Recording status text eliminado - ya no es necesario
-        // [Tooltip("Texto que muestra el estado de grabación (RECORDING, WAITING, etc.)")]
-        // [SerializeField] private TextMeshProUGUI recordingStatusText;
-
         [Header("Navigation")]
-        [Tooltip("Botón para ir al siguiente signo")]
+        [Tooltip("Button to go to the next sign")]
         [SerializeField] private Button nextSignButton;
 
-        [Tooltip("Botón para ir al signo anterior")]
+        [Tooltip("Button to go to the previous sign")]
         [SerializeField] private Button previousSignButton;
 
         [Header("Additional Categories")]
-        [Tooltip("Categoría Digits para cargar poses numéricas (1, 2, 3, etc.)")]
+        [Tooltip("Digits category for loading numeric poses (1, 2, 3, etc.)")]
         [SerializeField] private CategoryData digitsCategory;
 
         [Header("Month Sequence Support")]
-        [Tooltip("Componente que gestiona la práctica de secuencias de meses (3 letras)")]
+        [Tooltip("Component managing month sequence practice (3 letters)")]
         [SerializeField] private MonthPracticeController monthPracticeController;
 
         [Header("Pedagogical Feedback System")]
-        [Tooltip("Sistema de feedback pedagógico (visual + textual + audio)")]
+        [Tooltip("Pedagogical feedback system (visual + textual + audio)")]
         [SerializeField] private FeedbackSystem feedbackSystem;
 
         private CategoryData currentCategory;
         private int currentSignIndex = 0;
         private bool isPracticing = false;
         private bool isWaitingForDynamicGesture = false;
-        private bool isShowingSuccessMessage = false; // Flag para evitar sobrescribir mensaje de éxito
+        private bool isShowingSuccessMessage = false; // Flag to avoid overwriting success message
 
         void Start()
         {
-            // Obtiene la categoría actual del GameManager
+            // Get the current category from GameManager
             if (GameManager.Instance != null && GameManager.Instance.CurrentCategory != null)
             {
                 currentCategory = GameManager.Instance.CurrentCategory;
             }
             else
             {
-                Debug.LogError("LearningController: No hay categoría seleccionada en GameManager.");
+                Debug.LogError("LearningController: No category selected in GameManager.");
                 return;
             }
 
-            // Configura los botones
+            // Configure buttons
             if (repeatButton != null)
                 repeatButton.onClick.AddListener(OnRepeatButtonClicked);
 
@@ -115,87 +111,83 @@ namespace ASL_LearnVR.LearningModule
             if (previousSignButton != null)
                 previousSignButton.onClick.AddListener(OnPreviousSignButtonClicked);
 
-            // Configura listeners para gestos dinámicos
+            // Configure listeners for dynamic gestures
             if (dynamicGestureRecognizer != null)
             {
-                dynamicGestureRecognizer.OnGestureStarted += OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureStarted   += OnDynamicGestureStarted;
                 dynamicGestureRecognizer.OnGestureCompleted += OnDynamicGestureCompleted;
-                dynamicGestureRecognizer.OnGestureFailed += OnDynamicGestureFailed;
+                dynamicGestureRecognizer.OnGestureFailed    += OnDynamicGestureFailed;
             }
             else
             {
-                Debug.LogWarning("[LearningController] DynamicGestureRecognizer no asignado - los gestos J y Z no funcionarán.");
+                Debug.LogWarning("[LearningController] DynamicGestureRecognizer not assigned - J and Z gestures will not work.");
             }
 
-            // Oculta el panel de feedback al inicio
+            // Hide feedback panel on start
             if (feedbackPanel != null)
                 feedbackPanel.SetActive(false);
 
-            // Desactiva el reconocimiento de gestos al inicio
+            // Disable gesture recognition on start
             SetRecognitionEnabled(false);
 
-            // Si existe MonthPracticeController, configura sus recognizers ahora
+            // If MonthPracticeController exists, configure its recognizers now
             if (monthPracticeController != null)
-            {
                 monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
-            }
 
-            // Carga el primer signo
+            // Load first sign
             LoadSign(currentSignIndex);
         }
 
         void OnDestroy()
         {
-            // Desuscribirse de eventos dinámicos
+            // Unsubscribe from dynamic gesture events
             if (dynamicGestureRecognizer != null)
             {
-                dynamicGestureRecognizer.OnGestureStarted -= OnDynamicGestureStarted;
+                dynamicGestureRecognizer.OnGestureStarted   -= OnDynamicGestureStarted;
                 dynamicGestureRecognizer.OnGestureCompleted -= OnDynamicGestureCompleted;
-                dynamicGestureRecognizer.OnGestureFailed -= OnDynamicGestureFailed;
+                dynamicGestureRecognizer.OnGestureFailed    -= OnDynamicGestureFailed;
             }
         }
 
-        // NOTA: Update() y UpdateRecordingStatus() eliminados - ya no son necesarios sin el recording status text
-
         /// <summary>
-        /// Carga un signo por índice.
+        /// Loads a sign by index.
         /// </summary>
         private void LoadSign(int index)
         {
             if (currentCategory == null || currentCategory.signs == null || currentCategory.signs.Count == 0)
             {
-                Debug.LogError("LearningController: No hay signos en la categoría.");
+                Debug.LogError("LearningController: No signs in the category.");
                 return;
             }
 
-            // Asegura que el índice esté dentro de los límites
+            // Ensure index is within bounds
             currentSignIndex = Mathf.Clamp(index, 0, currentCategory.signs.Count - 1);
 
             SignData sign = currentCategory.signs[currentSignIndex];
 
-            // Guarda el signo actual en el GameManager
+            // Save current sign in GameManager
             if (GameManager.Instance != null)
                 GameManager.Instance.CurrentSign = sign;
 
-            // Actualiza la UI
+            // Update UI
             if (signNameText != null)
                 signNameText.text = sign.signName;
 
             if (signDescriptionText != null)
                 signDescriptionText.text = sign.description;
 
-            // Configura los recognizers con el nuevo signo
+            // Configure recognizers with the new sign
             if (sign.requiresMovement)
             {
-                // Gesto dinámico: usa DynamicGestureRecognizer
-                Debug.Log($"[LearningController] Cargando gesto dinámico: '{sign.signName}'");
+                // Dynamic gesture: use DynamicGestureRecognizer
+                Debug.Log($"[LearningController] Loading dynamic gesture: '{sign.signName}'");
 
-                // Para gestos dinámicos, configurar la pose INICIAL que necesitan
+                // For dynamic gestures, configure the initial pose they need
                 SignData initialPose = GetInitialPoseForDynamicGesture(sign);
 
                 if (initialPose != null)
                 {
-                    Debug.Log($"[LearningController] Configurando pose inicial '{initialPose.signName}' para gesto dinámico '{sign.signName}'");
+                    Debug.Log($"[LearningController] Configuring initial pose '{initialPose.signName}' for dynamic gesture '{sign.signName}'");
 
                     if (rightHandRecognizer != null)
                         rightHandRecognizer.TargetSign = initialPose;
@@ -205,12 +197,12 @@ namespace ASL_LearnVR.LearningModule
                 }
                 else
                 {
-                    Debug.LogError($"[LearningController] No se encontró pose inicial para gesto dinámico '{sign.signName}'");
+                    Debug.LogError($"[LearningController] Initial pose not found for dynamic gesture '{sign.signName}'");
                 }
             }
             else
             {
-                // Gesto estático: usa GestureRecognizer normal
+                // Static gesture: use standard GestureRecognizer
                 if (rightHandRecognizer != null)
                     rightHandRecognizer.TargetSign = sign;
 
@@ -218,56 +210,52 @@ namespace ASL_LearnVR.LearningModule
                     leftHandRecognizer.TargetSign = sign;
             }
 
-            // IMPORTANTE: Si ya estamos practicando, actualizar también el FeedbackSystem
+            // IMPORTANT: If already practicing, also update FeedbackSystem
             if (isPracticing && feedbackSystem != null)
             {
                 feedbackSystem.SetCurrentSign(sign);
-                Debug.Log($"[LearningController] FeedbackSystem actualizado con signo: '{sign.signName}'");
+                Debug.Log($"[LearningController] FeedbackSystem updated with sign: '{sign.signName}'");
             }
 
-            // Actualiza los botones de navegación
+            // Update navigation buttons
             UpdateNavigationButtons();
 
             // If there's a MonthPracticeController, manage its state according to the new sign
             if (monthPracticeController != null)
             {
-                // If the newly loaded sign is a MonthSequenceData and we're currently in Practice mode,
-                // start the practice for the new month immediately (so tiles update on navigation).
                 if (sign is ASL_LearnVR.Data.MonthSequenceData monthSequence && isPracticing)
                 {
-                    // Ensure recognizers are set on the controller and start practice for this month
                     monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
                     monthPracticeController.StartPractice(monthSequence);
                 }
                 else
                 {
-                    // Otherwise ensure any previous month practice is stopped/hidden
                     monthPracticeController.OnSignChanged();
                 }
             }
 
-            // AUTOMÁTICAMENTE mostrar el gesto con las manos guía al cargar un nuevo signo
-            // Solo si NO estamos en modo práctica (las manos están ocultas durante práctica)
+            // AUTOMATICALLY show the gesture with guide hands when loading a new sign
+            // Only if NOT in practice mode (hands are hidden during practice)
             if (ghostHandPlayer != null)
             {
                 if (isPracticing)
                 {
-                    // En modo práctica: mantener las guide hands ocultas pero actualizar el signo
-                    // para que al dejar de practicar se muestre el signo correcto
+                    // In practice mode: keep guide hands hidden but update the sign
+                    // so the correct sign shows when practice stops
                     ghostHandPlayer.SetCurrentSign(sign);
                     ghostHandPlayer.SetVisibilityImmediate(false);
-                    Debug.Log($"[LearningController] Signo '{sign.signName}' cargado - guide hands ocultas (modo práctica)");
+                    Debug.Log($"[LearningController] Sign '{sign.signName}' loaded - guide hands hidden (practice mode)");
                 }
                 else
                 {
-                    Debug.Log($"[LearningController] Mostrando automáticamente el gesto '{sign.signName}' con manos guía");
+                    Debug.Log($"[LearningController] Automatically showing gesture '{sign.signName}' with guide hands");
                     ghostHandPlayer.PlaySign(sign);
                 }
             }
         }
 
         /// <summary>
-        /// Actualiza el estado de los botones de navegación.
+        /// Updates navigation button states.
         /// </summary>
         private void UpdateNavigationButtons()
         {
@@ -279,172 +267,149 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Repetir".
+        /// Callback when the Repeat button is clicked.
         /// </summary>
         private void OnRepeatButtonClicked()
         {
-            Debug.Log($"[LearningController] REPETIR clicked. ghostHandPlayer={ghostHandPlayer != null}, " +
+            Debug.Log($"[LearningController] REPEAT clicked. ghostHandPlayer={ghostHandPlayer != null}, " +
                 $"CurrentSign={GameManager.Instance?.CurrentSign?.signName ?? "NULL"}");
 
             if (ghostHandPlayer != null && GameManager.Instance != null && GameManager.Instance.CurrentSign != null)
             {
-                Debug.Log($"[LearningController] Llamando PlaySign con signo: '{GameManager.Instance.CurrentSign.signName}'");
+                Debug.Log($"[LearningController] Calling PlaySign with sign: '{GameManager.Instance.CurrentSign.signName}'");
                 ghostHandPlayer.PlaySign(GameManager.Instance.CurrentSign);
             }
             else
             {
-                Debug.LogError($"[LearningController] No se puede reproducir el signo. " +
+                Debug.LogError($"[LearningController] Cannot play sign. " +
                     $"ghostHandPlayer={ghostHandPlayer != null}, GameManager={GameManager.Instance != null}, " +
                     $"CurrentSign={GameManager.Instance?.CurrentSign != null}");
             }
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Practicar".
+        /// Callback when the Practice button is clicked.
         /// </summary>
         private void OnPracticeButtonClicked()
         {
             isPracticing = !isPracticing;
 
-            // Si el item actual es una MonthSequenceData, delegar a MonthPracticeController
             SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
 
+            // If the current item is a MonthSequenceData, delegate to MonthPracticeController
             if (currentSign is MonthSequenceData monthSequence && monthPracticeController != null)
             {
                 if (isPracticing)
                 {
-                    Debug.Log($"[LearningController] ====== INICIANDO PRÁCTICA DE MES: {monthSequence.signName} ======");
+                    Debug.Log($"[LearningController] ====== STARTING MONTH PRACTICE: {monthSequence.signName} ======");
 
-                    // Fade out de las guide hands
                     if (ghostHandPlayer != null)
                         ghostHandPlayer.FadeOut();
 
-                    // Activar feedbackPanel (contiene los tiles de MonthTilesUI)
                     if (feedbackPanel != null)
                         feedbackPanel.SetActive(true);
 
-                    // OCULTAR el texto de feedback (MonthTilesUI mostrará su propia UI)
+                    // Hide feedback text (MonthTilesUI will show its own UI)
                     if (feedbackText != null)
                         feedbackText.gameObject.SetActive(false);
 
-                    // Configurar recognizers
                     monthPracticeController.SetRecognizers(rightHandRecognizer, leftHandRecognizer);
-
-                    // Habilitar detección de gestos
                     SetRecognitionEnabled(true);
-
-                    // Iniciar práctica (esto mostrará los tiles)
                     monthPracticeController.StartPractice(monthSequence);
 
-                    // Cambiar texto del botón
                     if (practiceButton != null)
                     {
                         var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
-                        if (buttonText != null)
-                            buttonText.text = "Detener";
+                        if (buttonText != null) buttonText.text = "Stop";
                     }
                 }
                 else
                 {
-                    Debug.Log("[LearningController] ====== DETENIENDO PRÁCTICA DE MES ======");
+                    Debug.Log("[LearningController] ====== STOPPING MONTH PRACTICE ======");
 
-                    // Detener práctica (esto ocultará los tiles)
                     monthPracticeController.StopPractice();
-
-                    // Desactivar detección
                     SetRecognitionEnabled(false);
 
-                    // Ocultar feedbackPanel
                     if (feedbackPanel != null)
                         feedbackPanel.SetActive(false);
 
-                    // Restaurar visibilidad del feedbackText para futuras prácticas normales
+                    // Restore feedbackText visibility for normal practice
                     if (feedbackText != null)
                         feedbackText.gameObject.SetActive(true);
 
-                    // Fade in de las guide hands + reproducir animación
                     if (ghostHandPlayer != null)
                         ghostHandPlayer.FadeIn();
 
-                    // Restaurar texto del botón
                     if (practiceButton != null)
                     {
                         var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
-                        if (buttonText != null)
-                            buttonText.text = "Practicar";
+                        if (buttonText != null) buttonText.text = "Practice";
                     }
                 }
 
                 return;
             }
 
-            // Comportamiento por defecto para signos individuales
+            // Default behaviour for individual signs
             if (isPracticing)
             {
-                // Fade out de las guide hands
                 if (ghostHandPlayer != null)
                     ghostHandPlayer.FadeOut();
 
-                // Activa el feedback y el reconocimiento de gestos
                 if (feedbackPanel != null)
                     feedbackPanel.SetActive(true);
+
                 if (feedbackText != null && !feedbackText.gameObject.activeSelf)
-                    feedbackText.gameObject.SetActive(true); // asegurar visibilidad en el primer arranque
+                    feedbackText.gameObject.SetActive(true);
 
                 SetRecognitionEnabled(true);
 
-                // Activar sistema de feedback pedagógico
+                // Enable pedagogical feedback system
                 if (feedbackSystem != null)
                 {
-                    // Pasar la referencia del feedbackText para que FeedbackSystem escriba directamente ahí
                     feedbackSystem.SetDirectFeedbackText(feedbackText);
                     feedbackSystem.SetCurrentSign(currentSign);
                     feedbackSystem.SetActive(true);
-                    Debug.Log("[LearningController] FeedbackSystem ACTIVADO con feedbackText directo");
+                    Debug.Log("[LearningController] FeedbackSystem ENABLED with direct feedbackText");
                 }
                 else
                 {
-                    // Sin FeedbackSystem, mostrar mensaje genérico
                     UpdateFeedbackText("Make the sign to practice...");
                 }
 
                 if (practiceButton != null)
                 {
                     var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
-                    if (buttonText != null)
-                        buttonText.text = "Stop Practice";
+                    if (buttonText != null) buttonText.text = "Stop Practice";
                 }
             }
             else
             {
-                // Desactiva el feedback y el reconocimiento
                 if (feedbackPanel != null)
                     feedbackPanel.SetActive(false);
 
                 SetRecognitionEnabled(false);
 
-                // Desactivar sistema de feedback pedagógico
+                // Disable pedagogical feedback system
                 if (feedbackSystem != null)
                 {
                     feedbackSystem.SetActive(false);
-                    Debug.Log("[LearningController] FeedbackSystem DESACTIVADO");
+                    Debug.Log("[LearningController] FeedbackSystem DISABLED");
                 }
 
-                // Fade in de las guide hands + reproducir animación
                 if (ghostHandPlayer != null)
                     ghostHandPlayer.FadeIn();
 
                 if (practiceButton != null)
                 {
                     var buttonText = practiceButton.GetComponentInChildren<TextMeshProUGUI>();
-                    if (buttonText != null)
-                        buttonText.text = "Practice";
+                    if (buttonText != null) buttonText.text = "Practice";
                 }
             }
         }
 
         /// <summary>
-        /// Activa o desactiva el reconocimiento de gestos.
+        /// Enables or disables gesture recognition.
         /// </summary>
         private void SetRecognitionEnabled(bool enabled)
         {
@@ -452,15 +417,13 @@ namespace ASL_LearnVR.LearningModule
 
             if (currentSign != null && currentSign.requiresMovement)
             {
-                // Gesto dinámico: activar DynamicGestureRecognizer
-                Debug.Log($"[LearningController] Reconocimiento de gesto dinámico '{currentSign.signName}': {enabled}");
+                // Dynamic gesture: enable DynamicGestureRecognizer
+                Debug.Log($"[LearningController] Recognition of dynamic gesture '{currentSign.signName}': {enabled}");
 
                 if (dynamicGestureRecognizer != null)
-                {
                     dynamicGestureRecognizer.SetEnabled(enabled);
-                }
 
-                // IMPORTANTE: También activar GestureRecognizer para detectar pose inicial (I para J, Z para Z)
+                // IMPORTANT: Also enable GestureRecognizer to detect initial pose
                 if (rightHandRecognizer != null)
                 {
                     rightHandRecognizer.SetDetectionEnabled(enabled);
@@ -480,7 +443,7 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
-            // Gesto estático: usa GestureRecognizer normal
+            // Static gesture: use standard GestureRecognizer
             if (rightHandRecognizer != null)
             {
                 rightHandRecognizer.SetDetectionEnabled(enabled);
@@ -515,309 +478,264 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Callback cuando un gesto es detectado.
+        /// Callback when a gesture is detected.
         /// </summary>
         private void OnGestureDetected(SignData sign)
         {
-            // No sobrescribir si estamos mostrando mensaje de éxito
-            if (isShowingSuccessMessage)
-                return;
+            // Do not overwrite if showing success message
+            if (isShowingSuccessMessage) return;
 
             SignData currentSign = GameManager.Instance != null ? GameManager.Instance.CurrentSign : null;
+            if (currentSign == null) return;
 
-            if (currentSign == null)
-                return;
-
-            // Si el signo actual es una secuencia de mes, delegar a MonthPracticeController
-            // (MonthTilesUI maneja toda la UI, no tocar feedbackText)
+            // If current sign is a month sequence, delegate to MonthPracticeController
             if (currentSign is MonthSequenceData && isPracticing && monthPracticeController != null)
             {
                 monthPracticeController.ProcessDetection(sign);
                 return;
             }
 
-            // Si FeedbackSystem está activo, dejar que él maneje los mensajes de gestos estáticos
+            // If FeedbackSystem is active, let it handle static gesture messages
             if (feedbackSystem != null && feedbackSystem.IsActive && !currentSign.requiresMovement)
-            {
-                // FeedbackSystem ya maneja este callback con mensajes más específicos
                 return;
-            }
 
-            // CASO 1: El signo actual es DINÁMICO (requiere movimiento)
             if (currentSign.requiresMovement)
             {
-                // Mostrar confirmación de pose inicial para que el usuario sepa que puede empezar a moverse
-                // Solo si FeedbackSystem no está activo
+                // Show initial pose confirmation so user knows they can start moving
                 if (feedbackSystem == null || !feedbackSystem.IsActive)
-                {
-                    UpdateFeedbackText("Pose inicial detectada, haz el movimiento.");
-                }
+                    UpdateFeedbackText("Initial pose detected — now move!");
                 return;
             }
-            // CASO 2: El signo actual es ESTÁTICO (NO requiere movimiento)
             else if (!currentSign.requiresMovement && currentSign.signName == sign.signName)
             {
-                // Gesto estático normal - solo si FeedbackSystem no está activo
                 if (feedbackSystem == null || !feedbackSystem.IsActive)
-                {
-                    UpdateFeedbackText($"¡Correcto! Signo '{sign.signName}' detectado.");
-                }
+                    UpdateFeedbackText($"Correct! Sign '{sign.signName}' detected.");
             }
-            // Si no coincide con ningún caso, no mostrar nada
         }
 
         /// <summary>
-        /// Callback cuando un gesto termina.
+        /// Callback when a gesture ends.
         /// </summary>
         private void OnGestureEnded(SignData sign)
         {
-            // No hacer nada si estamos practicando meses (MonthTilesUI maneja la UI)
             SignData currentSign = GameManager.Instance?.CurrentSign;
-            if (currentSign is MonthSequenceData)
-                return;
+            if (currentSign is MonthSequenceData) return;
 
-            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
-            if (feedbackSystem != null && feedbackSystem.IsActive)
-                return;
+            if (feedbackSystem != null && feedbackSystem.IsActive) return;
 
-            // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
-            {
-                UpdateFeedbackText("Haz el signo para practicar...");
-            }
+                UpdateFeedbackText("Make the sign to practice...");
         }
 
         /// <summary>
-        /// Callback cuando se inicia un gesto dinámico.
+        /// Callback when a dynamic gesture starts.
         /// </summary>
         private void OnDynamicGestureStarted(string gestureName)
         {
-            Debug.Log($"[LearningController] Gesto dinámico INICIADO: {gestureName}");
+            Debug.Log($"[LearningController] Dynamic gesture STARTED: {gestureName}");
 
-            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
-            if (feedbackSystem != null && feedbackSystem.IsActive)
-                return;
+            if (feedbackSystem != null && feedbackSystem.IsActive) return;
 
-            // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
-            {
-                UpdateFeedbackText($"'{gestureName}' iniciado. ¡Sigue moviéndote!");
-            }
+                UpdateFeedbackText($"'{gestureName}' started. Keep moving!");
         }
 
         /// <summary>
-        /// Callback cuando se completa un gesto dinámico.
+        /// Callback when a dynamic gesture is completed.
         /// </summary>
         private void OnDynamicGestureCompleted(string gestureName)
         {
-            Debug.Log($"[LearningController] Gesto dinámico COMPLETADO: {gestureName}");
+            Debug.Log($"[LearningController] Dynamic gesture COMPLETED: {gestureName}");
 
-            // Si FeedbackSystem está activo, dejar que él maneje los mensajes
-            if (feedbackSystem != null && feedbackSystem.IsActive)
-            {
-                isShowingSuccessMessage = true;
-                CancelInvoke(nameof(ClearSuccessMessage));
-                Invoke(nameof(ClearSuccessMessage), 3f);
-                return;
-            }
-
-            UpdateFeedbackText($"¡Perfecto! '{gestureName}' completado.");
-
-            // Marcar que estamos mostrando mensaje de éxito
             isShowingSuccessMessage = true;
-
-            // Limpiar el mensaje después de 3 segundos
             CancelInvoke(nameof(ClearSuccessMessage));
             Invoke(nameof(ClearSuccessMessage), 3f);
+
+            if (feedbackSystem != null && feedbackSystem.IsActive) return;
+
+            UpdateFeedbackText($"Perfect! '{gestureName}' completed.");
         }
 
         /// <summary>
-        /// Callback cuando falla un gesto dinámico.
+        /// Callback when a dynamic gesture fails.
         /// </summary>
         private void OnDynamicGestureFailed(string gestureName, string reason)
         {
-            Debug.Log($"[LearningController] Gesto dinámico FALLADO: {gestureName} - Razón: {reason}");
+            Debug.Log($"[LearningController] Dynamic gesture FAILED: {gestureName} - Reason: {reason}");
 
-            // Si FeedbackSystem está activo, dejar que él maneje los mensajes con troubleshooting detallado
-            if (feedbackSystem != null && feedbackSystem.IsActive)
-                return;
+            if (feedbackSystem != null && feedbackSystem.IsActive) return;
 
-            // No sobrescribir si estamos mostrando mensaje de éxito
             if (!isShowingSuccessMessage)
-            {
-                UpdateFeedbackText($"Inténtalo de nuevo: '{gestureName}'. {reason}");
-            }
+                UpdateFeedbackText($"Try again: '{gestureName}'. {reason}");
         }
 
         /// <summary>
-        /// Actualiza el texto del feedback.
+        /// Updates the feedback text.
         /// </summary>
         private void UpdateFeedbackText(string message)
         {
             if (feedbackText != null)
             {
                 feedbackText.text = message;
-                Debug.Log($"[LearningController] FEEDBACK UI ACTUALIZADO: '{message}' (isShowingSuccess={isShowingSuccessMessage})");
+                Debug.Log($"[LearningController] FEEDBACK UI: '{message}' (isShowingSuccess={isShowingSuccessMessage})");
             }
             else
             {
-                Debug.LogWarning("[LearningController] feedbackText es NULL! No se puede actualizar UI");
+                Debug.LogWarning("[LearningController] feedbackText is NULL — cannot update UI");
             }
         }
 
         /// <summary>
-        /// Limpia el mensaje de éxito después de 3 segundos.
+        /// Clears the success message after 3 seconds.
         /// </summary>
         private void ClearSuccessMessage()
         {
             isShowingSuccessMessage = false;
-            UpdateFeedbackText("Haz el signo para practicar...");
+            UpdateFeedbackText("Make the sign to practice...");
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Siguiente Signo".
+        /// Callback when Next Sign button is clicked.
         /// </summary>
-        private void OnNextSignButtonClicked()
-        {
-            LoadSign(currentSignIndex + 1);
-        }
+        private void OnNextSignButtonClicked() => LoadSign(currentSignIndex + 1);
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Signo Anterior".
+        /// Callback when Previous Sign button is clicked.
         /// </summary>
-        private void OnPreviousSignButtonClicked()
-        {
-            LoadSign(currentSignIndex - 1);
-        }
+        private void OnPreviousSignButtonClicked() => LoadSign(currentSignIndex - 1);
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Autoevaluación".
+        /// Callback when Self-Assessment button is clicked.
         /// </summary>
         private void OnSelfAssessmentButtonClicked()
         {
             if (SceneLoader.Instance != null)
-            {
                 SceneLoader.Instance.LoadSelfAssessmentMode();
-            }
             else
-            {
-                Debug.LogError("LearningController: SceneLoader.Instance es null.");
-            }
+                Debug.LogError("LearningController: SceneLoader.Instance is null.");
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Volver".
+        /// Callback when Back button is clicked.
         /// </summary>
         private void OnBackButtonClicked()
         {
             if (SceneLoader.Instance != null)
-            {
                 SceneLoader.Instance.LoadLevelSelection();
-            }
             else
-            {
-                Debug.LogError("LearningController: SceneLoader.Instance es null.");
-            }
+                Debug.LogError("LearningController: SceneLoader.Instance is null.");
         }
 
         /// <summary>
-        /// Obtiene la pose inicial necesaria para un gesto dinámico.
+        /// Returns the initial pose required for a dynamic gesture.
         /// </summary>
         private SignData GetInitialPoseForDynamicGesture(SignData dynamicSign)
         {
-            if (dynamicSign == null || currentCategory == null)
-                return null;
+            if (dynamicSign == null || currentCategory == null) return null;
 
-            // Mapeo de gestos dinámicos a sus poses iniciales
             switch (dynamicSign.signName)
             {
-                case "White":
-                    // White empieza con mano abierta "5"
-                    return FindSignByName("5");
-
-                case "Orange":
-                    // Orange empieza con forma "O"
-                    return FindSignByName("O");
-
-                case "J":
-                    // J usa su propio SignData (Sign_J con ASL_Letter_J_Shape)
-                    // NO usar Sign_I para evitar confusión
-                    return dynamicSign;
-
-                case "Z":
-                    // Z usa su propio SignData (Sign_Z con ASL_Letter_Z_Shape)
-                    // NO usar Sign_1 para evitar confusión
-                    return dynamicSign;
-
-                case "Bye":
-                    // Bye empieza con mano abierta "5" y cierra a puño "S"
-                    return FindSignByName("5");
-
-                case "Brown":
-                    // Brown empieza con pose B y baja
-                    return FindSignByName("B");
-
+                case "White":      return FindSignByName("5");
+                case "Orange":     return FindSignByName("O");
+                case "J":          return dynamicSign;
+                case "Z":          return dynamicSign;
+                case "Bye":        return FindSignByName("5");
+                case "Brown":      return FindSignByName("B");
                 case "Yes":
                 case "No":
                 case "Hello":
                 case "Please":
                 case "Thank You":
                 case "Good":
-                case "Bad":
-                    // Los gestos de Basic Communication usan su propio SignData con requiresMovement
-                    // No necesitan mapeo a pose inicial diferente
-                    return dynamicSign;
-
+                case "Bad":        return dynamicSign;
                 default:
-                    Debug.LogWarning($"[LearningController] No se conoce la pose inicial para el gesto dinámico '{dynamicSign.signName}'");
-                    return dynamicSign; // Fallback al signo original
+                    Debug.LogWarning($"[LearningController] Unknown initial pose for dynamic gesture '{dynamicSign.signName}'");
+                    return dynamicSign;
             }
         }
 
         /// <summary>
-        /// Busca un SignData por nombre en categoría actual y en categoría Digits.
+        /// Finds a SignData by name in the current category, Digits category, or Resources.
         /// </summary>
         private SignData FindSignByName(string signName)
         {
-            // Primero buscar en la categoría actual
-            if (currentCategory != null && currentCategory.signs != null)
-            {
-                foreach (var sign in currentCategory.signs)
-                {
-                    if (sign != null && sign.signName == signName)
-                    {
-                        return sign;
-                    }
-                }
-            }
+            if (currentCategory?.signs != null)
+                foreach (var s in currentCategory.signs)
+                    if (s != null && s.signName == signName) return s;
 
-            // Si no se encuentra, buscar en la categoría Digits (para poses numéricas como "1")
-            if (digitsCategory != null && digitsCategory.signs != null)
-            {
-                foreach (var sign in digitsCategory.signs)
-                {
-                    if (sign != null && sign.signName == signName)
+            if (digitsCategory?.signs != null)
+                foreach (var s in digitsCategory.signs)
+                    if (s != null && s.signName == signName)
                     {
-                        Debug.Log($"[LearningController] Signo '{signName}' encontrado en categoría Digits");
-                        return sign;
+                        Debug.Log($"[LearningController] Sign '{signName}' found in Digits category");
+                        return s;
                     }
-                }
-            }
 
-            // Fallback: buscar en todos los SignData cargados (útil para Alphabet - caso 'O')
             var allSigns = Resources.FindObjectsOfTypeAll<SignData>();
-            foreach (var sign in allSigns)
-            {
-                if (sign != null && sign.signName == signName)
+            foreach (var s in allSigns)
+                if (s != null && s.signName == signName)
                 {
-                    Debug.Log($"[LearningController] Signo '{signName}' encontrado vía Resources.");
-                    return sign;
+                    Debug.Log($"[LearningController] Sign '{signName}' found via Resources.");
+                    return s;
                 }
-            }
 
-            Debug.LogError($"[LearningController] No se encontró el signo '{signName}' ni en categoría actual ni en Digits. Asegúrate de asignar 'Digits Category' o que el signo esté en Resources.");
+            Debug.LogError($"[LearningController] Sign '{signName}' not found in current category, Digits, or Resources.");
             return null;
         }
 
+        /// <summary>
+        /// Switches the active category at runtime without reloading the scene.
+        /// Called from CategoryNavigator when the user presses the arrows.
+        /// Resets the sign index to 0 and reloads the guide pose.
+        /// If practice mode was active it is stopped automatically.
+        /// </summary>
+        public void SwitchToCategory(CategoryData newCategory)
+        {
+            if (newCategory == null)
+            {
+                Debug.LogError("[LearningController] SwitchToCategory: newCategory is null.");
+                return;
+            }
+
+            if (isPracticing) StopPracticeMode();
+
+            currentCategory  = newCategory;
+            currentSignIndex = 0;
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.CurrentCategory = newCategory;
+
+            Debug.Log($"[LearningController] Category changed to: {newCategory.categoryName} ({newCategory.signs.Count} signs)");
+
+            LoadSign(0);
+        }
+
+        /// <summary>
+        /// Stops practice mode cleanly (internal helper).
+        /// </summary>
+        private void StopPracticeMode()
+        {
+            isPracticing = false;
+            SetRecognitionEnabled(false);
+
+            if (feedbackPanel != null) feedbackPanel.SetActive(false);
+            if (ghostHandPlayer != null) ghostHandPlayer.SetVisibilityImmediate(true);
+
+            if (practiceButton != null)
+            {
+                var tmp = practiceButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (tmp != null) tmp.text = "Practice";
+            }
+        }
+
+        /// <summary>
+        /// Exposes the current sign index so CategoryNavigator can update the progress bar.
+        /// </summary>
+        public int CurrentSignIndex => currentSignIndex;
+
+        /// <summary>
+        /// Exposes the total number of signs in the current category.
+        /// </summary>
+        public int TotalSignsInCategory => currentCategory?.signs?.Count ?? 0;
     }
 }

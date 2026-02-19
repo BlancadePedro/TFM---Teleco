@@ -1,7 +1,7 @@
 namespace ASL.DynamicGestures
 {
     /// <summary>
-    /// Interfaz común para adaptadores de poses (Static y Single).
+    /// Interfaz comun para adaptadores de poses (Static y Single).
     /// Permite que DynamicGestureRecognizer funcione con ambos tipos.
     /// </summary>
     public interface IPoseAdapter
@@ -9,11 +9,11 @@ namespace ASL.DynamicGestures
         /// <summary>
         /// Obtiene el nombre de la pose actualmente detectada.
         /// </summary>
-        /// <returns>Nombre del signo (ej: "A", "J", "5") o null si no hay pose detectada</returns>
+        /// <returns>Name del signo (ej: "A", "J", "5") o null si no hay pose detectada</returns>
         string GetCurrentPoseName();
 
         /// <summary>
-        /// Verifica si hay tracking activo de la mano.
+        /// Verifica si hay tracking active de la mano.
         /// </summary>
         bool IsHandTracked();
     }

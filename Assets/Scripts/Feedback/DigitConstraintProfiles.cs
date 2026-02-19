@@ -3,10 +3,10 @@ using UnityEngine;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Perfiles de constraints predefinidos para los dígitos ASL (0-9).
+    /// Profiles de constraints predefinidos para los digitos ASL (0-9).
     /// Usar con HandPoseAnalyzer para feedback detallado por dedo.
     ///
-    /// Valores de curl: 0 = extendido, 1 = cerrado
+    /// Values de curl: 0 = extendido, 1 = cerrado
     /// </summary>
     public static class DigitConstraintProfiles
     {
@@ -21,8 +21,8 @@ namespace ASL_LearnVR.Feedback
         private const float PARTIAL_MAX = 0.65f;
 
         /// <summary>
-        /// Crea el perfil para el dígito 1.
-        /// Índice extendido, resto cerrados.
+        /// Crea el perfil para el digito 1.
+        /// Index extendido, resto cerrados.
         /// </summary>
         public static FingerConstraintProfile CreateDigit1()
         {
@@ -30,19 +30,19 @@ namespace ASL_LearnVR.Feedback
             profile.signName = "1";
             profile.description = "Index extended, others curled";
 
-            // Pulgar: cerrado contra la palma
+            // Thumb: cerrado contra la palma
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
                 customMessageTooExtended = "Recoge el pulgar contra la palma"
             };
 
-            // Índice: EXTENDIDO (el único)
+            // Index: EXTENDIDO (el unico)
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             // Medio: cerrado
@@ -53,7 +53,7 @@ namespace ASL_LearnVR.Feedback
                 customMessageTooExtended = "Cierra el medio"
             };
 
-            // Anular: cerrado
+            // Ring: cerrado
             profile.ring = new FingerConstraint
             {
                 finger = Finger.Ring,
@@ -61,20 +61,20 @@ namespace ASL_LearnVR.Feedback
                 customMessageTooExtended = "Cierra el anular"
             };
 
-            // Meñique: cerrado
+            // Pinky: cerrado
             profile.pinky = new FingerConstraint
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = CURLED_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Close the pinky"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 2.
-        /// Índice y medio extendidos, resto cerrados.
+        /// Crea el perfil para el digito 2.
+        /// Index y medio extendidos, resto cerrados.
         /// </summary>
         public static FingerConstraintProfile CreateDigit2()
         {
@@ -92,7 +92,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -113,15 +113,15 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = 0.55f, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Close the pinky"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 3.
-        /// Pulgar, índice y medio extendidos.
+        /// Crea el perfil para el digito 3.
+        /// Thumb, index y medio extendidos.
         /// </summary>
         public static FingerConstraintProfile CreateDigit3()
         {
@@ -141,7 +141,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -162,14 +162,14 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = 0.55f, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooExtended = "Cierra el meñique"
+                customMessageTooExtended = "Close the pinky"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 4.
+        /// Crea el perfil para el digito 4.
         /// Cuatro dedos extendidos (sin pulgar).
         /// </summary>
         public static FingerConstraintProfile CreateDigit4()
@@ -188,7 +188,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -209,14 +209,14 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el meñique"
+                customMessageTooCurled = "Extiende el menique"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 5.
+        /// Crea el perfil para el digito 5.
         /// Todos los dedos extendidos (mano abierta).
         /// </summary>
         public static FingerConstraintProfile CreateDigit5()
@@ -237,7 +237,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -258,15 +258,15 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el meñique"
+                customMessageTooCurled = "Extiende el menique"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 6.
-        /// Pulgar toca meñique; índice/medio/anular extendidos.
+        /// Crea el perfil para el digito 6.
+        /// Thumb toca menique; index/medio/anular extendidos.
         /// </summary>
         public static FingerConstraintProfile CreateDigit6()
         {
@@ -278,14 +278,14 @@ namespace ASL_LearnVR.Feedback
             {
                 curl = new CurlConstraint { minCurl = 0.2f, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
                 shouldTouchPinky = true,
-                customMessageGeneric = "Toca el meñique con el pulgar"
+                customMessageGeneric = "Toca el menique con el pulgar"
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -306,15 +306,15 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = CURLED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Dobla el meñique para tocar el pulgar"
+                customMessageGeneric = "Dobla el menique para tocar el pulgar"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 7.
-        /// Pulgar toca anular; índice/medio/meñique extendidos.
+        /// Crea el perfil para el digito 7.
+        /// Thumb toca anular; index/medio/menique extendidos.
         /// </summary>
         public static FingerConstraintProfile CreateDigit7()
         {
@@ -333,7 +333,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -354,21 +354,21 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Minor },
-                customMessageTooCurled = "Extiende el meñique"
+                customMessageTooCurled = "Extiende el menique"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 8.
-        /// Pulgar y medio se tocan, índice, anular y meñique extendidos.
+        /// Crea el perfil para el digito 8.
+        /// Thumb y medio se tocan, index, anular y menique extendidos.
         /// </summary>
         public static FingerConstraintProfile CreateDigit8()
         {
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "8";
-            profile.description = "Pulgar toca medio; índice, anular, meñique extendidos";
+            profile.description = "Thumb toca medio; index, anular, menique extendidos";
 
             profile.thumb = new ThumbConstraint
             {
@@ -381,7 +381,7 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el índice"
+                customMessageTooCurled = "Extiende el index"
             };
 
             profile.middle = new FingerConstraint
@@ -402,34 +402,34 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el meñique"
+                customMessageTooCurled = "Extiende el menique"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 9.
-        /// Pulgar e índice forman círculo (OK sign), resto extendidos.
+        /// Crea el perfil para el digito 9.
+        /// Thumb e index forman circulo (OK sign), resto extendidos.
         /// </summary>
         public static FingerConstraintProfile CreateDigit9()
         {
             var profile = ScriptableObject.CreateInstance<FingerConstraintProfile>();
             profile.signName = "9";
-            profile.description = "Pulgar e índice forman círculo (OK sign)";
+            profile.description = "Thumb e index forman circulo (OK sign)";
 
             profile.thumb = new ThumbConstraint
             {
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Minor },
                 shouldTouchIndex = true,
-                customMessageGeneric = "Toca la punta del índice con el pulgar"
+                customMessageGeneric = "Toca la punta del index con el pulgar"
             };
 
             profile.index = new FingerConstraint
             {
                 finger = Finger.Index,
                 curl = new CurlConstraint { minCurl = PARTIAL_MIN, maxCurl = 0.6f, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageGeneric = "Dobla el índice para tocar el pulgar (forma una O)"
+                customMessageGeneric = "Dobla el index para tocar el pulgar (forma una O)"
             };
 
             profile.middle = new FingerConstraint
@@ -450,14 +450,14 @@ namespace ASL_LearnVR.Feedback
             {
                 finger = Finger.Pinky,
                 curl = new CurlConstraint { minCurl = EXTENDED_MIN, maxCurl = EXTENDED_MAX, isEnabled = true, severityIfOutOfRange = Severity.Major },
-                customMessageTooCurled = "Extiende el meñique"
+                customMessageTooCurled = "Extiende el menique"
             };
 
             return profile;
         }
 
         /// <summary>
-        /// Crea el perfil para el dígito 0 (o 10).
+        /// Crea el perfil para el digito 0 (o 10).
         /// Forma de O: todos los dedos curvados tocando el pulgar.
         /// </summary>
         public static FingerConstraintProfile CreateDigit0()
@@ -504,7 +504,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea todos los perfiles de dígitos (0-9).
+        /// Crea todos los perfiles de digitos (0-9).
         /// </summary>
         public static FingerConstraintProfile[] CreateAllDigitProfiles()
         {
@@ -524,7 +524,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Obtiene el perfil para un dígito específico.
+        /// Gets the profile for a specific digit.
         /// </summary>
         public static FingerConstraintProfile GetDigitProfile(int digit)
         {

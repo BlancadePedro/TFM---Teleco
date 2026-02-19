@@ -4,8 +4,8 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.Core
 {
     /// <summary>
-    /// Gestiona el estado global de la aplicación.
-    /// Mantiene referencias al nivel, categoría y signo actualmente seleccionados.
+    /// Manages the global application state.
+    /// Maintains references to the currently selected level, category, and sign.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -35,7 +35,7 @@ namespace ASL_LearnVR.Core
         [SerializeField] private SignData currentSign;
 
         /// <summary>
-        /// Nivel actualmente seleccionado.
+        /// Currently selected level.
         /// </summary>
         public LevelData CurrentLevel
         {
@@ -44,7 +44,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Categoría actualmente seleccionada.
+        /// Currently selected category.
         /// </summary>
         public CategoryData CurrentCategory
         {
@@ -53,7 +53,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Signo actualmente seleccionado.
+        /// Currently selected sign.
         /// </summary>
         public SignData CurrentSign
         {
@@ -75,7 +75,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Limpia la sesión actual.
+        /// Clears the current session.
         /// </summary>
         public void ClearSession()
         {
@@ -85,7 +85,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Valida que haya un nivel, categoría y signo seleccionados.
+        /// Validates that a level, category, and sign are selected.
         /// </summary>
         public bool HasValidSession()
         {
@@ -93,7 +93,7 @@ namespace ASL_LearnVR.Core
         }
 
         /// <summary>
-        /// Valida que haya un nivel y categoría seleccionados.
+        /// Validates that a level and category are selected.
         /// </summary>
         public bool HasLevelAndCategory()
         {

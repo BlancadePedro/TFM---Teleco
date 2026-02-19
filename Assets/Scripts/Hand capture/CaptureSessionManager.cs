@@ -256,7 +256,7 @@ namespace UnityEngine.XR.Hands.Samples.Capture
             if (recordingSlotDeleted >= 0 && recordingSlotDeleted < m_RecordingItemViews.Length)
                 m_RecordingItemViews[recordingSlotDeleted].gameObject.SetActive(false);
 
-            RefreshRecordingCapacityUI();
+            RefreshRecordingLayercityUI();
         }
 
         void SetupInputFieldListener()
@@ -416,11 +416,11 @@ namespace UnityEngine.XR.Hands.Samples.Capture
 
             if (args.currentState == RecorderUserJourneyManager.UserJourneyState.RecordingSaved)
             {
-                RefreshRecordingCapacityUI();
+                RefreshRecordingLayercityUI();
             }
         }
 
-        void RefreshRecordingCapacityUI()
+        void RefreshRecordingLayercityUI()
         {
             // Disable the "Record Another" button and show the "Recording Full" warning if no slots are available
             bool hasAvailableSlot = m_RecordingController.TryFindNextFreeSlot(out var _);
@@ -495,7 +495,7 @@ namespace UnityEngine.XR.Hands.Samples.Capture
             if (!m_RecordingController.TryActivateNextSlotForRecording())
             {
                 // If no slot is available, show the Recording Full warning
-                RefreshRecordingCapacityUI();
+                RefreshRecordingLayercityUI();
                 return;
             }
 

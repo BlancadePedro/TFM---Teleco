@@ -10,24 +10,24 @@ namespace ASL_LearnVR.Data
     public class MonthSequenceData : SignData
     {
         [Header("Sequence Letters")]
-        [Tooltip("Referencias a los SignData de las 3 letras que forman la secuencia (ordenadas)")]
+        [Tooltip("References a los SignData de las 3 letras que forman la secuencia (ordenadas)")]
         public SignData[] letters = new SignData[3];
 
         [Header("Guide Animation Clips")]
-        [Tooltip("Animación guía combinada para la mano izquierda (opcional)")]
+        [Tooltip("Combined guide animation for the left hand (optional)")]
         public AnimationClip guideClipLeft;
 
-        [Tooltip("Animación guía combinada para la mano derecha (opcional)")]
+        [Tooltip("Combined guide animation for the right hand (optional)")]
         public AnimationClip guideClipRight;
 
         /// <summary>
-        /// Valida que la secuencia tenga exactamente 3 letras y cada letra sea válida.
+        /// Valida que la secuencia tenga exactamente 3 letras y cada letra sea valid.
         /// </summary>
         public override bool IsValid()
         {
             if (letters == null || letters.Length != 3)
             {
-                Debug.LogError($"MonthSequenceData '{name}' debe tener exactamente 3 letras asignadas.");
+                Debug.LogError($"MonthSequenceData '{name}' debe tener exactamente 3 letras assigned.");
                 return false;
             }
 
@@ -37,12 +37,12 @@ namespace ASL_LearnVR.Data
                 var l = letters[i];
                 if (l == null)
                 {
-                    Debug.LogError($"MonthSequenceData '{name}': letra en posición {i} es null.");
+                    Debug.LogError($"MonthSequenceData '{name}': letra en posicion {i} es null.");
                     ok = false;
                 }
             }
 
-            // Además podemos requerir que el nombre esté puesto (ej: 'ENERO')
+            // Ademas podemos requerir que el nombre este puesto (ej: 'ENERO')
             if (string.IsNullOrEmpty(signName))
             {
                 Debug.LogWarning($"MonthSequenceData '{name}' no tiene 'signName' definido. Usa el nombre del asset como fallback.");

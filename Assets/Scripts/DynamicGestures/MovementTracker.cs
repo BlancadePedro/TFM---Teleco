@@ -5,21 +5,21 @@ namespace ASL.DynamicGestures
 {
     /// <summary>
     /// Rastrea y analiza el movimiento de la mano a lo largo del tiempo sin allocations en Update.
-    /// Calcula métricas como distancia total, velocidad, dirección promedio, cambios de dirección,
-    /// rotación total y score de circularidad.
+    /// Calcula metricas como distancia total, velocidad, direccion promedio, cambios de direccion,
+    /// rotacion total y score de circularidad.
     /// </summary>
     public class MovementTracker
     {
-        // Configuración
+        // Configuration
         private readonly float windowSize; // Segundos de historial a mantener
-        private readonly int maxHistorySize; // Máximo número de samples
+        private readonly int maxHistorySize; // Maximum numero de samples
 
         // Historial (preallocado, cero allocations en runtime)
         private readonly Queue<Vector3> positionHistory;
         private readonly Queue<Quaternion> rotationHistory;
         private readonly Queue<float> timestamps;
 
-        // Estado actual
+        // State actual
         private Vector3 startPosition;
         private Quaternion startRotation;
         private float startTime;
@@ -27,7 +27,7 @@ namespace ASL.DynamicGestures
         private Quaternion lastRotation;
         private float lastTimestamp;
 
-        // Métricas calculadas
+        // Metricas calculadas
         private float totalDistance;
         private float totalRotation;
         private int directionChanges;
@@ -38,37 +38,37 @@ namespace ASL.DynamicGestures
         private readonly List<float> cachedRadii;
 
         /// <summary>
-        /// Posición actual de la mano
+        /// Position actual de la mano
         /// </summary>
         public Vector3 CurrentPosition { get; private set; }
 
         /// <summary>
-        /// Posición donde empezó el tracking
+        /// Position donde empezo el tracking
         /// </summary>
         public Vector3 StartPosition => startPosition;
 
         /// <summary>
-        /// Distancia total recorrida en metros
+        /// Distance total recorrida en metros
         /// </summary>
         public float TotalDistance => totalDistance;
 
         /// <summary>
-        /// Velocidad actual en m/s (calculada sobre últimos 3 frames)
+        /// Speed actual en m/s (calculada sobre ultimos 3 frames)
         /// </summary>
         public float CurrentSpeed { get; private set; }
 
         /// <summary>
-        /// Dirección promedio del movimiento (normalizada, basada en último 30% de la trayectoria)
+        /// Direccion promedio del movimiento (normalizada, basada en ultimo 30% de la trayectoria)
         /// </summary>
         public Vector3 AverageDirection { get; private set; }
 
         /// <summary>
-        /// Rotación total acumulada en grados
+        /// Rotation total acumulada en degrees
         /// </summary>
         public float TotalRotation => totalRotation;
 
         /// <summary>
-        /// Número de cambios de dirección significativos detectados (ángulo > 45°)
+        /// Number of direction changes significativos detecteds (angulo > 45°)
         /// </summary>
         public int DirectionChanges => directionChanges;
 
@@ -76,7 +76,7 @@ namespace ASL.DynamicGestures
         /// Constructor
         /// </summary>
         /// <param name="windowSize">Ventana temporal en segundos (ej: 3.0f)</param>
-        /// <param name="historySize">Número máximo de samples (ej: 120 para 60fps * 2s)</param>
+        /// <param name="historySize">Numero maximo de samples (ej: 120 para 60fps * 2s)</param>
         public MovementTracker(float windowSize = 3f, int historySize = 120)
         {
             this.windowSize = windowSize;
@@ -120,7 +120,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Actualiza el tracking con nueva posición y rotación
+        /// Actualiza el tracking con nueva posicion y rotacion
         /// </summary>
         public void UpdateTracking(Vector3 position, Quaternion rotation)
         {
@@ -149,7 +149,7 @@ namespace ASL.DynamicGestures
             rotationHistory.Enqueue(rotation);
             timestamps.Enqueue(currentTime);
 
-            // Limitar tamaño de historial
+            // Limitar tamano de historial
             while (positionHistory.Count > maxHistorySize)
             {
                 positionHistory.Dequeue();
@@ -169,15 +169,15 @@ namespace ASL.DynamicGestures
             float frameDist = Vector3.Distance(position, lastPosition);
             totalDistance += frameDist;
 
-            // Detectar cambio de dirección
-            if (frameDist > 0.001f) // Umbral para evitar noise
+            // Detect direction change
+            if (frameDist > 0.001f) // Threshold para evitar noise
             {
                 Vector3 currentDirection = (position - lastPosition).normalized;
 
                 if (lastDirection.sqrMagnitude > 0.01f)
                 {
                     float angle = Vector3.Angle(lastDirection, currentDirection);
-                    if (angle > 30f) // 30° (antes 45°) - más sensible para waving suave
+                    if (angle > 30f) // 30° (antes 45°) - mas sensible para waving suave
                     {
                         directionChanges++;
                     }
@@ -186,7 +186,7 @@ namespace ASL.DynamicGestures
                 lastDirection = currentDirection;
             }
 
-            // Calcular rotación incremental
+            // Calcular rotacion incremental
             float frameRotation = Quaternion.Angle(rotation, lastRotation);
             totalRotation += frameRotation;
 
@@ -196,13 +196,13 @@ namespace ASL.DynamicGestures
             lastRotation = rotation;
             lastTimestamp = currentTime;
 
-            // Recalcular métricas
+            // Recalcular metricas
             CalculateSpeed();
             CalculateAverageDirection();
         }
 
         /// <summary>
-        /// Calcula velocidad actual basada en últimos 3 frames
+        /// Calcula velocidad actual basada en ultimos 3 frames
         /// </summary>
         private void CalculateSpeed()
         {
@@ -224,7 +224,7 @@ namespace ASL.DynamicGestures
             foreach (var t in timestamps)
                 times[idx++] = t;
 
-            // Calcular distancia de últimos 3 frames
+            // Calcular distancia de ultimos 3 frames
             int count = positions.Length;
             float dist = Vector3.Distance(positions[count - 1], positions[count - 2]) +
                          Vector3.Distance(positions[count - 2], positions[count - 3]);
@@ -235,7 +235,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Calcula dirección promedio del último 30% del movimiento
+        /// Calcula direccion promedio del ultimo 30% del movimiento
         /// </summary>
         private void CalculateAverageDirection()
         {
@@ -251,7 +251,7 @@ namespace ASL.DynamicGestures
             foreach (var pos in positionHistory)
                 positions[idx++] = pos;
 
-            // Último 30% de samples
+            // Ultimo 30% de samples
             int startIdx = Mathf.Max(0, positions.Length - Mathf.CeilToInt(positions.Length * 0.3f));
 
             Vector3 sumDirection = Vector3.zero;
@@ -271,11 +271,11 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Calcula score de circularidad del movimiento (0=línea, 1=círculo perfecto)
+        /// Calcula score de circularidad del movimiento (0=linea, 1=circulo perfecto)
         /// </summary>
         public float GetCircularityScore()
         {
-            // Requiere al menos 10 samples para análisis significativo
+            // Requiere al menos 10 samples para analisis significativo
             if (positionHistory.Count < 10)
                 return 0f;
 
@@ -301,7 +301,7 @@ namespace ASL.DynamicGestures
             }
             avgRadius /= cachedPositions.Count;
 
-            // Si el radio es muy pequeño, no hay movimiento circular significativo
+            // Si el radio es muy pequeno, no hay movimiento circular significativo
             if (avgRadius < 0.01f)
                 return 0f;
 
@@ -315,18 +315,18 @@ namespace ASL.DynamicGestures
             variance /= cachedRadii.Count;
 
             // 4. Score de circularidad basado en consistencia de radio
-            // Baja varianza = puntos equidistantes del centro = círculo
+            // Baja varianza = puntos equidistantes del centro = circulo
             float circularity = 1f - Mathf.Clamp01(variance / (avgRadius * avgRadius));
 
             return circularity;
         }
 
         /// <summary>
-        /// Comprueba si el movimiento actual va en una dirección específica
+        /// Comprueba si el movimiento actual va en una direccion especifica
         /// </summary>
-        /// <param name="targetDirection">Dirección objetivo (normalizada)</param>
-        /// <param name="toleranceDegrees">Tolerancia angular en grados</param>
-        /// <returns>True si la dirección promedio está dentro de la tolerancia</returns>
+        /// <param name="targetDirection">Direccion objetivo (normalizada)</param>
+        /// <param name="toleranceDegrees">Tolerancia angular en degrees</param>
+        /// <returns>True si la direccion promedio esta dentro de la tolerancia</returns>
         public bool IsMovingInDirection(Vector3 targetDirection, float toleranceDegrees)
         {
             if (AverageDirection.sqrMagnitude < 0.01f || targetDirection.sqrMagnitude < 0.01f)
@@ -337,7 +337,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene duración total del tracking en segundos
+        /// Obtiene duracion total del tracking en segundos
         /// </summary>
         public float GetDuration()
         {
@@ -345,7 +345,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene número de samples en historial
+        /// Obtiene numero de samples en historial
         /// </summary>
         public int GetSampleCount()
         {

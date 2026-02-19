@@ -27,7 +27,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public float distalCurl;
 
         [Range(-30f, 30f)]
-        [Tooltip("Spread (abducción) del dedo en grados")]
+        [Tooltip("Spread (abduccion) del dedo en degrees")]
         public float spreadAngle;
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         };
 
         /// <summary>
-        /// Crea una pose de dedo completamente cerrado (puño).
+        /// Crea una pose de dedo completamente cerrado (puno).
         /// </summary>
         public static FingerPoseData FullyCurled => new FingerPoseData
         {
@@ -129,19 +129,19 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public float distalCurl;
 
         [Range(-45f, 45f)]
-        [Tooltip("Rotación lateral del pulgar (abducción)")]
+        [Tooltip("Rotation lateral del pulgar (abduccion)")]
         public float abductionAngle;
 
         [Range(-30f, 30f)]
-        [Tooltip("Oposición del pulgar (cruzar hacia otros dedos)")]
+        [Tooltip("Thumb opposition (cruzar hacia otros dedos)")]
         public float oppositionAngle;
 
         [Range(-90f, 90f)]
-        [Tooltip("Rotación axial del pulgar (twist) para orientar la uña")]
+        [Tooltip("Rotation axial del pulgar (twist) para orientar la una")]
         public float distalTwist;
 
         [Range(-45f, 45f)]
-        [Tooltip("Inclinación del pulgar hacia/desde el usuario (pitch)")]
+        [Tooltip("Inclinacion del pulgar hacia/desde el usuario (pitch)")]
         public float thumbPitch;
 
         /// <summary>
@@ -239,10 +239,10 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public FingerPoseData pinky;
 
         [Header("Wrist Orientation")]
-        [Tooltip("Rotación del wrist respecto a su pose neutral")]
+        [Tooltip("Rotation del wrist regarding su pose neutral")]
         public Vector3 wristRotationOffset = Vector3.zero;
 
-        [Tooltip("Offset de posición local del wrist (para subir/bajar la mano)")]
+        [Tooltip("Offset de posicion local del wrist (para subir/bajar la mano)")]
         public Vector3 wristPositionOffset = Vector3.zero;
 
         /// <summary>
@@ -262,7 +262,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Crea una pose de puño cerrado.
+        /// Crea una pose de puno cerrado.
         /// </summary>
         public static HandPoseData Fist()
         {
@@ -302,7 +302,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
     [Serializable]
     public struct PoseKeyframe
     {
-        [Tooltip("Tiempo en segundos desde el inicio de la animación")]
+        [Tooltip("Time en segundos desde el inicio de la animacion")]
         public float time;
 
         [Tooltip("Pose completa en este keyframe")]
@@ -326,7 +326,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         public bool loop;
 
         /// <summary>
-        /// Duración total de la secuencia (tiempo del último keyframe).
+        /// Duration total de la secuencia (tiempo del ultimo keyframe).
         /// </summary>
         public float Duration => keyframes != null && keyframes.Length > 0
             ? keyframes[keyframes.Length - 1].time
@@ -344,7 +344,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (t <= keyframes[0].time)
                 return keyframes[0].pose;
 
-            // Después del último keyframe
+            // Despues del ultimo keyframe
             if (t >= keyframes[keyframes.Length - 1].time)
                 return keyframes[keyframes.Length - 1].pose;
 

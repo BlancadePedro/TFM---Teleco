@@ -4,27 +4,27 @@ using ASL.DynamicGestures;
 namespace ASL.SelfAssessment
 {
     /// <summary>
-    /// Filtro simple para Scene 4: solo permite que pase UN gesto específico
+    /// Filtro simple para Scene 4: solo permite que pase UN gesto especifico
     /// NO modifica DynamicGestureRecognizer - solo escucha eventos y filtra
     /// </summary>
     public class DynamicGestureFilter : MonoBehaviour
     {
-        [Header("Referencias")]
+        [Header("References")]
         [SerializeField] private DynamicGestureRecognizer dynamicGestureRecognizer;
 
         /// <summary>
-        /// Acceso público al reconocedor para suscripción a eventos adicionales (ej: OnGestureStarted)
+        /// Acceso publico al reconocedor para suscripcion a eventos adicionales (ej: OnGestureStarted)
         /// </summary>
         public DynamicGestureRecognizer DynamicGestureRecognizer => dynamicGestureRecognizer;
 
         [Header("Filtro")]
-        [Tooltip("Nombre del gesto que se está practicando (vacío = permite todos)")]
+        [Tooltip("Name del gesto que se esta practicando (vacio = permite todos)")]
         [SerializeField] private string currentTargetGesture = "";
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = true;
 
-        // Eventos filtrados (solo el gesto objetivo pasa)
+        // Events filtrados (solo el gesto objetivo pasa)
         public System.Action<string> OnFilteredGestureCompleted;
         public System.Action<string, float> OnFilteredGestureProgress;
         public System.Action<string, string> OnFilteredGestureFailed;
@@ -50,7 +50,7 @@ namespace ASL.SelfAssessment
         }
 
         /// <summary>
-        /// Cambia el gesto objetivo (el que estás practicando)
+        /// Cambia el gesto objetivo (el que estas practicando)
         /// </summary>
         public void SetTargetGesture(string gestureName)
         {
@@ -58,7 +58,7 @@ namespace ASL.SelfAssessment
 
             if (showDebugLogs)
             {
-                Debug.Log($"<color=cyan>[FILTER]</color> Gesto objetivo: '{gestureName}'");
+                Debug.Log($"<color=cyan>[FILTER]</color> Gesture objetivo: '{gestureName}'");
             }
         }
 
@@ -81,7 +81,7 @@ namespace ASL.SelfAssessment
             {
                 if (showDebugLogs)
                 {
-                    Debug.Log($"<color=green>[FILTER]</color> ✓ Gesto '{gestureName}' completado (PERMITIDO)");
+                    Debug.Log($"<color=green>[FILTER]</color> ✓ Gesture '{gestureName}' completed (ALLOWED)");
                 }
 
                 OnFilteredGestureCompleted?.Invoke(gestureName);
@@ -90,7 +90,7 @@ namespace ASL.SelfAssessment
             {
                 if (showDebugLogs)
                 {
-                    Debug.LogWarning($"<color=yellow>[FILTER]</color> ✗ Gesto '{gestureName}' completado (BLOQUEADO - esperando '{currentTargetGesture}')");
+                    Debug.LogWarning($"<color=yellow>[FILTER]</color> ✗ Gesture '{gestureName}' completed (BLOQUEADO - esperando '{currentTargetGesture}')");
                 }
             }
         }
@@ -109,7 +109,7 @@ namespace ASL.SelfAssessment
             {
                 if (showDebugLogs)
                 {
-                    Debug.LogWarning($"<color=orange>[FILTER]</color> Gesto '{gestureName}' falló: {reason}");
+                    Debug.LogWarning($"<color=orange>[FILTER]</color> Gesture '{gestureName}' failed: {reason}");
                 }
 
                 OnFilteredGestureFailed?.Invoke(gestureName, reason);
@@ -118,7 +118,7 @@ namespace ASL.SelfAssessment
 
         private bool IsGestureAllowed(string gestureName)
         {
-            // Si no hay filtro activo, permite todo
+            // Si no hay filtro active, permite todo
             if (string.IsNullOrEmpty(currentTargetGesture))
                 return true;
 

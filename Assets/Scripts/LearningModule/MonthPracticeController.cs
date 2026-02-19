@@ -6,34 +6,34 @@ using System;
 namespace ASL_LearnVR.LearningModule
 {
     /// <summary>
-    /// Controla la práctica de secuencias de 3 letras (meses).
+    /// Controla la practica de secuencias de 3 letras (meses).
     /// Gestiona el estado, configura los recognizers, y actualiza la UI.
     /// </summary>
     public class MonthPracticeController : MonoBehaviour
     {
         [Header("UI")]
-        [Tooltip("Componente MonthTilesUI que muestra los 3 tiles")]
+        [Tooltip("Component MonthTilesUI que muestra los 3 tiles")]
         [SerializeField] private MonthTilesUI tilesUI;
 
-        // Referencias a los recognizers (se configuran desde LearningController)
+        // References a los recognizers (se configuran desde LearningController)
         private GestureRecognizer rightRecognizer;
         private GestureRecognizer leftRecognizer;
 
-        // Estado actual
+        // State actual
         private MonthSequenceData currentMonth;
         private int currentStep = 0;
         private bool isPracticing = false;
 
-        // Evento cuando se completa la secuencia
+        // Event cuando se completa la secuencia
         public event Action<MonthSequenceData> OnSequenceCompleted;
 
         /// <summary>
-        /// Propiedad pública para saber si está practicando.
+        /// Propiedad publica para saber si esta practicando.
         /// </summary>
         public bool IsPracticing => isPracticing;
 
         /// <summary>
-        /// Propiedad pública para saber el paso actual (0, 1, 2).
+        /// Propiedad publica para saber el paso actual (0, 1, 2).
         /// </summary>
         public int CurrentStep => currentStep;
 
@@ -44,23 +44,23 @@ namespace ASL_LearnVR.LearningModule
         {
             rightRecognizer = right;
             leftRecognizer = left;
-            Debug.Log($"[MonthPracticeController] Recognizers configurados: R={right != null}, L={left != null}");
+            Debug.Log($"[MonthPracticeController] Recognizers configureds: R={right != null}, L={left != null}");
         }
 
         /// <summary>
-        /// Inicia la práctica para un mes específico.
+        /// Starts practice for a specific month.
         /// </summary>
         public void StartPractice(MonthSequenceData month)
         {
             if (month == null)
             {
-                Debug.LogError("[MonthPracticeController] No se puede iniciar práctica: month es null");
+                Debug.LogError("[MonthPracticeController] No se puede iniciar practica: month es null");
                 return;
             }
 
             if (month.letters == null || month.letters.Length < 3)
             {
-                Debug.LogError($"[MonthPracticeController] El mes '{month.signName}' no tiene 3 letras configuradas");
+                Debug.LogError($"[MonthPracticeController] El mes '{month.signName}' no tiene 3 letras configureds");
                 return;
             }
 
@@ -69,7 +69,7 @@ namespace ASL_LearnVR.LearningModule
             isPracticing = true;
 
             Debug.Log($"[MonthPracticeController] ========================================");
-            Debug.Log($"[MonthPracticeController] INICIANDO PRÁCTICA: {month.signName}");
+            Debug.Log($"[MonthPracticeController] INICIANDO PRACTICA: {month.signName}");
             Debug.Log($"[MonthPracticeController] Letras: {month.letters[0]?.signName} → {month.letters[1]?.signName} → {month.letters[2]?.signName}");
             Debug.Log($"[MonthPracticeController] ========================================");
 
@@ -80,19 +80,19 @@ namespace ASL_LearnVR.LearningModule
             }
             else
             {
-                Debug.LogError("[MonthPracticeController] tilesUI es NULL - no se mostrará la UI de tiles");
+                Debug.LogError("[MonthPracticeController] tilesUI es NULL - no se mostrara la UI de tiles");
             }
 
-            // Configurar recognizer para la primera letra
+            // Configure recognizer para la primera letra
             ConfigureRecognizerForCurrentStep();
         }
 
         /// <summary>
-        /// Detiene la práctica actual.
+        /// Stops current practice.
         /// </summary>
         public void StopPractice()
         {
-            Debug.Log("[MonthPracticeController] DETENIENDO PRÁCTICA");
+            Debug.Log("[MonthPracticeController] DETENIENDO PRACTICA");
 
             isPracticing = false;
             currentMonth = null;
@@ -115,7 +115,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Procesa una detección de gesto.
+        /// Procesa una deteccion de gesto.
         /// Retorna true si la letra detectada era la esperada.
         /// </summary>
         public bool ProcessDetection(SignData detectedSign)
@@ -135,9 +135,9 @@ namespace ASL_LearnVR.LearningModule
             // Comparar por nombre
             if (detectedSign.signName == expectedLetter.signName)
             {
-                Debug.Log($"[MonthPracticeController] ✓ CORRECTO! Letra '{expectedLetter.signName}' completada");
+                Debug.Log($"[MonthPracticeController] ✓ CORRECT! Letter '{expectedLetter.signName}' completed");
 
-                // Marcar como completado en UI
+                // Marcar como completed en UI
                 if (tilesUI != null)
                     tilesUI.MarkComplete(currentStep);
 
@@ -145,7 +145,7 @@ namespace ASL_LearnVR.LearningModule
 
                 if (currentStep >= 3)
                 {
-                    // ¡Secuencia completada!
+                    // Sequence completed!
                     Debug.Log($"[MonthPracticeController] ★★★ SECUENCIA COMPLETADA: {currentMonth.signName} ★★★");
 
                     if (tilesUI != null)
@@ -171,7 +171,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Reinicia la práctica actual al paso 0.
+        /// Reinicia la practica actual al paso 0.
         /// </summary>
         public void ResetPractice()
         {
@@ -186,7 +186,7 @@ namespace ASL_LearnVR.LearningModule
 
             ConfigureRecognizerForCurrentStep();
 
-            Debug.Log("[MonthPracticeController] Práctica reiniciada");
+            Debug.Log("[MonthPracticeController] Practice restarted");
         }
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace ASL_LearnVR.LearningModule
                 return;
             }
 
-            Debug.Log($"[MonthPracticeController] Configurando recognizer para letra: '{targetLetter.signName}'");
+            Debug.Log($"[MonthPracticeController] Configuring recognizer para letra: '{targetLetter.signName}'");
 
             if (rightRecognizer != null)
                 rightRecognizer.TargetSign = targetLetter;

@@ -4,32 +4,32 @@ using UnityEngine;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Constraint de curl (extensión/flexión) para un dedo.
+    /// Constraint de curl (extension/flexion) para un dedo.
     /// Los valores van de 0 (completamente extendido) a 1 (completamente cerrado).
     /// </summary>
     [Serializable]
     public class CurlConstraint
     {
-        [Tooltip("Valor mínimo de curl aceptable (0=extendido, 1=cerrado)")]
+        [Tooltip("Value minimo de curl aceptable (0=extendido, 1=cerrado)")]
         [Range(0f, 1f)]
         public float minCurl = 0f;
 
-        [Tooltip("Valor máximo de curl aceptable")]
+        [Tooltip("Value maximo de curl aceptable")]
         [Range(0f, 1f)]
         public float maxCurl = 1f;
 
-        [Tooltip("Severidad si está fuera del rango")]
+        [Tooltip("Severidad si esta fuera del rango")]
         public Severity severityIfOutOfRange = Severity.Major;
 
-        [Tooltip("True si este constraint está activo")]
+        [Tooltip("True si este constraint esta active")]
         public bool isEnabled = true;
 
         /// <summary>
-        /// Evalúa si el valor de curl está dentro del rango aceptable.
+        /// Evalua si el valor de curl esta dentro del rango aceptable.
         /// </summary>
-        /// <param name="curlValue">Valor actual de curl (0-1)</param>
-        /// <param name="errorType">Tipo de error si está fuera de rango</param>
-        /// <returns>True si está dentro del rango</returns>
+        /// <param name="curlValue">Value actual de curl (0-1)</param>
+        /// <param name="errorType">Type de error si esta fuera de rango</param>
+        /// <returns>True si esta dentro del rango</returns>
         public bool Evaluate(float curlValue, out FingerErrorType errorType)
         {
             errorType = FingerErrorType.None;
@@ -53,7 +53,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Calcula qué tan lejos está el valor actual del rango aceptable.
+        /// Calcula que tan lejos esta el valor actual del rango aceptable.
         /// </summary>
         public float GetDeviation(float curlValue)
         {
@@ -69,27 +69,27 @@ namespace ASL_LearnVR.Feedback
     }
 
     /// <summary>
-    /// Constraint de spread (separación) para un dedo respecto al siguiente.
+    /// Constraint de spread (separacion) para un dedo regardingl siguiente.
     /// </summary>
     [Serializable]
     public class SpreadConstraint
     {
-        [Tooltip("Ángulo mínimo de separación en grados")]
+        [Tooltip("Angle minimo de separacion en degrees")]
         [Range(-30f, 30f)]
         public float minSpreadAngle = -15f;
 
-        [Tooltip("Ángulo máximo de separación en grados")]
+        [Tooltip("Angle maximo de separacion en degrees")]
         [Range(-30f, 30f)]
         public float maxSpreadAngle = 15f;
 
-        [Tooltip("Severidad si está fuera del rango")]
+        [Tooltip("Severidad si esta fuera del rango")]
         public Severity severityIfOutOfRange = Severity.Minor;
 
-        [Tooltip("True si este constraint está activo")]
+        [Tooltip("True si este constraint esta active")]
         public bool isEnabled = false;
 
         /// <summary>
-        /// Evalúa si el spread está dentro del rango aceptable.
+        /// Evalua si el spread esta dentro del rango aceptable.
         /// </summary>
         public bool Evaluate(float spreadAngle, out FingerErrorType errorType)
         {
@@ -116,21 +116,21 @@ namespace ASL_LearnVR.Feedback
 
     /// <summary>
     /// Constraint completo para un dedo individual.
-    /// Soporta la filosofía de tres estados: Extendido, Curvado, Cerrado.
+    /// Soporta la filosofia de tres estados: Extendido, Curvado, Cerrado.
     /// </summary>
     [Serializable]
     public class FingerConstraint
     {
         [Header("Finger")]
-        [Tooltip("Dedo al que aplica este constraint")]
+        [Tooltip("Finger al que aplica este constraint")]
         public Finger finger;
 
         [Header("Expected State (Semantic)")]
-        [Tooltip("Estado semántico esperado para este dedo.\n" +
-                 "- Extended: dedo recto, sin flexión\n" +
+        [Tooltip("State semantico esperado para este dedo.\n" +
+                 "- Extended: finger straight, no flexion\n" +
                  "- Curved: dedo curvado con control, sin tocar palma (para C, D, O, X)\n" +
-                 "- Closed: dedo en puño, toca la palma (para A, S, T)\n" +
-                 "Si no se especifica, se deriva automáticamente del rango de curl.")]
+                 "- Closed: finger in fist, touching the palm (for A, S, T)\n" +
+                 "Si no se especifica, se deriva automaticamente del rango de curl.")]
         [SerializeField]
         private FingerShapeState _expectedState = FingerShapeState.Extended;
 
@@ -139,8 +139,8 @@ namespace ASL_LearnVR.Feedback
         private bool _useExplicitState = false;
 
         /// <summary>
-        /// Estado semántico esperado para este dedo.
-        /// Si no se ha especificado explícitamente, se deriva del rango de curl.
+        /// State semantico esperado para este dedo.
+        /// Si no se ha especificado explicitamente, se deriva del rango de curl.
         /// </summary>
         public FingerShapeState expectedState
         {
@@ -149,7 +149,7 @@ namespace ASL_LearnVR.Feedback
                 if (_useExplicitState)
                     return _expectedState;
 
-                // Derivar automáticamente del rango de curl
+                // Derivar automaticamente del rango de curl
                 return DeriveStateFromCurlRange();
             }
             set
@@ -160,8 +160,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Deriva el estado semántico esperado basándose en el rango de curl.
-        /// Usa los umbrales de la filosofía de tres estados:
+        /// Deriva el estado semantico esperado basandose en el rango de curl.
+        /// Usa los umbrales de la filosofia de tres estados:
         /// - Extended: centro < 0.25
         /// - Curved: centro 0.25-0.75
         /// - Closed: centro > 0.75
@@ -174,7 +174,7 @@ namespace ASL_LearnVR.Feedback
             // Calcular el punto medio del rango esperado
             float midpoint = (curl.minCurl + curl.maxCurl) / 2f;
 
-            // Umbrales basados en la filosofía de tres estados
+            // Thresholdes basados en la filosofia de tres estados
             if (midpoint < 0.30f)
                 return FingerShapeState.Extended;
             if (midpoint > 0.72f)
@@ -188,40 +188,40 @@ namespace ASL_LearnVR.Feedback
         public CurlConstraint curl = new CurlConstraint();
 
         [Header("Spread (Separation)")]
-        [Tooltip("Constraint de separación respecto al dedo siguiente")]
+        [Tooltip("Separation constraint relative to the next finger")]
         public SpreadConstraint spread = new SpreadConstraint();
 
         [Header("Custom Messages")]
         [Tooltip("Mensaje personalizado si el dedo debe CURVAR (de extendido a curvado)")]
         public string customMessageNeedsCurve;
 
-        [Tooltip("Mensaje personalizado si el dedo debe CERRAR (a puño)")]
+        [Tooltip("Mensaje personalizado si el dedo debe CERRAR (a puno)")]
         public string customMessageNeedsFist;
 
-        [Tooltip("Mensaje personalizado si el dedo cerró DEMASIADO (puño cuando debía curvar)")]
+        [Tooltip("Mensaje personalizado si el dedo cerro DEMASIADO (puno cuando debia curvar)")]
         public string customMessageTooMuchCurl;
 
         [Tooltip("Mensaje personalizado si el dedo debe EXTENDER")]
         public string customMessageNeedsExtend;
 
-        [Tooltip("Mensaje personalizado si el dedo está demasiado extendido (legacy)")]
+        [Tooltip("Mensaje personalizado si el dedo esta demasiado extendido (legacy)")]
         public string customMessageTooExtended;
 
-        [Tooltip("Mensaje personalizado si el dedo está demasiado cerrado (legacy)")]
+        [Tooltip("Mensaje personalizado si el dedo esta demasiado cerrado (legacy)")]
         public string customMessageTooCurled;
 
-        [Tooltip("Mensaje personalizado genérico para este dedo")]
+        [Tooltip("Mensaje personalizado generico para este dedo")]
         public string customMessageGeneric;
 
         /// <summary>
         /// Obtiene el mensaje apropiado para un tipo de error.
-        /// Prioriza mensajes personalizados sobre los genéricos.
+        /// Prioriza mensajes personalizados sobre los genericos.
         /// </summary>
         public string GetMessage(FingerErrorType errorType)
         {
             switch (errorType)
             {
-                // === Errores semánticos de tres estados ===
+                // === Errores semanticos de tres estados ===
                 case FingerErrorType.NeedsCurve:
                     return !string.IsNullOrEmpty(customMessageNeedsCurve)
                         ? customMessageNeedsCurve
@@ -261,8 +261,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo EXTENDIDO.
-        /// El dedo debe estar recto, sin flexión.
+        /// Crea un constraint con valores tipicos para dedo EXTENDIDO.
+        /// El dedo debe estar recto, sin flexion.
         /// </summary>
         public static FingerConstraint Extended(Finger finger)
         {
@@ -276,7 +276,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo CERRADO (puño).
+        /// Crea un constraint con valores tipicos para dedo CERRADO (puno).
         /// El dedo debe estar completamente plegado, tocando la palma.
         /// Usado en signos como A, S, T.
         /// </summary>
@@ -292,7 +292,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un constraint con valores típicos para dedo CURVADO (forma controlada).
+        /// Crea un constraint con valores tipicos para dedo CURVADO (forma controlada).
         /// El dedo debe flexionarse sin cerrar la mano ni tocar la palma.
         /// Usado en signos como C, D, O, X (gancho), E, M, N.
         /// </summary>
@@ -309,13 +309,13 @@ namespace ASL_LearnVR.Feedback
 
         /// <summary>
         /// Alias de Closed para compatibilidad (legacy).
-        /// Prefiere usar Closed() para claridad semántica.
+        /// Prefiere usar Closed() para claridad semantica.
         /// </summary>
         public static FingerConstraint Curled(Finger finger) => Closed(finger);
 
         /// <summary>
         /// Alias de Curved para compatibilidad (legacy).
-        /// Prefiere usar Curved() para claridad semántica.
+        /// Prefiere usar Curved() para claridad semantica.
         /// </summary>
         public static FingerConstraint PartiallyCurled(Finger finger) => Curved(finger);
 
@@ -346,7 +346,7 @@ namespace ASL_LearnVR.Feedback
                 finger = finger,
                 curl = new CurlConstraint { minCurl = 0.5f, maxCurl = 0.8f, isEnabled = true },
                 customMessageNeedsCurve = $"Curva el {FeedbackMessages.GetFingerName(finger)} formando un gancho",
-                customMessageTooMuchCurl = $"Suelta un poco el {FeedbackMessages.GetFingerName(finger)}, es un gancho, no un puño"
+                customMessageTooMuchCurl = $"Suelta un poco el {FeedbackMessages.GetFingerName(finger)}, es un gancho, no un puno"
             };
             constraint.expectedState = FingerShapeState.Curved;
             return constraint;
@@ -354,7 +354,7 @@ namespace ASL_LearnVR.Feedback
     }
 
     /// <summary>
-    /// Constraint especial para el pulgar que incluye posición.
+    /// Constraint especial para el pulgar que incluye posicion.
     /// </summary>
     [Serializable]
     public class ThumbConstraint : FingerConstraint
@@ -366,7 +366,7 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("El pulgar debe estar al lado de los otros dedos")]
         public bool shouldBeBesideFingers = false;
 
-        [Tooltip("El pulgar debe tocar el dedo índice")]
+        [Tooltip("El pulgar debe tocar el dedo index")]
         public bool shouldTouchIndex = false;
 
         [Tooltip("El pulgar debe tocar el dedo medio")]
@@ -375,7 +375,7 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("El pulgar debe tocar el dedo anular")]
         public bool shouldTouchRing = false;
 
-        [Tooltip("El pulgar debe tocar el dedo meñique")]
+        [Tooltip("El pulgar debe tocar el dedo menique")]
         public bool shouldTouchPinky = false;
 
         public ThumbConstraint()
@@ -385,17 +385,17 @@ namespace ASL_LearnVR.Feedback
     }
 
     /// <summary>
-    /// Perfil completo de constraints para un signo específico.
-    /// Este ScriptableObject define qué posición debe tener cada dedo.
+    /// Profile completo de constraints para un signo especifico.
+    /// Este ScriptableObject define que posicion debe tener cada dedo.
     /// </summary>
     [CreateAssetMenu(fileName = "NewFingerProfile", menuName = "ASL Learn VR/Finger Constraint Profile", order = 2)]
     public class FingerConstraintProfile : ScriptableObject
     {
         [Header("Sign Reference")]
-        [Tooltip("Nombre del signo al que aplica este perfil (debe coincidir con SignData.signName)")]
+        [Tooltip("Name del signo al que aplica este perfil (debe coincidir con SignData.signName)")]
         public string signName;
 
-        [Tooltip("Descripción del perfil para referencia")]
+        [Tooltip("Profile description for reference")]
         [TextArea(2, 3)]
         public string description;
 
@@ -403,7 +403,7 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Constraint para el pulgar")]
         public ThumbConstraint thumb = new ThumbConstraint();
 
-        [Tooltip("Constraint para el índice")]
+        [Tooltip("Index finger constraint")]
         public FingerConstraint index = new FingerConstraint { finger = Finger.Index };
 
         [Tooltip("Constraint para el medio")]
@@ -412,17 +412,17 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Constraint para el anular")]
         public FingerConstraint ring = new FingerConstraint { finger = Finger.Ring };
 
-        [Tooltip("Constraint para el meñique")]
+        [Tooltip("Pinky finger constraint")]
         public FingerConstraint pinky = new FingerConstraint { finger = Finger.Pinky };
 
         [Header("Hand Orientation")]
-        [Tooltip("Activar si la orientación de la mano es importante")]
+        [Tooltip("Enable if hand orientation matters")]
         public bool checkOrientation = false;
 
-        [Tooltip("Dirección esperada de la palma (relativa a la cámara)")]
+        [Tooltip("Expected palm direction (relative to camera)")]
         public Vector3 expectedPalmDirection = Vector3.forward;
 
-        [Tooltip("Tolerancia angular en grados para la orientación")]
+        [Tooltip("Tolerancia angular en degrees para la orientacion")]
         [Range(10f, 90f)]
         public float orientationTolerance = 45f;
 
@@ -431,7 +431,7 @@ namespace ASL_LearnVR.Feedback
         public string orientationHint;
 
         /// <summary>
-        /// Obtiene el constraint para un dedo específico.
+        /// Obtiene el constraint para un dedo especifico.
         /// </summary>
         public FingerConstraint GetConstraint(Finger finger)
         {
@@ -455,18 +455,18 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Valida la configuración del perfil.
+        /// Valida la configuracion del perfil.
         /// </summary>
         private void OnValidate()
         {
-            // Asegurar que los dedos estén correctamente asignados
+            // Asegurar que los dedos esten correctamente assigneds
             thumb.finger = Finger.Thumb;
             index.finger = Finger.Index;
             middle.finger = Finger.Middle;
             ring.finger = Finger.Ring;
             pinky.finger = Finger.Pinky;
 
-            // Normalizar dirección de palma
+            // Normalizar direccion de palma
             if (expectedPalmDirection.sqrMagnitude > 0.01f)
             {
                 expectedPalmDirection = expectedPalmDirection.normalized;
@@ -476,7 +476,7 @@ namespace ASL_LearnVR.Feedback
         #region Static Factory Methods
 
         /// <summary>
-        /// Crea un perfil básico para la letra A (puño con pulgar al lado).
+        /// Crea un perfil basico para la letra A (puno con thumb to the side).
         /// </summary>
         public static FingerConstraintProfile CreateLetterA()
         {
@@ -498,7 +498,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un perfil básico para la letra B (dedos extendidos juntos, pulgar cruzado).
+        /// Crea un perfil basico para la letra B (dedos extendidos juntos, pulgar cruzado).
         /// </summary>
         public static FingerConstraintProfile CreateLetterB()
         {
@@ -520,7 +520,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Crea un perfil básico para la letra C (mano en forma de C).
+        /// Crea un perfil basico para la letra C (mano en forma de C).
         /// </summary>
         public static FingerConstraintProfile CreateLetterC()
         {

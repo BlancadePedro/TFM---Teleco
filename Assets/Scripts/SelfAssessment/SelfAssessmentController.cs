@@ -10,35 +10,36 @@ using ASL.DynamicGestures;
 namespace ASL_LearnVR.SelfAssessment
 {
     /// <summary>
-    /// Controla el modo autoevaluación donde el usuario practica todos los signos de una categoría.
-    /// Muestra un grid de casillas que se iluminan cuando el gesto es detectado correctamente.
+    /// Controls self-assessment mode where the user practices all signs in a category.
+    /// Shows a grid of tiles that light up when a gesture is correctly detected.
     /// </summary>
     public class SelfAssessmentController : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Texto que muestra el título de la categoría")]
+        [Tooltip("Text showing the category title")]
         [SerializeField] private TextMeshProUGUI categoryTitleText;
 
-        [Tooltip("Contenedor del grid de casillas")]
+        [Tooltip("Grid container for sign tiles")]
         [SerializeField] private Transform gridContainer;
 
-        [Tooltip("Prefab de la casilla (SignTile)")]
+        [Tooltip("Sign tile prefab")]
         [SerializeField] private GameObject signTilePrefab;
 
-        [Tooltip("Botón para volver al módulo de aprendizaje")]
+        [Tooltip("Button to return to the learning module")]
         [SerializeField] private Button backButton;
 
         [Header("Components")]
-        [Tooltip("Componente MultiGestureRecognizer que detecta todos los signos")]
+        [Tooltip("MultiGestureRecognizer component that detects all signs")]
         [SerializeField] private MultiGestureRecognizer multiGestureRecognizer;
 
-        [Tooltip("(Opcional) Manager de gestos dinámicos para autoevaluación")]
+        [Tooltip("(Optional) Dynamic gesture manager for self-assessment")]
         [SerializeField] private DynamicGesturePracticeManager dynamicGesturePracticeManager;
 
         [Header("Progress")]
-        [Tooltip("Texto que muestra el progreso")]
+        [Tooltip("Text showing progress")]
         [SerializeField] private TextMeshProUGUI progressText;
-        [Tooltip("Barra de progreso (Slider o Image con fill)")]
+
+        [Tooltip("Progress bar (Slider or Image with fill)")]
         [SerializeField] private Slider progressBar;
 
         [Header("Debug")]
@@ -51,84 +52,78 @@ namespace ASL_LearnVR.SelfAssessment
 
         void Start()
         {
-            // Obtiene la categoría actual del GameManager
+            // Get the current category from GameManager
             if (GameManager.Instance != null && GameManager.Instance.CurrentCategory != null)
             {
                 currentCategory = GameManager.Instance.CurrentCategory;
             }
             else
             {
-                Debug.LogError("SelfAssessmentController: No hay categoría seleccionada en GameManager.");
+                Debug.LogError("SelfAssessmentController: No category selected in GameManager.");
                 return;
             }
 
-            // Actualiza el título
+            // Update the title
             if (categoryTitleText != null)
                 categoryTitleText.text = $"Self-Assessment: {currentCategory.categoryName}";
 
-            // Genera el grid de casillas
+            // Generate the sign tiles grid
             GenerateSignTiles();
 
-            // Configura el botón de volver
+            // Configure the back button
             if (backButton != null)
                 backButton.onClick.AddListener(OnBackButtonClicked);
 
-            // IMPORTANTE: Limpiar CurrentSign para que DynamicGestureRecognizer
-            // entre en modo Scene 4 (autoevaluación: todos los gestos activos)
+            // IMPORTANT: Clear CurrentSign so DynamicGestureRecognizer
+            // enters Scene 4 mode (self-assessment: all gestures active)
             GameManager.Instance.CurrentSign = null;
 
-            // Activa el reconocimiento de gestos estáticos
+            // Start static gesture recognition
             StartRecognition();
 
-            // Auto-buscar DynamicGesturePracticeManager si no está asignado
+            // Auto-find DynamicGesturePracticeManager if not assigned
             if (dynamicGesturePracticeManager == null)
-            {
                 dynamicGesturePracticeManager = FindObjectOfType<DynamicGesturePracticeManager>();
-            }
 
             if (dynamicGesturePracticeManager != null)
             {
-                // Suscribir al evento de gestos dinámicos completados
-                dynamicGesturePracticeManager.OnDynamicGestureCompletedSignal += OnDynamicGestureCompleted;
+                // Subscribe to completed dynamic gesture event
+                dynamicGesturePracticeManager.OnDynamicGestureCompletedSignal  += OnDynamicGestureCompleted;
 
-                // Suscribir al evento de reconocimiento visual (feedback instantáneo)
+                // Subscribe to visual recognition event (instant feedback)
                 dynamicGesturePracticeManager.OnDynamicGestureRecognizedSignal += OnDynamicGestureRecognized;
 
                 if (showDebugLogs)
-                {
-                    Debug.Log("SelfAssessmentController: DynamicGesturePracticeManager encontrado y suscrito.");
-                }
+                    Debug.Log("SelfAssessmentController: DynamicGesturePracticeManager found and subscribed.");
             }
             else if (showDebugLogs)
             {
-                Debug.Log("SelfAssessmentController: No se encontró DynamicGesturePracticeManager.");
+                Debug.Log("SelfAssessmentController: No DynamicGesturePracticeManager found.");
             }
 
-            // AUTO-CONFIGURAR: Filtrar DynamicGestureRecognizer para solo los gestos de esta categoría
+            // AUTO-CONFIGURE: Filter DynamicGestureRecognizer for only the gestures in this category
             AutoConfigureDynamicGestures();
 
-            // Actualiza el progreso
+            // Update progress
             UpdateProgress();
         }
 
         /// <summary>
-        /// Genera dinámicamente las casillas del grid.
+        /// Dynamically generates grid tiles for each sign in the category.
         /// </summary>
         private void GenerateSignTiles()
         {
             if (gridContainer == null || signTilePrefab == null)
             {
-                Debug.LogError("SelfAssessmentController: Faltan referencias para generar casillas.");
+                Debug.LogError("SelfAssessmentController: Missing references for generating tiles.");
                 return;
             }
 
-            // Configura el GridLayoutGroup para rellenar el panel completo
             SetupGridLayout();
 
             foreach (var sign in currentCategory.signs)
             {
-                if (sign == null)
-                    continue;
+                if (sign == null) continue;
 
                 GameObject tileObj = Instantiate(signTilePrefab, gridContainer);
                 SignTileController tileController = tileObj.GetComponent<SignTileController>();
@@ -142,174 +137,148 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
-        /// Configura el GridLayoutGroup para adaptarse al tamaño del panel.
-        /// Rellena de izquierda a derecha, de arriba a abajo, con filas incompletas centradas.
+        /// Configures the GridLayoutGroup to fill the panel.
+        /// Fills left-to-right, top-to-bottom, with incomplete rows centred.
         /// </summary>
         private void SetupGridLayout()
         {
             GridLayoutGroup gridLayout = gridContainer.GetComponent<GridLayoutGroup>();
 
             if (gridLayout == null)
-            {
                 gridLayout = gridContainer.gameObject.AddComponent<GridLayoutGroup>();
-            }
 
-            // Obtiene el RectTransform del contenedor
             RectTransform containerRect = gridContainer.GetComponent<RectTransform>();
 
-            // Configuración del grid
-            gridLayout.cellSize = new Vector2(100, 120);  // Tamaño de cada tile
-            gridLayout.spacing = new Vector2(15, 15);     // Espaciado entre tiles
-            gridLayout.padding = new RectOffset(20, 20, 20, 20);  // Padding del contenedor
+            gridLayout.cellSize  = new Vector2(100, 120);
+            gridLayout.spacing   = new Vector2(15, 15);
+            gridLayout.padding   = new RectOffset(20, 20, 20, 20);
 
-            // CLAVE: Constraint flexible en columnas
-            gridLayout.constraint = GridLayoutGroup.Constraint.Flexible;
+            // Flexible constraint so columns adapt to panel width
+            gridLayout.constraint      = GridLayoutGroup.Constraint.Flexible;
+            gridLayout.startCorner     = GridLayoutGroup.Corner.UpperLeft;
+            gridLayout.startAxis       = GridLayoutGroup.Axis.Horizontal;
 
-            // Alineación y orden
-            gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-            gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;  // Rellena de izquierda a derecha
+            // Centre incomplete rows
+            gridLayout.childAlignment  = TextAnchor.UpperCenter;
 
-            // CAMBIO CLAVE: Centrado horizontal para que las filas incompletas queden centradas
-            gridLayout.childAlignment = TextAnchor.UpperCenter;
-
-            Debug.Log($"SelfAssessmentController: GridLayout configurado - Panel width: {containerRect.rect.width}");
+            Debug.Log($"SelfAssessmentController: GridLayout configured — panel width: {containerRect.rect.width}");
         }
 
         /// <summary>
-        /// Inicia el reconocimiento de gestos para todos los signos.
+        /// Starts gesture recognition for all signs in the category.
         /// </summary>
         private void StartRecognition()
         {
             if (multiGestureRecognizer != null)
             {
-                // Configura el MultiGestureRecognizer con todos los signos de la categoría
                 multiGestureRecognizer.SetTargetSigns(currentCategory.signs);
 
-                // Suscribe a los eventos de detección
                 multiGestureRecognizer.onGestureDetected.AddListener(OnGestureDetected);
                 multiGestureRecognizer.onGestureRecognized.AddListener(OnGestureRecognized);
                 multiGestureRecognizer.onGestureLost.AddListener(OnGestureLost);
 
                 if (showDebugLogs)
-                    Debug.Log($"SelfAssessmentController: MultiGestureRecognizer configurado con {currentCategory.signs.Count} signos.");
+                    Debug.Log($"SelfAssessmentController: MultiGestureRecognizer configured with {currentCategory.signs.Count} signs.");
             }
             else
             {
-                Debug.LogError("SelfAssessmentController: MultiGestureRecognizer no está asignado.");
+                Debug.LogError("SelfAssessmentController: MultiGestureRecognizer is not assigned.");
             }
         }
 
         /// <summary>
-        /// Callback cuando un gesto DINÁMICO es detectado y confirmado.
-        /// Este método es llamado por el DynamicGesturePracticeManager.
+        /// Callback when a DYNAMIC gesture is detected and confirmed.
+        /// Called by DynamicGesturePracticeManager.
         /// </summary>
         private void OnDynamicGestureCompleted(SignData sign)
         {
             if (showDebugLogs)
                 Debug.Log($"=== OnDynamicGestureCompleted: '{sign?.signName}' ===");
 
-            // Verifica que el signo pertenezca a la categoría actual
             if (!currentCategory.signs.Contains(sign))
             {
-                Debug.LogWarning($"Gesto dinámico '{sign?.signName}' NO está en la categoría actual");
+                Debug.LogWarning($"Dynamic gesture '{sign?.signName}' is not in the current category.");
                 return;
             }
 
-            // Marca el signo como completado
             if (!completedSigns.Contains(sign))
             {
                 completedSigns.Add(sign);
 
-                // Ilumina la casilla correspondiente permanentemente
                 if (signTiles.ContainsKey(sign))
-                {
                     signTiles[sign].SetCompleted(true);
-                }
 
-                // Actualiza el progreso
                 UpdateProgress();
 
                 if (showDebugLogs)
-                    Debug.Log($"SelfAssessmentController: Gesto dinámico '{sign.signName}' completado!");
+                    Debug.Log($"SelfAssessmentController: Dynamic gesture '{sign.signName}' completed!");
             }
         }
 
         /// <summary>
-        /// Callback cuando un gesto DINÁMICO es reconocido visualmente.
-        /// Proporciona feedback instantáneo iluminando el tile temporalmente.
+        /// Callback when a DYNAMIC gesture is visually recognised (instant feedback).
+        /// Lights up the tile temporarily.
         /// </summary>
         private void OnDynamicGestureRecognized(string gestureName)
         {
             if (showDebugLogs)
-                Debug.Log($"=== OnDynamicGestureRecognized (DYNAMIC): '{gestureName}' ===");
+                Debug.Log($"=== OnDynamicGestureRecognized: '{gestureName}' ===");
 
-            // Buscar el SignData correspondiente al nombre del gesto
             SignData matchingSign = currentCategory.signs.Find(s =>
                 s != null && s.signName.Equals(gestureName, System.StringComparison.OrdinalIgnoreCase));
 
             if (matchingSign == null)
             {
-                Debug.LogWarning($"    -> Gesto dinámico '{gestureName}' NO encontrado en categoría");
+                Debug.LogWarning($"    -> Dynamic gesture '{gestureName}' not found in category.");
                 return;
             }
 
-            // Apagar el tile anterior si es diferente
+            // Turn off the previous tile if different
             if (lastActiveSign != null && lastActiveSign != matchingSign && signTiles.ContainsKey(lastActiveSign))
             {
                 if (showDebugLogs)
-                    Debug.Log($"    -> Apagando tile anterior: '{lastActiveSign.signName}'");
+                    Debug.Log($"    -> Hiding previous tile: '{lastActiveSign.signName}'");
 
                 if (!completedSigns.Contains(lastActiveSign))
-                {
                     signTiles[lastActiveSign].HideRecognitionFeedback();
-                }
             }
 
-            // Encender el tile actual si no está completado
+            // Light up the current tile if not already completed
             if (signTiles.ContainsKey(matchingSign))
             {
                 if (showDebugLogs)
-                    Debug.Log($"    -> Encendiendo tile dinámico: '{matchingSign.signName}'");
+                    Debug.Log($"    -> Showing dynamic tile: '{matchingSign.signName}'");
 
                 if (!completedSigns.Contains(matchingSign))
-                {
                     signTiles[matchingSign].ShowRecognitionFeedback();
-                }
             }
 
             lastActiveSign = matchingSign;
         }
 
         /// <summary>
-        /// Callback cuando un gesto es detectado y confirmado (después del hold time).
+        /// Callback when a gesture is detected and confirmed (after hold time).
         /// </summary>
         private void OnGestureDetected(SignData sign)
         {
-            // Verifica que el signo pertenezca a la categoría actual
-            if (!currentCategory.signs.Contains(sign))
-                return;
+            if (!currentCategory.signs.Contains(sign)) return;
 
-            // Marca el signo como completado
             if (!completedSigns.Contains(sign))
             {
                 completedSigns.Add(sign);
 
-                // Ilumina la casilla correspondiente permanentemente
                 if (signTiles.ContainsKey(sign))
-                {
                     signTiles[sign].SetCompleted(true);
-                }
 
-                // Actualiza el progreso
                 UpdateProgress();
 
                 if (showDebugLogs)
-                    Debug.Log($"SelfAssessmentController: Signo '{sign.signName}' completado!");
+                    Debug.Log($"SelfAssessmentController: Sign '{sign.signName}' completed!");
             }
         }
 
         /// <summary>
-        /// Callback cuando un gesto es reconocido (feedback instantáneo).
+        /// Callback when a gesture is recognised (instant visual feedback).
         /// </summary>
         private void OnGestureRecognized(SignData sign)
         {
@@ -317,86 +286,71 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (!currentCategory.signs.Contains(sign))
             {
-                Debug.LogWarning($"    -> Signo '{sign?.signName}' NO está en la categoría actual");
+                Debug.LogWarning($"    -> Sign '{sign?.signName}' is not in the current category.");
                 return;
             }
 
-            // Apaga el tile anterior si es diferente
+            // Turn off previous tile
             if (lastActiveSign != null && lastActiveSign != sign && signTiles.ContainsKey(lastActiveSign))
             {
-                Debug.Log($"    -> Apagando tile anterior: '{lastActiveSign.signName}'");
+                Debug.Log($"    -> Hiding previous tile: '{lastActiveSign.signName}'");
                 if (!completedSigns.Contains(lastActiveSign))
-                {
                     signTiles[lastActiveSign].HideRecognitionFeedback();
-                }
             }
 
-            // Enciende el tile actual si no está completado
+            // Light up current tile
             if (signTiles.ContainsKey(sign))
             {
-                Debug.Log($"    -> Encendiendo tile actual: '{sign.signName}'");
+                Debug.Log($"    -> Showing tile: '{sign.signName}'");
                 if (!completedSigns.Contains(sign))
-                {
                     signTiles[sign].ShowRecognitionFeedback();
-                }
                 else
-                {
-                    Debug.Log($"    -> Tile '{sign.signName}' ya está completado");
-                }
+                    Debug.Log($"    -> Tile '{sign.signName}' already completed.");
             }
             else
             {
-                Debug.LogError($"    -> NO EXISTE tile para '{sign.signName}' en el diccionario");
+                Debug.LogError($"    -> No tile exists for '{sign.signName}' in the dictionary.");
             }
 
             lastActiveSign = sign;
         }
 
         /// <summary>
-        /// Callback cuando un gesto se pierde.
+        /// Callback when a gesture is lost.
         /// </summary>
         private void OnGestureLost(SignData sign)
         {
-            if (!currentCategory.signs.Contains(sign))
-                return;
+            if (!currentCategory.signs.Contains(sign)) return;
 
-            // Apaga el tile si no está completado
             if (signTiles.ContainsKey(sign))
-            {
                 if (!completedSigns.Contains(sign))
-                {
                     signTiles[sign].HideRecognitionFeedback();
-                }
-            }
 
             if (lastActiveSign == sign)
-            {
                 lastActiveSign = null;
-            }
         }
 
         /// <summary>
-        /// Actualiza el texto de progreso.
+        /// Updates the progress text and bar.
         /// </summary>
         private void UpdateProgress()
         {
-            int total = currentCategory.GetSignCount();
+            int total     = currentCategory.GetSignCount();
             int completed = completedSigns.Count;
 
             if (progressText != null)
-                progressText.text = $"Progreso: {completed}/{total} ({(total > 0 ? (completed * 100f / total) : 0f):0.#}%)";
+                progressText.text = $"Progress: {completed}/{total} ({(total > 0 ? (completed * 100f / total) : 0f):0.#}%)";
 
             if (progressBar != null)
             {
                 progressBar.maxValue = Mathf.Max(1, total);
-                progressBar.value = completed;
+                progressBar.value    = completed;
             }
         }
 
         /// <summary>
-        /// Auto-configura el DynamicGestureRecognizer para que solo reconozca
-        /// los gestos dinámicos que pertenecen a la categoría actual.
-        /// Busca los signos con requiresMovement = true y filtra el reconocedor.
+        /// Auto-configures the DynamicGestureRecognizer to only recognise
+        /// dynamic gestures belonging to the current category.
         /// </summary>
         private void AutoConfigureDynamicGestures()
         {
@@ -404,57 +358,46 @@ namespace ASL_LearnVR.SelfAssessment
             if (dynamicRecognizer == null)
             {
                 if (showDebugLogs)
-                    Debug.Log("SelfAssessmentController: No se encontró DynamicGestureRecognizer.");
+                    Debug.Log("SelfAssessmentController: No DynamicGestureRecognizer found.");
                 return;
             }
 
-            // Recopilar nombres de signos dinámicos de la categoría actual
-            HashSet<string> dynamicSignNames = new HashSet<string>();
+            var dynamicSignNames = new HashSet<string>();
             foreach (var sign in currentCategory.signs)
-            {
                 if (sign != null && sign.requiresMovement)
-                {
                     dynamicSignNames.Add(sign.signName);
-                }
-            }
 
             if (dynamicSignNames.Count > 0)
             {
-                // Filtrar el reconocedor para que solo busque estos gestos
                 dynamicRecognizer.FilterGesturesByNames(dynamicSignNames);
-                dynamicRecognizer.SetEnabled(true); // Asegurar que está activo
+                dynamicRecognizer.SetEnabled(true);
 
                 if (showDebugLogs)
-                    Debug.Log($"SelfAssessmentController: DynamicGestureRecognizer filtrado a {dynamicSignNames.Count} gestos");
+                    Debug.Log($"SelfAssessmentController: DynamicGestureRecognizer filtered to {dynamicSignNames.Count} gestures.");
             }
             else
             {
-                // Si no hay gestos dinámicos, DESACTIVAR completamente
+                // No dynamic gestures in this category — disable completely
                 dynamicRecognizer.SetEnabled(false);
 
                 if (showDebugLogs)
-                    Debug.Log($"SelfAssessmentController: Categoría '{currentCategory.categoryName}' sin gestos dinámicos - DynamicGestureRecognizer DESACTIVADO");
+                    Debug.Log($"SelfAssessmentController: Category '{currentCategory.categoryName}' has no dynamic gestures — DynamicGestureRecognizer DISABLED.");
             }
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón "Volver".
+        /// Callback when the Back button is clicked.
         /// </summary>
         private void OnBackButtonClicked()
         {
             if (SceneLoader.Instance != null)
-            {
                 SceneLoader.Instance.LoadLearningModule();
-            }
             else
-            {
-                Debug.LogError("SelfAssessmentController: SceneLoader.Instance es null.");
-            }
+                Debug.LogError("SelfAssessmentController: SceneLoader.Instance is null.");
         }
 
         void OnDestroy()
         {
-            // Limpia los listeners
             if (backButton != null)
                 backButton.onClick.RemoveListener(OnBackButtonClicked);
 
@@ -465,19 +408,22 @@ namespace ASL_LearnVR.SelfAssessment
                 multiGestureRecognizer.onGestureLost.RemoveListener(OnGestureLost);
             }
 
-            // Desuscribir del evento de gestos dinámicos
             if (dynamicGesturePracticeManager != null)
             {
-                dynamicGesturePracticeManager.OnDynamicGestureCompletedSignal -= OnDynamicGestureCompleted;
+                dynamicGesturePracticeManager.OnDynamicGestureCompletedSignal  -= OnDynamicGestureCompleted;
                 dynamicGesturePracticeManager.OnDynamicGestureRecognizedSignal -= OnDynamicGestureRecognized;
             }
 
-            // Restaurar lista completa de gestos dinámicos al salir de la escena
+            // Restore full dynamic gesture list when leaving the scene
             var dynamicRecognizer = FindObjectOfType<DynamicGestureRecognizer>();
             if (dynamicRecognizer != null)
-            {
                 dynamicRecognizer.RestoreAllGestures();
-            }
         }
+
+        /// <summary>Number of signs correctly completed in this session.</summary>
+        public int CompletedCount => completedSigns?.Count ?? 0;
+
+        /// <summary>Total number of signs in the current category.</summary>
+        public int TotalCount => currentCategory?.GetSignCount() ?? 0;
     }
 }

@@ -8,14 +8,14 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.LevelSelection
 {
     /// <summary>
-    /// Controla la escena de selección de nivel y categoría.
-    /// Permite al usuario elegir un nivel (Básico/Intermedio/Avanzado) y luego una categoría.
+    /// Controls the level and category selection scene.
+    /// Allows the user to choose a level (Basic/Intermediate/Advanced) and then a category.
     /// Usa los paneles visuales existentes en la escena.
     /// </summary>
     public class LevelSelectionController : MonoBehaviour
     {
         [Header("Available Levels")]
-        [Tooltip("Lista de niveles disponibles")]
+        [Tooltip("List de niveles available")]
         [SerializeField] private List<LevelData> levels = new List<LevelData>();
 
         [Header("UI References - Level Panels")]
@@ -28,21 +28,21 @@ namespace ASL_LearnVR.LevelSelection
         [Tooltip("Panel visual para el nivel Advanced")]
         [SerializeField] private GameObject advancedPanel;
 
-        [Tooltip("Contenedor de categorías dentro de cada panel (opcional, se busca automáticamente)")]
+        [Tooltip("Category container inside each panel (optional, auto-searched)")]
         [SerializeField] private Transform categoryButtonsContainer;
 
-        [Tooltip("Prefab del botón de categoría")]
+        [Tooltip("Category button prefab")]
         [SerializeField] private GameObject categoryButtonPrefab;
 
         [Header("UI References - Text")]
-        [Tooltip("Texto que muestra el título del nivel seleccionado")]
+        [Tooltip("Text showing the title of the selected level")]
         [SerializeField] private TextMeshProUGUI selectedLevelText;
 
-        [Tooltip("Texto de encabezado que aparece en el contenedor de categorías (opcional, se crea automáticamente si no existe)")]
+        [Tooltip("Header text shown in the categories container (optional, created automatically if missing)")]
         [SerializeField] private TextMeshProUGUI categoryHeaderText;
 
         [Header("Back Button")]
-        [Tooltip("Botón para volver al menú principal")]
+        [Tooltip("Button to return to the main menu")]
         [SerializeField] private Button backButton;
 
         private LevelData selectedLevel;
@@ -50,22 +50,22 @@ namespace ASL_LearnVR.LevelSelection
 
         void Start()
         {
-            // Mapea los paneles por índice
+            // Mapea los paneles por index
             InitializeLevelPanels();
 
             // Configura los botones dentro de cada panel
             SetupLevelPanelButtons();
 
-            // Oculta las categorías al inicio (solo se muestran al hacer click en un nivel)
+            // Oculta las categories al inicio (solo se muestran al hacer click en un nivel)
             HideAllCategoryContainers();
 
-            // Configura el botón de volver
+            // Configures the back button
             if (backButton != null)
                 backButton.onClick.AddListener(OnBackButtonClicked);
         }
 
         /// <summary>
-        /// Inicializa la lista de paneles de nivel por índice.
+        /// Inicializa la lista de paneles de nivel por index.
         /// Los paneles se mapean directamente a los LevelData en el mismo orden.
         /// </summary>
         private void InitializeLevelPanels()
@@ -75,8 +75,8 @@ namespace ASL_LearnVR.LevelSelection
             levelPanels.Add(intermediatePanel);
             levelPanels.Add(advancedPanel);
 
-            Debug.Log($"LevelSelectionController: {levelPanels.Count} paneles configurados.");
-            Debug.Log($"LevelSelectionController: {levels.Count} niveles configurados.");
+            Debug.Log($"LevelSelectionController: {levelPanels.Count} paneles configureds.");
+            Debug.Log($"LevelSelectionController: {levels.Count} niveles configureds.");
 
             for (int i = 0; i < levelPanels.Count; i++)
             {
@@ -94,8 +94,8 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Configura los botones de cada panel para que al hacer click muestren las categorías.
-        /// Mapea por índice: levels[i] -> levelPanels[i]
+        /// Configura los botones de cada panel para que al hacer click muestren las categories.
+        /// Mapea por index: levels[i] -> levelPanels[i]
         /// </summary>
         private void SetupLevelPanelButtons()
         {
@@ -114,7 +114,7 @@ namespace ASL_LearnVR.LevelSelection
                 {
                     LevelData level = levels[i];
 
-                    // Busca el botón con el nombre "Button" dentro de la jerarquía del panel
+                    // Find the button named "Button" within the panel hierarchy
                     Transform buttonTransform = panel.transform.Find("Background/Title/Top/Body/Button");
 
                     if (buttonTransform == null)
@@ -131,30 +131,30 @@ namespace ASL_LearnVR.LevelSelection
 
                     if (panelButton == null)
                     {
-                        // Último recurso: busca CUALQUIER botón en el panel
+                        // Last resort: find ANY button in the panel
                         Button[] allButtons = panel.GetComponentsInChildren<Button>();
                         if (allButtons.Length > 0)
                         {
                             panelButton = allButtons[0];
-                            Debug.LogWarning($"LevelSelectionController: Usando el primer botón encontrado en panel[{i}] '{panel.name}': {panelButton.gameObject.name}");
+                            Debug.LogWarning($"LevelSelectionController: Using first button found in panel[{i}] '{panel.name}': {panelButton.gameObject.name}");
                         }
                     }
 
                     if (panelButton != null)
                     {
                         LevelData levelCopy = level;
-                        int panelIndex = i; // Captura el índice para el callback
+                        int panelIndex = i; // Captura el index para el callback
                         panelButton.onClick.AddListener(() => OnLevelButtonClicked(levelCopy, panelIndex));
-                        Debug.Log($"LevelSelectionController: Listener añadido al botón '{panelButton.gameObject.name}' del panel[{i}] '{panel.name}' para nivel '{level.name}'.");
+                        Debug.Log($"LevelSelectionController: Listener added to button '{panelButton.gameObject.name}' of panel[{i}] '{panel.name}' for level '{level.name}'.");
                     }
                     else
                     {
-                        Debug.LogError($"LevelSelectionController: NO se encontró NINGÚN botón en el panel[{i}] '{panel.name}'!");
+                        Debug.LogError($"LevelSelectionController: NO button found in panel[{i}] '{panel.name}'!");
                     }
                 }
                 else
                 {
-                    // Panel sin nivel configurado -> marcar como "Próximamente"
+                    // Panel without configured level -> mark as "Coming Soon"
                     MarkPanelAsUnavailable(panel, i);
                 }
             }
@@ -178,28 +178,28 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Marca un panel específico como no disponible con texto "Próximamente".
+        /// Marks a specific panel as unavailable with text "Coming Soon".
         /// </summary>
         private void MarkPanelAsUnavailable(GameObject panel, int index)
         {
             if (panel == null)
                 return;
 
-            Debug.Log($"LevelSelectionController: Marcando panel[{index}] '{panel.name}' como 'Próximamente'.");
+            Debug.Log($"LevelSelectionController: Marking panel[{index}] '{panel.name}' as 'Coming Soon'.");
 
-            // Desactiva el botón
+            // Disable the button
             Button button = panel.GetComponentInChildren<Button>();
             if (button != null)
                 button.interactable = false;
 
-            // Muestra "Próximamente"
+            // Show "Coming Soon"
             TextMeshProUGUI text = panel.GetComponentInChildren<TextMeshProUGUI>();
             if (text != null)
-                text.text = "Próximamente";
+                text.text = "Coming Soon";
         }
 
         /// <summary>
-        /// Oculta todos los contenedores de categorías dentro de los paneles.
+        /// Oculta todos los contenedores de categories dentro de los paneles.
         /// </summary>
         private void HideAllCategoryContainers()
         {
@@ -207,7 +207,7 @@ namespace ASL_LearnVR.LevelSelection
             {
                 if (panel != null)
                 {
-                    // Busca el contenedor de categorías (suponiendo que tiene un tag o nombre específico)
+                    // Busca el contenedor de categories (suponiendo que tiene un tag o nombre especifico)
                     Transform categoryContainer = FindCategoryContainer(panel.transform);
                     if (categoryContainer != null)
                         categoryContainer.gameObject.SetActive(false);
@@ -216,24 +216,24 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en un botón de nivel.
+        /// Callback cuando se hace clic en un boton de nivel.
         /// </summary>
         private void OnLevelButtonClicked(LevelData level, int panelIndex)
         {
             selectedLevel = level;
 
-            // Guarda el nivel seleccionado en el GameManager
+            // Guarda el nivel selected en el GameManager
             if (GameManager.Instance != null)
                 GameManager.Instance.CurrentLevel = level;
 
-            // Actualiza el texto del nivel seleccionado
+            // Actualiza el texto del nivel selected
             if (selectedLevelText != null)
             {
                 string displayName = string.IsNullOrEmpty(level.levelName) ? level.name : level.levelName;
                 selectedLevelText.text = $"Level: {displayName}";
             }
 
-            // Busca el panel correspondiente usando el índice
+            // Busca el panel correspondiente usando el index
             if (panelIndex >= 0 && panelIndex < levelPanels.Count)
             {
                 GameObject panel = levelPanels[panelIndex];
@@ -248,17 +248,17 @@ namespace ASL_LearnVR.LevelSelection
             }
             else
             {
-                Debug.LogError($"LevelSelectionController: Índice de panel inválido: {panelIndex}.");
+                Debug.LogError($"LevelSelectionController: Index de panel invalid: {panelIndex}.");
             }
         }
 
         /// <summary>
-        /// Busca el contenedor de categorías dentro de un panel.
-        /// Si no existe, crea uno automáticamente DENTRO del panel de contenido.
+        /// Busca el contenedor de categories dentro de un panel.
+        /// Si no existe, crea uno automaticamente DENTRO of panel de contenido.
         /// </summary>
         private Transform FindCategoryContainer(Transform panelTransform)
         {
-            // Busca por nombre común
+            // Busca por nombre comun
             Transform container = panelTransform.Find("CategoryContainer");
             if (container == null)
                 container = panelTransform.Find("Categories");
@@ -288,10 +288,10 @@ namespace ASL_LearnVR.LevelSelection
                 }
             }
 
-            // Si TODAVÍA no existe, CRÉALO dentro del Body si existe, o directamente en el panel
+            // Si TODAVIA no existe, CREALO dentro del Body si existe, o directamente en el panel
             if (container == null)
             {
-                Debug.Log($"LevelSelectionController: Creando contenedor de categorías en panel '{panelTransform.name}'.");
+                Debug.Log($"LevelSelectionController: Creating contenedor de categories en panel '{panelTransform.name}'.");
 
                 // Buscar el parent ideal: Background/Title/Top/Body
                 Transform parentForContainer = panelTransform;
@@ -304,13 +304,13 @@ namespace ASL_LearnVR.LevelSelection
                 }
                 else
                 {
-                    Debug.LogWarning($"LevelSelectionController: No se encontró Body en '{panelTransform.name}', usando el panel directamente.");
+                    Debug.LogWarning($"LevelSelectionController: No found Body en '{panelTransform.name}', usando el panel directamente.");
                 }
 
                 GameObject containerObj = new GameObject("CategoryContainer");
                 containerObj.transform.SetParent(parentForContainer, false);
 
-                // Añade un VerticalLayoutGroup para organizar los botones
+                // Anade un VerticalLayoutGroup para organizar los botones
                 var layoutGroup = containerObj.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
                 layoutGroup.spacing = 10f;
                 layoutGroup.padding = new RectOffset(15, 15, 15, 15); // Padding interno
@@ -320,23 +320,23 @@ namespace ASL_LearnVR.LevelSelection
                 layoutGroup.childForceExpandWidth = true; // FUERZA que los botones se expandan al ancho
                 layoutGroup.childForceExpandHeight = false;
 
-                // Añade ContentSizeFitter para ajustar el tamaño automáticamente
+                // Anade ContentSizeFitter para ajustar el tamano automaticamente
                 var sizeFitter = containerObj.AddComponent<UnityEngine.UI.ContentSizeFitter>();
                 sizeFitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
                 sizeFitter.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained; // NO restringe el ancho, usa el del parent
 
-                // Configurar el RectTransform
+                // Configure el RectTransform
                 RectTransform rectTransform = containerObj.GetComponent<RectTransform>();
                 if (rectTransform == null)
                     rectTransform = containerObj.AddComponent<RectTransform>();
 
                 // Posicionar usando anchors que se expandan con el parent
-                // Esto hará que el contenedor se ajuste al espacio disponible en el Body
+                // Esto hara que el contenedor se ajuste al espacio available en el Body
                 rectTransform.anchorMin = new Vector2(0f, 0f);
                 rectTransform.anchorMax = new Vector2(1f, 0f);
                 rectTransform.pivot = new Vector2(0.5f, 0f); // Pivote abajo para crecer hacia arriba
-                rectTransform.anchoredPosition = new Vector2(0f, 20f); // 20 píxeles desde el bottom
-                rectTransform.sizeDelta = new Vector2(0f, 150f); // Alto para los botones, ancho ajustado automáticamente
+                rectTransform.anchoredPosition = new Vector2(0f, 20f); // 20 pixeles desde el bottom
+                rectTransform.sizeDelta = new Vector2(0f, 150f); // Alto para los botones, ancho ajustado automaticamente
 
                 container = containerObj.transform;
             }
@@ -345,22 +345,22 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Genera dinámicamente los botones de categoría para el nivel seleccionado dentro del panel.
+        /// Genera dinamicamente los botones de category para el nivel selected dentro of panel.
         /// </summary>
         private void GenerateCategoryButtons(LevelData level, GameObject panel)
         {
             if (categoryButtonPrefab == null)
             {
-                Debug.LogError("LevelSelectionController: Falta referencia al prefab de botón de categoría.");
+                Debug.LogError("LevelSelectionController: Falta referencia al prefab de boton de category.");
                 return;
             }
 
-            // Busca el contenedor de categorías dentro del panel
+            // Busca el contenedor de categories dentro of panel
             Transform container = FindCategoryContainer(panel.transform);
 
             if (container == null)
             {
-                Debug.LogWarning($"LevelSelectionController: No se encontró contenedor de categorías en el panel '{level.levelName}'.");
+                Debug.LogWarning($"LevelSelectionController: No found contenedor de categories en el panel '{level.levelName}'.");
                 return;
             }
 
@@ -385,29 +385,29 @@ namespace ASL_LearnVR.LevelSelection
             {
                 if (category == null || !category.IsValid())
                 {
-                    Debug.LogWarning($"LevelSelectionController: Categoría inválida encontrada en nivel '{level.levelName}'.");
+                    Debug.LogWarning($"LevelSelectionController: Category invalid found en nivel '{level.levelName}'.");
                     continue;
                 }
 
                 GameObject buttonObj = Instantiate(categoryButtonPrefab, container);
                 Button button = buttonObj.GetComponent<Button>();
 
-                // Asegura que el botón tenga un LayoutElement con ancho mínimo
+                // Asegura que el boton tenga un LayoutElement con ancho minimo
                 var layoutElement = buttonObj.GetComponent<UnityEngine.UI.LayoutElement>();
                 if (layoutElement == null)
                     layoutElement = buttonObj.AddComponent<UnityEngine.UI.LayoutElement>();
 
-                // Configura el tamaño del botón (tiles más grandes)
-                layoutElement.minWidth = 320f; // Ancho mínimo
+                // Configura el tamano del boton (tiles mas grandes)
+                layoutElement.minWidth = 320f; // Ancho minimo
                 layoutElement.preferredWidth = 420f; // Ancho preferido
-                layoutElement.minHeight = 80f; // Alto mínimo
+                layoutElement.minHeight = 80f; // Alto minimo
                 layoutElement.preferredHeight = 90f; // Alto preferido
                 layoutElement.flexibleWidth = 1f; // Permite que se expanda si hay espacio
 
-                // Busca TODOS los TextMeshProUGUI en el botón
+                // Busca TODOS los TextMeshProUGUI en el boton
                 TextMeshProUGUI[] textComponents = buttonObj.GetComponentsInChildren<TextMeshProUGUI>();
 
-                // El primer texto es el nombre de la categoría
+                // El primer texto es el nombre de la category
                 if (textComponents.Length > 0)
                     textComponents[0].text = category.categoryName;
 
@@ -427,7 +427,7 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Crea o actualiza el texto de encabezado del contenedor de categorías.
+        /// Crea o actualiza el texto de encabezado del contenedor de categories.
         /// </summary>
         private void CreateOrUpdateCategoryHeader(Transform container, LevelData level)
         {
@@ -440,21 +440,21 @@ namespace ASL_LearnVR.LevelSelection
                 // Crea el header
                 GameObject headerObj = new GameObject("CategoryHeader");
                 headerObj.transform.SetParent(container, false);
-                headerObj.transform.SetAsFirstSibling(); // Colócalo al principio
+                headerObj.transform.SetAsFirstSibling(); // Colocalo al principio
 
                 headerText = headerObj.AddComponent<TextMeshProUGUI>();
 
-                // Configuración del texto
+                // Configuration del texto
                 headerText.fontSize = 24;
                 headerText.alignment = TextAlignmentOptions.Center;
                 headerText.color = Color.white;
                 headerText.fontStyle = FontStyles.Bold;
 
-                // Configuración del RectTransform
+                // Configuration del RectTransform
                 RectTransform headerRect = headerObj.GetComponent<RectTransform>();
                 headerRect.sizeDelta = new Vector2(300f, 60f);
 
-                // Añade un LayoutElement para controlar el tamaño
+                // Anade un LayoutElement para controlar el tamano
                 var layoutElement = headerObj.AddComponent<UnityEngine.UI.LayoutElement>();
                 layoutElement.minHeight = 60f;
                 layoutElement.preferredHeight = 60f;
@@ -471,21 +471,21 @@ namespace ASL_LearnVR.LevelSelection
                 headerText.text = $" "; // VERIFICAR
             }
 
-            // Guarda la referencia si el campo está disponible
+            // Guarda la referencia si el campo esta available
             if (categoryHeaderText == null)
                 categoryHeaderText = headerText;
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en un botón de categoría.
+        /// Callback cuando se hace clic en un boton de category.
         /// </summary>
         private void OnCategoryButtonClicked(CategoryData category)
         {
-            // Guarda la categoría seleccionada en el GameManager
+            // Guarda la category selected en el GameManager
             if (GameManager.Instance != null)
                 GameManager.Instance.CurrentCategory = category;
 
-            // Carga la escena del módulo de aprendizaje
+            // Carga la escena del modulo de aprendizaje
             if (SceneLoader.Instance != null)
             {
                 SceneLoader.Instance.LoadLearningModule();
@@ -497,7 +497,7 @@ namespace ASL_LearnVR.LevelSelection
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón de volver.
+        /// Callback when button is clicked de volver.
         /// </summary>
         private void OnBackButtonClicked()
         {
@@ -513,7 +513,7 @@ namespace ASL_LearnVR.LevelSelection
 
         void OnDestroy()
         {
-            // Limpia el listener del botón de volver
+            // Limpia el listener del boton de volver
             if (backButton != null)
                 backButton.onClick.RemoveListener(OnBackButtonClicked);
         }

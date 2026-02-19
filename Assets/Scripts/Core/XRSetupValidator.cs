@@ -47,7 +47,7 @@ namespace ASLLearnVR.Core
 
             if (activeVisualizers > 1)
             {
-                Log($"⚠️ DUPLICADO DETECTADO: Hay {activeVisualizers} HandVisualizers activos. Deberías tener solo 1.", LogType.Warning);
+                Log($"⚠️ DUPLICATE DETECTED: There are {activeVisualizers} active HandVisualizers. You should have only 1.", LogType.Warning);
 
                 foreach (var visualizer in visualizers)
                 {
@@ -57,15 +57,15 @@ namespace ASLLearnVR.Core
                     }
                 }
 
-                Log("  SOLUCIÓN: Elimina el GameObject 'XR Origin Hands (XR Rig)' o desactiva su HandVisualizer.", LogType.Warning);
+                Log("  FIX: Remove the 'XR Origin Hands (XR Rig)' GameObject or disable its HandVisualizer.", LogType.Warning);
             }
             else if (activeVisualizers == 1)
             {
-                Log($"✓ Hand Visualizer OK: Solo 1 activo (correcto)", LogType.Info);
+                Log($"✓ Hand Visualizer OK: Only 1 active (correct)", LogType.Info);
             }
             else
             {
-                Log($"⚠️ No se encontró ningún HandVisualizer activo. Las manos no se renderizarán.", LogType.Warning);
+                Log($"⚠️ No active HandVisualizer found. Hands will not be rendered.", LogType.Warning);
             }
         }
 
@@ -91,24 +91,24 @@ namespace ASLLearnVR.Core
 
                     if (hasStandardEnabled && !hasTrackedEnabled)
                     {
-                        Log($"⚠️ Canvas '{canvas.name}' usa GraphicRaycaster (solo ratón). NO funcionará en VR con manos.", LogType.Warning);
-                        Log($"  SOLUCIÓN: Desactiva GraphicRaycaster y activa TrackedDeviceGraphicRaycaster", LogType.Warning);
+                        Log($"⚠️ Canvas '{canvas.name}' uses GraphicRaycaster (mouse only). Will NOT work in VR with hands.", LogType.Warning);
+                        Log($"  FIX: Disable GraphicRaycaster and enable TrackedDeviceGraphicRaycaster", LogType.Warning);
                         foundIssues = true;
                     }
                     else if (hasTrackedEnabled)
                     {
                         if (hasStandardEnabled)
                         {
-                            Log($"✓ Canvas '{canvas.name}' tiene TrackedDeviceGraphicRaycaster (VR), pero GraphicRaycaster también está activo (redundante)", LogType.Info);
+                            Log($"✓ Canvas '{canvas.name}' has TrackedDeviceGraphicRaycaster (VR), but GraphicRaycaster is also active (redundant)", LogType.Info);
                         }
                         else
                         {
-                            Log($"✓ Canvas '{canvas.name}' configurado correctamente para VR", LogType.Info);
+                            Log($"✓ Canvas '{canvas.name}' correctly configured for VR", LogType.Info);
                         }
                     }
                     else if (!hasTrackedEnabled && trackedRaycaster == null)
                     {
-                        Log($"⚠️ Canvas '{canvas.name}' NO tiene TrackedDeviceGraphicRaycaster. Añade este componente.", LogType.Warning);
+                        Log($"⚠️ Canvas '{canvas.name}' does NOT have TrackedDeviceGraphicRaycaster. Add this component.", LogType.Warning);
                         foundIssues = true;
                     }
                 }
@@ -130,12 +130,12 @@ namespace ASLLearnVR.Core
 
             if (manager == null)
             {
-                Log("⚠️ NO hay XR Interaction Manager en la escena. Los interactors no funcionarán.", LogType.Warning);
-                Log("  SOLUCIÓN: Añade un GameObject con XRInteractionManager component", LogType.Warning);
+                Log("⚠️ NO XR Interaction Manager in the scene. Interactors will not work.", LogType.Warning);
+                Log("  FIX: Add a GameObject with XRInteractionManager component", LogType.Warning);
             }
             else
             {
-                Log($"✓ XR Interaction Manager encontrado en: {manager.gameObject.name}", LogType.Info);
+                Log($"✓ XR Interaction Manager found at: {manager.gameObject.name}", LogType.Info);
             }
         }
 
@@ -150,16 +150,16 @@ namespace ASLLearnVR.Core
 
             if (activePokeInteractors == 0)
             {
-                Log("⚠️ NO hay Poke Interactors activos. No podrás tocar botones UI con las manos.", LogType.Warning);
-                Log("  SOLUCIÓN: Añade los prefabs LeftHandInteraction y RightHandInteraction a la escena", LogType.Warning);
+                Log("⚠️ NO active Poke Interactors. You will not be able to touch UI buttons with your hands.", LogType.Warning);
+                Log("  FIX: Add LeftHandInteraction and RightHandInteraction prefabs to the scene", LogType.Warning);
             }
             else if (activePokeInteractors < 2)
             {
-                Log($"⚠️ Solo hay {activePokeInteractors} Poke Interactor activo. Deberías tener 2 (uno por mano).", LogType.Warning);
+                Log($"⚠️ Only {activePokeInteractors} active Poke Interactor. You should have 2 (one per hand).", LogType.Warning);
             }
             else
             {
-                Log($"✓ Poke Interactors OK: {activePokeInteractors} encontrados", LogType.Info);
+                Log($"✓ Poke Interactors OK: {activePokeInteractors} found", LogType.Info);
 
                 // Verificar handedness usando reflection
                 int leftCount = 0;
@@ -182,7 +182,7 @@ namespace ASLLearnVR.Core
 
                 if (leftCount == 0 || rightCount == 0)
                 {
-                    Log($"  ⚠️ Handedness incorrecto: Left={leftCount}, Right={rightCount}. Deberías tener 1 de cada.", LogType.Warning);
+                    Log($"  ⚠️ Incorrect Handedness: Left={leftCount}, Right={rightCount}. You should have 1 of each.", LogType.Warning);
                 }
                 else
                 {

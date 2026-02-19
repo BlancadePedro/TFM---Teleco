@@ -7,17 +7,17 @@ using ASL_LearnVR.Feedback;
 namespace ASL_LearnVR.LearningModule.GuideHand
 {
     /// <summary>
-    /// Aplica poses de mano a una jerarquía de transforms (Ghost Hand).
+    /// Aplica poses de mano a una jerarquia de transforms (Ghost Hand).
     /// Este componente toma una mano visual (mesh + skeleton) desacoplada del tracking
-    /// y la posiciona según datos de pose objetivo.
+    /// y la posiciona segun datos de pose objetivo.
     ///
-    /// IMPORTANTE: Este script asume que la ghost hand ya está desacoplada del XRHandSubsystem.
+    /// IMPORTANTE: Este script asume que la ghost hand ya esta desacoplada del XRHandSubsystem.
     /// El XRHandSkeletonDriver y XRHandTrackingEvents deben estar desactivados.
     /// </summary>
     public class GuideHandPoseApplier : MonoBehaviour
     {
         [Header("Joint References")]
-        [Tooltip("Transform del Wrist (raíz de la mano)")]
+        [Tooltip("Transform del Wrist (raiz de la mano)")]
         [SerializeField] private Transform wristTransform;
 
         [Tooltip("Transform del Palm")]
@@ -58,26 +58,26 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [SerializeField] private Transform pinkyTip;
 
         [Header("Rotation Settings")]
-        [Tooltip("Ángulo máximo de flexión para dedos (proximal/intermediate/distal)")]
+        [Tooltip("Angle maximo de flexion para dedos (proximal/intermediate/distal)")]
         [SerializeField] private float maxFingerFlexAngle = 90f;
 
-        [Tooltip("Ángulo máximo de flexión para el pulgar")]
+        [Tooltip("Angle maximo de flexion para el pulgar")]
         [SerializeField] private float maxThumbFlexAngle = 70f;
 
-        [Tooltip("Eje de rotación para flexión de dedos (local)")]
+        [Tooltip("Eje de rotacion para flexion de dedos (local)")]
         [SerializeField] private Vector3 fingerFlexAxis = Vector3.right;
 
-        [Tooltip("Eje de rotación para abducción/spread (local)")]
+        [Tooltip("Eje de rotacion para abduccion/spread (local)")]
         [SerializeField] private Vector3 fingerSpreadAxis = Vector3.up;
 
-        [Tooltip("Eje de rotación para abducción del pulgar (local)")]
+        [Tooltip("Eje de rotacion para abduccion del pulgar (local)")]
         [SerializeField] private Vector3 thumbAbductionAxis = Vector3.forward;
 
         [Header("Animation")]
-        [Tooltip("Velocidad de transición entre poses")]
+        [Tooltip("Speed de transicion entre poses")]
         [SerializeField] private float transitionSpeed = 5f;
 
-        [Tooltip("Usar interpolación suave para transiciones")]
+        [Tooltip("Usar interpolacion suave para transiciones")]
         [SerializeField] private bool smoothTransitions = true;
 
         [Header("Handedness")]
@@ -87,49 +87,36 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = true;
 
-        [Header("Debug Rotation Test")]
-        [Tooltip("Ángulo para test de rotación directa")]
-        [SerializeField] private float debugRotationAngle = 45f;
-
-        [Tooltip("Dedo para test (0=thumb, 1=index, 2=middle, 3=ring, 4=pinky)")]
-        [SerializeField] private int debugFingerIndex = 0;
-
-        [Tooltip("Joint para test (0=metacarpal, 1=proximal, 2=intermediate, 3=distal)")]
-        [SerializeField] private int debugJointIndex = 0;
-
-        [Tooltip("Eje para test (0=X, 1=Y, 2=Z)")]
-        [SerializeField] private int debugAxisIndex = 0;
-
-        // Estado actual
+        // State actual
         private HandPoseData currentPose;
         private HandPoseData targetPose;
         private float transitionProgress = 1f;
         private bool isInitialized = false;
 
-        // Cache de rotaciones y posición originales
+        // Cache de rotaciones y posicion originales
         private Dictionary<Transform, Quaternion> originalRotations = new Dictionary<Transform, Quaternion>();
         private Vector3 originalWristPosition;
 
         /// <summary>
-        /// True si la mano guía está en transición entre poses.
+        /// True si la guide hand esta en transicion entre poses.
         /// </summary>
         public bool IsTransitioning => transitionProgress < 1f;
 
         /// <summary>
-        /// Pose actual aplicada.
+        /// Current pose aplicada.
         /// </summary>
         public string CurrentPoseName => currentPose?.poseName ?? "None";
 
         void Awake()
         {
-            // NO inicializamos aquí - esperamos a que los joints estén mapeados
-            // La inicialización se hace en Initialize() cuando se llama ApplyPose
-            // o después de AutoMapJointsFromHierarchy()
+            // NO inicializamos aqui - esperamos a que los joints esten mapeados
+            // La inicializacion se hace en Initialize() cuando se llama ApplyPose
+            // o despues de AutoMapJointsFromHierarchy()
         }
 
         /// <summary>
         /// Inicializa el componente guardando las rotaciones originales.
-        /// Puede llamarse múltiples veces con forceReinitialize para actualizar después de mapear joints.
+        /// Puede llamarse multiples veces con forceReinitialize para actualizar despues de mapear joints.
         /// </summary>
         public void Initialize(bool forceReinitialize = false)
         {
@@ -143,7 +130,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 isInitialized = false;
             }
 
-            // Guardar posición y rotaciones originales de todos los joints
+            // Guardar posicion y rotaciones originales de todos los joints
             if (wristTransform != null)
                 originalWristPosition = wristTransform.localPosition;
             CacheOriginalRotation(wristTransform);
@@ -218,7 +205,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Aplica una pose de mano con transición suave.
+        /// Aplica una pose de mano con transicion suave.
         /// </summary>
         public void ApplyPose(HandPoseData pose)
         {
@@ -230,7 +217,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
             if (!isInitialized)
             {
-                Debug.Log("[GuideHandPoseApplier] No inicializado, inicializando ahora...");
+                Debug.Log("[GuideHandPoseApplier] No initialized, inicializando ahora...");
                 Initialize(forceReinitialize: false);
             }
 
@@ -238,7 +225,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (originalRotations.Count == 0)
             {
                 Debug.LogError($"[GuideHandPoseApplier] ERROR: No hay rotaciones originales cacheadas. " +
-                    $"Joints mapeados: {CountMappedJoints()}. La pose NO se aplicará correctamente.");
+                    $"Joints mapeados: {CountMappedJoints()}. La pose NO se aplicara correctamente.");
             }
 
             targetPose = pose;
@@ -246,7 +233,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             if (smoothTransitions)
             {
                 transitionProgress = 0f;
-                Debug.Log($"[GuideHandPoseApplier] Iniciando transición suave hacia pose: {pose.poseName}");
+                Debug.Log($"[GuideHandPoseApplier] Starting transicion suave hacia pose: {pose.poseName}");
             }
             else
             {
@@ -294,14 +281,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Aplica una pose inmediatamente sin transición.
+        /// Aplica una pose inmediatamente sin transicion.
         /// </summary>
         public void ApplyPoseImmediate(HandPoseData pose)
         {
             if (pose == null)
                 return;
 
-            // Aplicar rotación y posición de muñeca
+            // Aplicar rotacion y posicion de muneca
             ApplyWristRotation(pose.wristRotationOffset);
             ApplyWristPosition(pose.wristPositionOffset);
 
@@ -384,8 +371,8 @@ namespace ASL_LearnVR.LearningModule.GuideHand
 
         private void ApplyThumbPose(ThumbPoseData thumbPose)
         {
-            // El pulgar tiene una estructura diferente y ejes de rotación más complejos
-            // Metacarpal: abducción + twist (rotación axial de todo el dedo)
+            // El pulgar tiene una estructura diferente y ejes de rotacion mas complejos
+            // Metacarpal: abduccion + twist (rotacion axial de todo el dedo)
             if (thumbMetacarpal != null && originalRotations.TryGetValue(thumbMetacarpal, out Quaternion metaOriginal))
             {
                 float flexAngle = thumbPose.metacarpalCurl * maxThumbFlexAngle * 0.5f;
@@ -401,7 +388,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 thumbMetacarpal.localRotation = metaOriginal * abductRot * pitchRot * twistRot * flexRot;
             }
 
-            // Proximal: flexión + oposición
+            // Proximal: flexion + oposicion
             if (thumbProximal != null && originalRotations.TryGetValue(thumbProximal, out Quaternion proxOriginal))
             {
                 float flexAngle = thumbPose.proximalCurl * maxThumbFlexAngle;
@@ -413,7 +400,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 thumbProximal.localRotation = proxOriginal * oppRot * flexRot;
             }
 
-            // Distal: solo flexión (el twist se aplica en metacarpal para rotar todo el dedo)
+            // Distal: solo flexion (el twist se aplica en metacarpal para rotar todo el dedo)
             if (thumbDistal != null && originalRotations.TryGetValue(thumbDistal, out Quaternion distOriginal))
             {
                 float flexAngle = thumbPose.distalCurl * maxThumbFlexAngle;
@@ -430,7 +417,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
             Transform intermediate,
             Transform distal)
         {
-            // Metacarpal: ligera flexión + spread
+            // Metacarpal: ligera flexion + spread
             if (metacarpal != null && originalRotations.TryGetValue(metacarpal, out Quaternion metaOriginal))
             {
                 float flexAngle = fingerPose.metacarpalCurl * maxFingerFlexAngle * 0.3f;
@@ -442,7 +429,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 metacarpal.localRotation = metaOriginal * spreadRot * flexRot;
             }
 
-            // Proximal: principal flexión
+            // Proximal: principal flexion
             if (proximal != null && originalRotations.TryGetValue(proximal, out Quaternion proxOriginal))
             {
                 float flexAngle = fingerPose.proximalCurl * maxFingerFlexAngle;
@@ -451,7 +438,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 proximal.localRotation = proxOriginal * flexRot;
             }
 
-            // Intermediate: flexión
+            // Intermediate: flexion
             if (intermediate != null && originalRotations.TryGetValue(intermediate, out Quaternion interOriginal))
             {
                 float flexAngle = fingerPose.intermediateCurl * maxFingerFlexAngle;
@@ -460,7 +447,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 intermediate.localRotation = interOriginal * flexRot;
             }
 
-            // Distal: flexión
+            // Distal: flexion
             if (distal != null && originalRotations.TryGetValue(distal, out Quaternion distOriginal))
             {
                 float flexAngle = fingerPose.distalCurl * maxFingerFlexAngle * 0.8f;
@@ -471,7 +458,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// Intenta encontrar y asignar los joints automáticamente desde una jerarquía.
+        /// Intenta encontrar y asignar los joints automaticamente desde una jerarquia.
         /// Busca transforms con nombres que contengan los IDs de joints de XR Hands.
         /// </summary>
         public void AutoMapJointsFromHierarchy(Transform root)
@@ -545,7 +532,7 @@ namespace ASL_LearnVR.LearningModule.GuideHand
                 Debug.Log($"[GuideHandPoseApplier] Auto-mapeados {mappedCount} joints desde {root.name}");
             }
 
-            // IMPORTANTE: Reinicializar para cachear las rotaciones originales de los joints recién mapeados
+            // IMPORTANTE: Reinicializar para cachear las rotaciones originales de los joints recien mapeados
             Initialize(forceReinitialize: true);
 
             if (showDebugLogs)
@@ -582,95 +569,14 @@ namespace ASL_LearnVR.LearningModule.GuideHand
         }
 
         /// <summary>
-        /// TEST: Aplica rotación directa a un joint específico para debug.
-        /// Útil para determinar qué eje produce qué movimiento.
-        /// </summary>
-        public void TestDirectRotation()
-        {
-            Transform joint = GetDebugJoint();
-            if (joint == null)
-            {
-                Debug.LogWarning("[GuideHandPoseApplier] Joint de debug no encontrado");
-                return;
-            }
-
-            Vector3 axis = debugAxisIndex switch
-            {
-                0 => Vector3.right,
-                1 => Vector3.up,
-                2 => Vector3.forward,
-                _ => Vector3.right
-            };
-
-            string axisName = debugAxisIndex switch
-            {
-                0 => "X (right)",
-                1 => "Y (up)",
-                2 => "Z (forward)",
-                _ => "?"
-            };
-
-            if (originalRotations.TryGetValue(joint, out Quaternion original))
-            {
-                Quaternion rot = Quaternion.AngleAxis(debugRotationAngle, axis);
-                joint.localRotation = original * rot;
-                Debug.Log($"[DEBUG] Rotando {joint.name} en eje {axisName} por {debugRotationAngle}°");
-            }
-            else
-            {
-                Debug.LogWarning($"[DEBUG] No hay rotación original cacheada para {joint.name}");
-            }
-        }
-
-        /// <summary>
-        /// TEST: Resetea el joint de debug a su rotación original.
-        /// </summary>
-        public void ResetDebugJoint()
-        {
-            Transform joint = GetDebugJoint();
-            if (joint != null && originalRotations.TryGetValue(joint, out Quaternion original))
-            {
-                joint.localRotation = original;
-                Debug.Log($"[DEBUG] {joint.name} reseteado a rotación original");
-            }
-        }
-
-        private Transform GetDebugJoint()
-        {
-            return (debugFingerIndex, debugJointIndex) switch
-            {
-                (0, 0) => thumbMetacarpal,
-                (0, 1) => thumbProximal,
-                (0, 3) => thumbDistal,
-                (1, 0) => indexMetacarpal,
-                (1, 1) => indexProximal,
-                (1, 2) => indexIntermediate,
-                (1, 3) => indexDistal,
-                (2, 0) => middleMetacarpal,
-                (2, 1) => middleProximal,
-                (2, 2) => middleIntermediate,
-                (2, 3) => middleDistal,
-                (3, 0) => ringMetacarpal,
-                (3, 1) => ringProximal,
-                (3, 2) => ringIntermediate,
-                (3, 3) => ringDistal,
-                (4, 0) => pinkyMetacarpal,
-                (4, 1) => pinkyProximal,
-                (4, 2) => pinkyIntermediate,
-                (4, 3) => pinkyDistal,
-                _ => null
-            };
-        }
-
-        /// <summary>
-        /// Valida que todos los joints necesarios estén asignados.
+        /// Valida que todos los joints necesarios esten assigneds.
         /// </summary>
         public bool ValidateJointMapping()
         {
             bool isValid = true;
             var missingJoints = new List<string>();
 
-            // Joints críticos
+            // Joints criticos
             if (wristTransform == null) { missingJoints.Add("Wrist"); isValid = false; }
             if (thumbProximal == null) { missingJoints.Add("ThumbProximal"); isValid = false; }
             if (thumbDistal == null) { missingJoints.Add("ThumbDistal"); isValid = false; }

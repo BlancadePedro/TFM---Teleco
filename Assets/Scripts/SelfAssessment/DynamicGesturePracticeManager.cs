@@ -8,65 +8,65 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.SelfAssessment
 {
     /// <summary>
-    /// CARACTERÍSTICAS:
-    /// - Auto-evaluación por gesto específico
+    /// CARACTERISTICAS:
+    /// - Auto-evaluacion por gesto especifico
     /// - Feedback visual en tiles del grid
     /// - Tracking de progreso con barra
     /// - Logs detallados de fallos para guiar al usuario
-    /// - Compatible con gestos estáticos y dinámicos simultáneos
+    /// - Compatible con gestos statics y dynamics simultaneos
     /// </summary>
     public class DynamicGesturePracticeManager : MonoBehaviour
     {
-        [Header("Referencias")]
-        [Tooltip("Filtro de gestos dinámicos (filtra solo el gesto que se practica)")]
+        [Header("References")]
+        [Tooltip("Filtro de dynamic gestures (filtra solo el gesto que se practica)")]
         [SerializeField] private ASL.SelfAssessment.DynamicGestureFilter gestureFilter;
 
         [Tooltip("SelfAssessmentController para acceder al grid de tiles")]
         [SerializeField] private SelfAssessmentController selfAssessmentController;
 
         [Header("Gesture Definitions")]
-        [Tooltip("Lista de gestos dinámicos a practicar (ej: Hello, Bye, J, Z)")]
+        [Tooltip("List de dynamic gestures a practicar (ej: Hello, Bye, J, Z)")]
         [SerializeField] private List<DynamicGestureDefinition> practiceGestures = new List<DynamicGestureDefinition>();
 
-        [Header("UI Feedback (Opcional)")]
-        [Tooltip("Panel de feedback en pantalla (opcional)")]
+        [Header("UI Feedback (Optional)")]
+        [Tooltip("Feedback panel en pantalla (opcional)")]
         [SerializeField] private GameObject feedbackPanel;
 
-        [Tooltip("Texto de feedback del gesto actual")]
+        [Tooltip("Text de feedback del gesto actual")]
         [SerializeField] private TextMeshProUGUI feedbackText;
 
         [Tooltip("Barra de progreso del gesto en curso")]
         [SerializeField] private Slider progressBar;
 
-        [Tooltip("Texto de razón de fallo")]
+        [Tooltip("Text de razon de fallo")]
         [SerializeField] private TextMeshProUGUI failureReasonText;
 
-        [Header("Configuración")]
-        [Tooltip("Tiempo para auto-ocultar el feedback de éxito (segundos)")]
+        [Header("Configuration")]
+        [Tooltip("Time para auto-ocultar el feedback de exito (segundos)")]
         [Range(1f, 5f)]
         [SerializeField] private float successFeedbackDuration = 2f;
 
-        [Tooltip("Tiempo para auto-ocultar el feedback de fallo (segundos)")]
+        [Tooltip("Time para auto-ocultar el feedback de fallo (segundos)")]
         [Range(2f, 10f)]
         [SerializeField] private float failureFeedbackDuration = 4f;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugLogs = false;
 
-        // Eventos públicos para comunicación con SelfAssessmentController
+        // Events publicos para comunicacion con SelfAssessmentController
         /// <summary>
-        /// Evento público para notificar cuando un gesto dinámico se completa.
+        /// Event publico para notificar cuando un dynamic gesture se completa.
         /// El SelfAssessmentController se suscribe a este evento.
         /// </summary>
         public System.Action<SignData> OnDynamicGestureCompletedSignal;
 
         /// <summary>
-        /// Evento para feedback visual en tiempo real (reconocimiento instantáneo).
-        /// Permite iluminar tiles mientras el gesto está en progreso.
+        /// Event para feedback visual en tiempo real (reconocimiento instantaneo).
+        /// Permite iluminar tiles mientras el gesto esta en progreso.
         /// </summary>
         public System.Action<string> OnDynamicGestureRecognizedSignal;
 
-        // Estado interno
+        // State interno
         private Dictionary<string, SignData> gestureNameToSignData = new Dictionary<string, SignData>();
         private Dictionary<string, SignTileController> gestureTiles = new Dictionary<string, SignTileController>();
         private HashSet<string> completedDynamicGestures = new HashSet<string>();
@@ -75,7 +75,7 @@ namespace ASL_LearnVR.SelfAssessment
 
         void Start()
         {
-            // Auto-buscar DynamicGestureFilter si no está asignado
+            // Auto-buscar DynamicGestureFilter si no esta assigned
             if (gestureFilter == null)
             {
                 gestureFilter = FindObjectOfType<ASL.SelfAssessment.DynamicGestureFilter>();
@@ -83,12 +83,12 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (gestureFilter == null)
             {
-                Debug.LogError("[DynamicGesturePracticeManager] No se encontró DynamicGestureFilter en la escena!");
+                Debug.LogError("[DynamicGesturePracticeManager] No found DynamicGestureFilter en la escena!");
                 enabled = false;
                 return;
             }
 
-            // Auto-buscar SelfAssessmentController si no está asignado
+            // Auto-buscar SelfAssessmentController si no esta assigned
             if (selfAssessmentController == null)
             {
                 selfAssessmentController = FindObjectOfType<SelfAssessmentController>();
@@ -99,7 +99,7 @@ namespace ASL_LearnVR.SelfAssessment
             gestureFilter.OnFilteredGestureProgress += OnDynamicGestureProgress;
             gestureFilter.OnFilteredGestureFailed += OnDynamicGestureFailed;
 
-            // MODO AUTOEVALUACIÓN: Permitir TODOS los gestos dinámicos (sin filtro)
+            // MODO AUTOEVALUACION: Permitir TODOS los dynamic gestures (sin filtro)
             gestureFilter.ClearFilter();
 
             // Suscribirse al evento de inicio de gesto para feedback visual
@@ -108,21 +108,21 @@ namespace ASL_LearnVR.SelfAssessment
                 gestureFilter.DynamicGestureRecognizer.OnGestureStarted += OnDynamicGestureStarted;
             }
 
-            // Mapear gestos dinámicos a SignData AUTOMÁTICAMENTE desde la categoría
+            // Mapear dynamic gestures a SignData AUTOMATICAMENTE desde la category
             MapDynamicGesturesToSignData();
 
             if (showDebugLogs)
             {
-                Debug.Log($"[DynamicGesturePracticeManager] {gestureNameToSignData.Count} gestos dinámicos mapeados (modo autoevaluación: todos activos)");
+                Debug.Log($"[DynamicGesturePracticeManager] {gestureNameToSignData.Count} dynamic gestures mapeados (modo autoevaluacion: todos actives)");
             }
 
-            // Ocultar feedback inicial
+            // Hide feedback inicial
             HideFeedback();
         }
 
         void Update()
         {
-            // Auto-ocultar feedback después de tiempo configurado
+            // Auto-ocultar feedback despues de tiempo configured
             if (feedbackPanel != null && feedbackPanel.activeSelf && Time.time >= feedbackHideTime)
             {
                 HideFeedback();
@@ -130,24 +130,24 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
-        /// Mapea AUTOMÁTICAMENTE gestos dinámicos a SignData.
-        /// Recorre los signos de la categoría actual que tienen requiresMovement = true
-        /// y los cruza con los gestos cargados en DynamicGestureRecognizer.
+        /// Mapea AUTOMATICAMENTE dynamic gestures a SignData.
+        /// Recorre los signos de la category actual que tienen requiresMovement = true
+        /// y los cruza con los gestos loadeds en DynamicGestureRecognizer.
         /// Ya NO depende de la lista manual practiceGestures del Inspector.
         /// </summary>
         private void MapDynamicGesturesToSignData()
         {
             gestureNameToSignData.Clear();
 
-            // Acceder a la categoría actual del GameManager
+            // Acceder a la category actual del GameManager
             var currentCategory = ASL_LearnVR.Core.GameManager.Instance?.CurrentCategory;
             if (currentCategory == null)
             {
-                Debug.LogError("[DynamicGesturePracticeManager] No hay categoría actual en GameManager");
+                Debug.LogError("[DynamicGesturePracticeManager] No hay category actual en GameManager");
                 return;
             }
 
-            // Obtener los gestos cargados en el DynamicGestureRecognizer
+            // Obtener los gestos loadeds en el DynamicGestureRecognizer
             HashSet<string> loadedGestureNames = new HashSet<string>();
             if (gestureFilter?.DynamicGestureRecognizer != null)
             {
@@ -161,7 +161,7 @@ namespace ASL_LearnVR.SelfAssessment
                 }
             }
 
-            // Recorrer TODOS los signos de la categoría que requieren movimiento
+            // Recorrer TODOS los signos de la category que requieren movimiento
             foreach (var sign in currentCategory.signs)
             {
                 if (sign == null || !sign.requiresMovement)
@@ -169,30 +169,30 @@ namespace ASL_LearnVR.SelfAssessment
 
                 string signName = sign.signName;
 
-                // Verificar que el gesto dinámico exista en el DynamicGestureRecognizer
+                // Verificar que el dynamic gesture exista en el DynamicGestureRecognizer
                 if (loadedGestureNames.Contains(signName))
                 {
                     gestureNameToSignData[signName] = sign;
 
                     if (showDebugLogs)
                     {
-                        Debug.Log($"[DynamicGesturePracticeManager] Gesto dinámico '{signName}' mapeado automáticamente");
+                        Debug.Log($"[DynamicGesturePracticeManager] Dynamic gesture '{signName}' mapeado automaticamente");
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"[DynamicGesturePracticeManager] Signo '{signName}' requiere movimiento pero NO tiene DynamicGestureDefinition cargada en el reconocedor");
+                    Debug.LogWarning($"[DynamicGesturePracticeManager] Sign '{signName}' requiere movimiento pero NO tiene DynamicGestureDefinition loaded en el reconocedor");
                 }
             }
 
             if (showDebugLogs)
             {
-                Debug.Log($"[DynamicGesturePracticeManager] Total mapeados: {gestureNameToSignData.Count} gestos dinámicos de categoría '{currentCategory.categoryName}'");
+                Debug.Log($"[DynamicGesturePracticeManager] Total mapeados: {gestureNameToSignData.Count} dynamic gestures de category '{currentCategory.categoryName}'");
             }
         }
 
         /// <summary>
-        /// Activa modo auto-evaluación para un gesto específico
+        /// Activa modo auto-evaluacion para un gesto especifico
         /// </summary>
         public void StartPracticingGesture(string gestureName)
         {
@@ -204,14 +204,14 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (showDebugLogs)
             {
-                Debug.Log($"<color=cyan>[PRÁCTICA]</color> Iniciando práctica de '{gestureName}'");
+                Debug.Log($"<color=cyan>[PRACTICE]</color> Starting practice for '{gestureName}'");
             }
 
             ShowFeedback($"Practica: {gestureName}", Color.white, showProgress: true);
         }
 
         /// <summary>
-        /// Desactiva modo auto-evaluación
+        /// Desactiva modo auto-evaluacion
         /// </summary>
         public void StopPracticing()
         {
@@ -225,7 +225,7 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (showDebugLogs)
             {
-                Debug.Log($"<color=cyan>[PRÁCTICA]</color> Modo práctica desactivado");
+                Debug.Log($"<color=cyan>[PRACTICE]</color> Practice mode disabled");
             }
         }
 
@@ -250,7 +250,7 @@ namespace ASL_LearnVR.SelfAssessment
 
             ShowFeedback($"Reconociendo: {gestureName}", new Color(1f, 0.843f, 0f), showProgress: true); // Golden
 
-            // Emitir evento de reconocimiento visual para iluminar tile
+            // Emit recognition event visual para iluminar tile
             OnDynamicGestureRecognizedSignal?.Invoke(gestureName);
         }
 
@@ -275,17 +275,17 @@ namespace ASL_LearnVR.SelfAssessment
                 Debug.Log($"<color=green>[ COMPLETADO]</color> {gestureName}");
             }
 
-            // Marcar como completado
+            // Marcar como completed
             if (!completedDynamicGestures.Contains(gestureName))
             {
                 completedDynamicGestures.Add(gestureName);
             }
 
             // Feedback visual
-            ShowFeedback($"¡Perfecto! {gestureName}", Color.green, showProgress: false);
+            ShowFeedback($"Perfect! {gestureName}", Color.green, showProgress: false);
             feedbackHideTime = Time.time + successFeedbackDuration;
 
-            // Disparar evento de detección confirmada en SelfAssessmentController
+            // Disparar evento de deteccion confirmada en SelfAssessmentController
             if (gestureNameToSignData.TryGetValue(gestureName, out SignData signData))
             {
                 // NOTA: Esto requiere acceso al MultiGestureRecognizer del SelfAssessmentController
@@ -293,7 +293,7 @@ namespace ASL_LearnVR.SelfAssessment
                 BroadcastGestureCompleted(signData);
             }
 
-            // TODO: Reproducir sonido de éxito, animación, etc.
+            // TODO: Play success sound, animacion, etc.
         }
 
         private void OnDynamicGestureFailed(string gestureName, string reason)
@@ -308,56 +308,56 @@ namespace ASL_LearnVR.SelfAssessment
             ShowFeedback($"KO {gestureName}\n{userFriendlyReason}", Color.red, showProgress: false);
             feedbackHideTime = Time.time + failureFeedbackDuration;
 
-            // Mostrar razón específica
+            // Mostrar razon especifica
             if (failureReasonText != null)
             {
                 failureReasonText.text = userFriendlyReason;
                 failureReasonText.gameObject.SetActive(true);
             }
 
-            // TODO: Vibración háptica, sonido de error
+            // TODO: Vibracion haptica, sonido de error
         }
 
         /// <summary>
-        /// Traduce razones técnicas de fallo a mensajes amigables
+        /// Traduce razones tecnicas de fallo a mensajes amigables
         /// </summary>
         private string TranslateFailureReason(string technicalReason)
         {
-            if (technicalReason.Contains("Dirección incorrecta"))
-                return "Mueve tu mano en la dirección correcta";
+            if (technicalReason.Contains("Wrong direction"))
+                return "Mueve tu mano en la direccion correcta";
 
-            if (technicalReason.Contains("Velocidad muy baja"))
-                return "Mueve tu mano más rápido";
+            if (technicalReason.Contains("Speed muy baja"))
+                return "Mueve tu mano faster";
 
             if (technicalReason.Contains("Pose 'During' perdida"))
-                return "Mantén la forma de la mano durante el movimiento";
+                return "Manten la forma de la mano durante el movimiento";
 
             if (technicalReason.Contains("Timeout"))
-                return "Demasiado lento, intenta más rápido";
+                return "Too slow, try faster";
 
             if (technicalReason.Contains("Tracking perdido"))
-                return "Mantén tu mano visible para la cámara";
+                return "Manten tu mano visible para la camara";
 
             if (technicalReason.Contains("zona espacial"))
-                return "Realiza el gesto en la posición correcta";
+                return "Realiza el gesto en la posicion correcta";
 
-            if (technicalReason.Contains("cambios de dirección"))
-                return "Necesitas cambiar de dirección más veces";
+            if (technicalReason.Contains("cambios de direccion"))
+                return "Necesitas cambiar de direccion mas veces";
 
-            if (technicalReason.Contains("rotación"))
-                return "Rota tu mano más durante el movimiento";
+            if (technicalReason.Contains("rotacion"))
+                return "Rota tu mano mas durante el movimiento";
 
             return technicalReason; // Fallback
         }
 
         /// <summary>
-        /// Notifica al SelfAssessmentController que un gesto dinámico se completó
+        /// Notifica al SelfAssessmentController que un dynamic gesture se completo
         /// </summary>
         private void BroadcastGestureCompleted(SignData signData)
         {
             if (showDebugLogs)
             {
-                Debug.Log($"[DynamicGesturePracticeManager] Enviando señal de gesto completado: '{signData.signName}'");
+                Debug.Log($"[DynamicGesturePracticeManager] Enviando senal de gesto completed: '{signData.signName}'");
             }
 
             // Invocar el evento propio para que SelfAssessmentController pueda escucharlo
@@ -420,7 +420,7 @@ namespace ASL_LearnVR.SelfAssessment
                 gestureFilter.OnFilteredGestureProgress -= OnDynamicGestureProgress;
                 gestureFilter.OnFilteredGestureFailed -= OnDynamicGestureFailed;
 
-                // Limpiar suscripción al evento de inicio
+                // Limpiar suscripcion al evento de inicio
                 if (gestureFilter.DynamicGestureRecognizer != null)
                 {
                     gestureFilter.DynamicGestureRecognizer.OnGestureStarted -= OnDynamicGestureStarted;
@@ -429,11 +429,11 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         // ============================================
-        // API PÚBLICA
+        // API PUBLICA
         // ============================================
 
         /// <summary>
-        /// Verifica si un gesto dinámico específico ha sido completado
+        /// Verifica si un dynamic gesture especifico ha sido completed
         /// </summary>
         public bool IsGestureCompleted(string gestureName)
         {
@@ -441,7 +441,7 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
-        /// Obtiene el número de gestos dinámicos completados
+        /// Obtiene el numero de dynamic gestures completeds
         /// </summary>
         public int GetCompletedCount()
         {
@@ -449,7 +449,7 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
-        /// Obtiene el número total de gestos dinámicos a practicar (auto-calculado desde la categoría)
+        /// Obtiene el numero total de dynamic gestures a practicar (auto-calculado desde la category)
         /// </summary>
         public int GetTotalCount()
         {
@@ -457,7 +457,7 @@ namespace ASL_LearnVR.SelfAssessment
         }
 
         /// <summary>
-        /// Resetea el progreso de gestos completados
+        /// Resetea el progreso de gestos completeds
         /// </summary>
         public void ResetProgress()
         {
@@ -466,7 +466,7 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (showDebugLogs)
             {
-                Debug.Log("[DynamicGesturePracticeManager] Progreso reseteado");
+                Debug.Log("[DynamicGesturePracticeManager] Progress reseteado");
             }
         }
     }

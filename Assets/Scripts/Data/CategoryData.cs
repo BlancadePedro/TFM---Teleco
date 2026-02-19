@@ -4,33 +4,33 @@ using UnityEngine;
 namespace ASL_LearnVR.Data
 {
     /// <summary>
-    /// Representa una categoría de signos (ej: Alfabeto, Dígitos, Colores).
-    /// Contiene una lista de SignData.
+    /// Represents a category of signs (e.g.: Alphabet, Digits, Colors).
+    /// Contains a list of SignData.
     /// </summary>
     [CreateAssetMenu(fileName = "NewCategory", menuName = "ASL Learn VR/Category Data", order = 2)]
     public class CategoryData : ScriptableObject
     {
         [Header("Category Information")]
-        [Tooltip("Nombre de la categoría (ej: 'Alphabet', 'Digits', 'Colors')")]
+        [Tooltip("Category name (e.g.: 'Alphabet', 'Digits', 'Colors')")]
         public string categoryName;
 
-        [Tooltip("Descripción de la categoría")]
+        [Tooltip("Category description")]
         [TextArea(2, 4)]
         public string description;
 
         [Header("Signs")]
-        [Tooltip("Lista de signos que pertenecen a esta categoría")]
+        [Tooltip("List of signs belonging to this category")]
         public List<SignData> signs = new List<SignData>();
 
         [Header("Visual")]
-        [Tooltip("Icono representativo de la categoría")]
+        [Tooltip("Representative category icon")]
         public Sprite icon;
 
-        [Tooltip("Color de tema para esta categoría (UI)")]
+        [Tooltip("Theme color for this category (UI)")]
         public Color themeColor = Color.white;
 
         /// <summary>
-        /// Obtiene un signo por su nombre.
+        /// Gets a sign by its name.
         /// </summary>
         public SignData GetSignByName(string signName)
         {
@@ -38,19 +38,19 @@ namespace ASL_LearnVR.Data
         }
 
         /// <summary>
-        /// Valida que la categoría esté correctamente configurada.
+        /// Validates that the category is correctly configured.
         /// </summary>
         public bool IsValid()
         {
             if (string.IsNullOrEmpty(categoryName))
             {
-                Debug.LogError($"CategoryData '{name}' tiene un categoryName vacío.");
+                Debug.LogError($"CategoryData '{name}' tiene un categoryName vacio.");
                 return false;
             }
 
             if (signs == null || signs.Count == 0)
             {
-                Debug.LogError($"CategoryData '{categoryName}' no tiene signos asignados.");
+                Debug.LogError($"CategoryData '{categoryName}' no tiene signos assigneds.");
                 return false;
             }
 
@@ -72,7 +72,7 @@ namespace ASL_LearnVR.Data
         }
 
         /// <summary>
-        /// Obtiene el número total de signos en esta categoría.
+        /// Gets the total number of signs in this category.
         /// </summary>
         public int GetSignCount()
         {

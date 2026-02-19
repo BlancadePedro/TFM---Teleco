@@ -9,88 +9,88 @@ using ASL_LearnVR.Feedback;
 namespace ASL.DynamicGestures
 {
     /// <summary>
-    /// Reconocedor de gestos dinámicos basado en secuencias de poses estáticas + movimiento.
-    /// Optimizado para Meta Quest 3 con parámetros conservadores y máquina de estados robusta.
+    /// Dynamic gesture recognizer based on static pose sequences + movement.
+    /// Optimized for Meta Quest 3 with conservative parameters and a robust state machine.
     /// </summary>
     public class DynamicGestureRecognizer : MonoBehaviour
     {
-        [Header("Configuración")]
-        [Tooltip("Lista de definiciones de gestos dinámicos a reconocer")]
+        [Header("Configuration")]
+        [Tooltip("List de definiciones de dynamic gestures a reconocer")]
         [SerializeField] private List<DynamicGestureDefinition> gestureDefinitions = new List<DynamicGestureDefinition>();
 
-        [Tooltip("Adaptador para detectar poses estáticas (StaticPoseAdapter o SingleGestureAdapter)")]
+        [Tooltip("Adapter for detecting static poses (StaticPoseAdapter or SingleGestureAdapter)")]
         [SerializeField] private MonoBehaviour poseAdapterComponent;
 
-        [Tooltip("Componente XRHandTrackingEvents para verificar tracking (Right Hand Controller)")]
+        [Tooltip("Component XRHandTrackingEvents para verificar tracking (Right Hand Controller)")]
         [SerializeField] private UnityEngine.XR.Hands.XRHandTrackingEvents handTrackingEvents;
 
         [Header("Suavizado")]
-        [Tooltip("Factor de suavizado de posición (0.5-0.7 recomendado para Quest 3)")]
+        [Tooltip("Position smoothing factor (0.5-0.7 recommended for Quest 3)")]
         [Range(0.1f, 1.0f)]
         [SerializeField] private float positionSmoothingFactor = 0.7f;
 
         [Header("Debug")]
-        [Tooltip("Activar logs detallados y visualización de Gizmos")]
+        [Tooltip("Enable detailed logs and Gizmo visualization")]
         [SerializeField] private bool debugMode = false;
 
-        // Eventos públicos (API original - mantener compatibilidad)
+        // Public events (original API - maintain compatibility)
         public System.Action<string> OnGestureStarted;
         public System.Action<string, float> OnGestureProgress; // nombre, progreso 0-1
         public System.Action<string> OnGestureCompleted;
-        public System.Action<string, string> OnGestureFailed; // nombre, razón
-        public System.Action<bool> OnPendingConfirmationChanged; // true = entró en pending, false = salió de pending
+        public System.Action<string, string> OnGestureFailed; // name, reason
+        public System.Action<bool> OnPendingConfirmationChanged; // true = entered pending, false = exited pending
 
-        // Eventos estructurados (nuevos - para FeedbackSystem)
+        // Events estructurados (nuevos - para FeedbackSystem)
         /// <summary>
-        /// Evento con resultado estructurado al completar un gesto.
-        /// Incluye métricas detalladas de movimiento.
+        /// Event con resultado estructurado al completar un gesto.
+        /// Includes detailed movement metrics.
         /// </summary>
         public System.Action<DynamicGestureResult> OnGestureCompletedStructured;
 
         /// <summary>
-        /// Evento con resultado estructurado al fallar un gesto.
-        /// Incluye razón de fallo, fase y métricas.
+        /// Event con resultado estructurado al fallar un gesto.
+        /// Includes failure reason, phase, and metrics.
         /// </summary>
         public System.Action<DynamicGestureResult> OnGestureFailedStructured;
 
-        // Eventos para feedback por fases (nuevos)
+        // Events para feedback por fases (nuevos)
         /// <summary>
-        /// Evento cuando la pose inicial es detectada correctamente.
+        /// Event cuando la initial pose es detectada correctamente.
         /// Se emite ANTES de que comience el movimiento (Fase 1: StartDetected).
         /// </summary>
         public System.Action<string> OnInitialPoseDetected;
 
         /// <summary>
-        /// Evento de progreso con métricas detalladas.
-        /// Incluye nombre, progreso, métricas y definición del gesto para análisis de feedback.
+        /// Progress event with detailed metrics.
+        /// Includes name, progress, metrics, and gesture definition for feedback analysis.
         /// </summary>
         public System.Action<string, float, DynamicMetrics, DynamicGestureDefinition> OnGestureProgressWithMetrics;
 
         /// <summary>
-        /// Evento cuando el gesto está cerca de completarse (>80%).
-        /// Usado para feedback de "casi completado" (Fase 3: NearCompletion).
+        /// Event when gesture is close to completion (>80%).
+        /// Usado para feedback de "casi completed" (Fase 3: NearCompletion).
         /// </summary>
         public System.Action<string, float> OnGestureNearCompletion;
 
-        // Estado interno
+        // State interno
         private bool isEnabled = true; // Activado por defecto
         private GestureState currentState = GestureState.Idle;
         private DynamicGestureDefinition activeGesture = null;
         private MovementTracker movementTracker;
         private float gestureStartTime = 0f;
-        private List<DynamicGestureDefinition> allGestureDefinitions = null; // Lista completa sin filtrar
+        private List<DynamicGestureDefinition> allGestureDefinitions = null; // List completa sin filtrar
 
-        // Cooldown después de éxito (para que el usuario vea el mensaje)
+        // Cooldown after success (so the user can see the message)
         private float successCooldownEndTime = 0f;
-        private const float SUCCESS_COOLDOWN_DURATION = 1f; // 1s (antes 2s) - permite gestos consecutivos más rápido en Scene 4
+        private const float SUCCESS_COOLDOWN_DURATION = 1f; // 1s (previously 2s) - allows consecutive gestures faster in Scene 4
 
         /// <summary>
-        /// True si el reconocedor está en cooldown después de un éxito.
+        /// True if the recognizer is in cooldown after a success.
         /// </summary>
         public bool IsInSuccessCooldown => Time.time < successCooldownEndTime;
 
         /// <summary>
-        /// True si la pose inicial del gesto activo sigue siendo válida.
+        /// True if the initial pose of the active gesture is still valid.
         /// Usado por FeedbackSystem para decidir si volver a Idle tras un error.
         /// </summary>
         public bool IsStartPoseValid
@@ -106,22 +106,22 @@ namespace ASL.DynamicGestures
 
                 string currentPose = poseAdapter.GetCurrentPoseName();
 
-                // Si no hay pose detectada, no es válida
+                // Si no hay pose detectada, no es valid
                 if (string.IsNullOrEmpty(currentPose))
                     return false;
 
-                // Verificar si la pose actual aún puede iniciar el gesto activo
+                // Check if the current pose can still start the active gesture
                 return activeGesture.CanStartWithPose(currentPose) || CanStartWithPoseData(activeGesture);
             }
         }
 
-        // Estado de confirmación pendiente
+        // Pending confirmation state
         private List<DynamicGestureDefinition> pendingGestures = new List<DynamicGestureDefinition>();
-        // Gestos alternativos cuando la desambiguación no pudo resolver (gestos compuestos con mismo Start pose)
+        // Alternative gestures when disambiguation couldn't resolve (compound gestures with same Start pose)
         private List<DynamicGestureDefinition> alternativeGestures = new List<DynamicGestureDefinition>();
         private float pendingStartTime = 0f;
-        private const float PENDING_CONFIRMATION_TIMEOUT = 0.4f; // 0.4s para Scene 3 (1 gesto específico)
-        private const float PENDING_CONFIRMATION_TIMEOUT_SCENE4 = 1.2f; // 1.2s para Scene 4 (desambiguación entre múltiples gestos)
+        private const float PENDING_CONFIRMATION_TIMEOUT = 0.4f; // 0.4s for Scene 3 (1 specific gesture)
+        private const float PENDING_CONFIRMATION_TIMEOUT_SCENE4 = 1.2f; // 1.2s for Scene 4 (disambiguation between multiple gestures)
 
         // Tracking de mano
         private Vector3 smoothedHandPosition = Vector3.zero;
@@ -129,35 +129,35 @@ namespace ASL.DynamicGestures
         private Vector3 lastHandPosition = Vector3.zero;
         private Quaternion lastHandRotation = Quaternion.identity;
         private float trackingLostTime = 0f;
-        private const float TRACKING_LOSS_TOLERANCE = 0.5f; // 0.5s (antes 0.2s) - más tolerante a pérdidas momentáneas Quest 3
+        private const float TRACKING_LOSS_TOLERANCE = 0.5f; // 0.5s (previously 0.2s) - more tolerant of momentary losses on Quest 3
 
-        // Cooldown después de PendingConfirmation hace timeout
+        // Cooldown after PendingConfirmation times out
         private float pendingTimeoutCooldownEnd = 0f;
         private const float PENDING_TIMEOUT_COOLDOWN = 0.6f;
 
-        // Detección y prevención de loop de PENDING
+        // Detection and prevention of PENDING loop
         private int consecutivePendingEntries = 0;
         private float lastPendingExitTime = 0f;
         private const float PENDING_REENTRY_WINDOW = 1.0f; // Ventana de 1 segundo
-        private const int MAX_CONSECUTIVE_PENDING = 2; // Máximo 2 re-entradas antes de bloquear
+        private const int MAX_CONSECUTIVE_PENDING = 2; // Maximum 2 re-entradas antes de bloquear
 
         // Cache XR Origin
         private Transform xrOriginTransform;
 
-        // Validación de requisitos
+        // Requirements validation
         private bool initialDirectionValidated = false;
-        private float initialDirectionGracePeriod = 0.5f; // 50% de minDuration antes de fallar por dirección
+        private float initialDirectionGracePeriod = 0.5f; // 50% of minDuration before failing on direction
 
         // Cache del adaptador como interfaz
         private IPoseAdapter poseAdapter;
 
-        // Cache del último evento de joints para validación directa de HandShape
+        // Cache of the last joints event for direct HandShape validation
         private XRHandJointsUpdatedEventArgs lastJointsEventArgs;
         private bool hasValidJointsEventArgs = false;
 
         void Awake()
         {
-            // Inicializar MovementTracker con parámetros conservadores
+            // Initialize MovementTracker with conservative parameters
             movementTracker = new MovementTracker(windowSize: 3f, historySize: 120);
 
             // Cachear XR Origin
@@ -166,7 +166,7 @@ namespace ASL.DynamicGestures
                 xrOriginTransform = Camera.main.transform.parent; // XR Origin es parent de Camera
             }
 
-            // AUTO-FIX: Buscar adaptador de poses si no está asignado correctamente
+            // AUTO-FIX: Find pose adapter if not correctly assigned
             if (poseAdapterComponent == null || (poseAdapterComponent as IPoseAdapter) == null)
             {
                 Debug.LogWarning("[DynamicGestureRecognizer] Auto-buscando adaptador de poses...");
@@ -176,7 +176,7 @@ namespace ASL.DynamicGestures
                 if (staticAdapter != null)
                 {
                     poseAdapterComponent = staticAdapter;
-                    Debug.Log($"[DynamicGestureRecognizer] StaticPoseAdapter encontrado (modo multi-gesto)");
+                    Debug.Log($"[DynamicGestureRecognizer] StaticPoseAdapter found (modo multi-gesto)");
                 }
                 else
                 {
@@ -188,7 +188,7 @@ namespace ASL.DynamicGestures
                         if (adapter != null)
                         {
                             poseAdapterComponent = adapter;
-                            Debug.Log($"[DynamicGestureRecognizer] SingleGestureAdapter encontrado en RightHandRecognizer");
+                            Debug.Log($"[DynamicGestureRecognizer] SingleGestureAdapter found en RightHandRecognizer");
                         }
                         else
                         {
@@ -197,7 +197,7 @@ namespace ASL.DynamicGestures
                     }
                     else
                     {
-                        Debug.LogError("[DynamicGestureRecognizer] No se encontró adaptador de poses!");
+                        Debug.LogError("[DynamicGestureRecognizer] No found adaptador de poses!");
                     }
                 }
             }
@@ -208,12 +208,12 @@ namespace ASL.DynamicGestures
                 poseAdapter = poseAdapterComponent as IPoseAdapter;
                 if (poseAdapter == null)
                 {
-                    Debug.LogError("[DynamicGestureRecognizer] El componente asignado no implementa IPoseAdapter. " +
+                    Debug.LogError("[DynamicGestureRecognizer] El componente assigned no implementa IPoseAdapter. " +
                                    "Usa StaticPoseAdapter o SingleGestureAdapter.");
                 }
                 else
                 {
-                    Debug.Log("[DynamicGestureRecognizer] Pose Adapter configurado correctamente!");
+                    Debug.Log("[DynamicGestureRecognizer] Pose Adapter configured correctamente!");
                 }
             }
         }
@@ -231,13 +231,13 @@ namespace ASL.DynamicGestures
             }
             else
             {
-                // Suscribirse a jointsUpdated para cachear el último evento (validación directa de End poses)
+                // Subscribe to jointsUpdated to cache the last event (direct End pose validation)
                 handTrackingEvents.jointsUpdated.AddListener(OnJointsUpdated);
             }
 
             if (gestureDefinitions.Count == 0)
             {
-                Debug.LogWarning("[DynamicGestureRecognizer] No hay gestos definidos en la lista.");
+                Debug.LogWarning("[DynamicGestureRecognizer] No gestures defined en la lista.");
             }
         }
 
@@ -250,7 +250,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Callback cuando los joints de la mano se actualizan. Cachea el evento para validación directa.
+        /// Callback when hand joints are updated. Caches the event for direct validation.
         /// </summary>
         private void OnJointsUpdated(XRHandJointsUpdatedEventArgs eventArgs)
         {
@@ -260,12 +260,12 @@ namespace ASL.DynamicGestures
 
         void Update()
         {
-            // SOLO funcionar si está activado
+            // ONLY work if enabled
             if (!isEnabled)
                 return;
 
-            // IMPORTANTE: No procesar nuevos gestos durante el cooldown de éxito
-            // Esto permite que el usuario vea el mensaje "¡Movimiento reconocido!" durante 2 segundos
+            // IMPORTANT: Do not process new gestures during success cooldown
+            // This allows the user to see the message "Movement recognized!" for 2 seconds
             if (IsInSuccessCooldown)
             {
                 return;
@@ -289,7 +289,7 @@ namespace ASL.DynamicGestures
                     float lossTime = Time.time - trackingLostTime;
                     if (lossTime < TRACKING_LOSS_TOLERANCE)
                     {
-                        // Continuar usando la última posición conocida
+                        // Continue using the last known position
                         return;
                     }
 
@@ -306,7 +306,7 @@ namespace ASL.DynamicGestures
             // Tracking recuperado
             trackingLostTime = 0f;
 
-            // Obtener posición y rotación de la mano
+            // Get hand position and rotation
             Vector3 currentHandPos = GetHandPosition();
             Quaternion currentHandRot = GetHandRotation();
 
@@ -336,7 +336,7 @@ namespace ASL.DynamicGestures
             // Actualizar tracker de movimiento
             movementTracker.UpdateTracking(smoothedHandPosition, smoothedHandRotation);
 
-            // Máquina de estados
+            // State machine
             switch (currentState)
             {
                 case GestureState.Idle:
@@ -361,36 +361,36 @@ namespace ASL.DynamicGestures
             if (poseAdapter == null)
                 return;
 
-            // Respetar cooldown después de PendingConfirmation timeout
+            // Respect cooldown after PendingConfirmation timeout
             // Esto evita el loop Idle→Pending→timeout→Idle→Pending
             if (Time.time < pendingTimeoutCooldownEnd)
                 return;
 
-            // FILTRO CRÍTICO: Solo aplicar en modo aprendizaje (Scene 3)
-            // En modo autoevaluación (Scene 4), CurrentSign puede ser null o estático, así que permitimos todo
+            // CRITICAL FILTER: Only apply in learning mode (Scene 3)
+            // In self-assessment mode (Scene 4), CurrentSign can be null or static, so we allow everything
             var gameManager = ASL_LearnVR.Core.GameManager.Instance;
             if (gameManager != null && gameManager.CurrentSign != null)
             {
-                // Si el signo actual NO requiere movimiento, NO iniciar gestos dinámicos
+                // Si el current sign NO requiere movimiento, NO iniciar dynamic gestures
                 // PERO solo aplicar este filtro si estamos en modo aprendizaje individual
                 if (!gameManager.CurrentSign.requiresMovement)
                 {
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] CurrentSign '{gameManager.CurrentSign.signName}' NO requiere movimiento, bloqueando reconocimiento dinámico");
+                        Debug.Log($"[DynamicGesture] CurrentSign '{gameManager.CurrentSign.signName}' NO requiere movimiento, bloqueando reconocimiento dynamic");
                     }
                     return;
                 }
             }
             else if (debugMode && Time.frameCount % 120 == 0)
             {
-                Debug.Log($"[DynamicGesture] CurrentSign es NULL, permitiendo reconocimiento dinámico (modo autoevaluación)");
+                Debug.Log($"[DynamicGesture] CurrentSign es NULL, permitiendo reconocimiento dynamic (modo autoevaluacion)");
             }
 
             string currentPose = poseAdapter.GetCurrentPoseName();
 
-            // MODO ESPECIAL SCENE 4: Si CurrentSign es NULL (autoevaluación),
-            // considerar TODOS los gestos como candidatos para desambiguación por movimiento
+            // SPECIAL SCENE 4 MODE: If CurrentSign is NULL (self-assessment),
+            // considerar TODOS los gestos como candidatos para disambiguation por movimiento
             bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
             // En Scene 3, necesitamos una pose detectada para continuar.
@@ -400,14 +400,14 @@ namespace ASL.DynamicGestures
             if (string.IsNullOrEmpty(currentPose) && !isScene4Mode)
                 return;
 
-            // En Scene 4 sin pose y sin joints válidos, no hay nada que hacer
+            // En Scene 4 sin pose y sin joints valids, no hay nada que hacer
             if (string.IsNullOrEmpty(currentPose) && !hasValidJointsEventArgs)
                 return;
 
             // DEBUG: Log de pose detectada
             if (debugMode && Time.frameCount % 60 == 0)
             {
-                Debug.Log($"[DynamicGesture] CheckForGestureStart: Pose actual = '{currentPose ?? "NULL (poseData mode)"}', Gestos definidos = {gestureDefinitions.Count}");
+                Debug.Log($"[DynamicGesture] CheckForGestureStart: Current pose = '{currentPose ?? "NULL (poseData mode)"}', Gestures definidos = {gestureDefinitions.Count}");
             }
 
             // Buscar TODOS los gestos que puedan iniciarse con esta pose
@@ -445,13 +445,13 @@ namespace ASL.DynamicGestures
                 if (isScene4Mode)
                 {
                     // En Scene 4: Filtrar por pose detectada, luego desambiguar por movimiento
-                    // PRIORIDAD 1: Comparar con la pose actual del adapter (si está disponible)
+                    // PRIORITY 1: Compare with current adapter pose (if available)
                     if (!string.IsNullOrEmpty(currentPose))
                     {
                         canStart = gesture.CanStartWithPose(currentPose);
                     }
 
-                    // PRIORIDAD 2: Validación directa con HandShape (si el gesto tiene poseData)
+                    // PRIORITY 2: Direct validation with HandShape (if gesture has poseData)
                     if (!canStart)
                     {
                         canStart = CanStartWithPoseData(gesture);
@@ -463,7 +463,7 @@ namespace ASL.DynamicGestures
                     canStart = gesture.CanStartWithPose(currentPose);
 
                     // GESTOS COMPUESTOS: Si no hay match por nombre pero hay poseData,
-                    // intentar validación directa usando HandShape
+                    // attempt direct validation using HandShape
                     if (!canStart)
                     {
                         canStart = CanStartWithPoseData(gesture);
@@ -475,16 +475,16 @@ namespace ASL.DynamicGestures
                     pendingGestures.Add(gesture);
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] Gesto '{gesture.gestureName}' puede iniciar con pose '{currentPose}' (Scene4Mode: {isScene4Mode})");
+                        Debug.Log($"[DynamicGesture] Gesture '{gesture.gestureName}' puede iniciar con pose '{currentPose}' (Scene4Mode: {isScene4Mode})");
                     }
                 }
                 else if (debugMode && Time.frameCount % 60 == 0)
                 {
-                    Debug.Log($"[DynamicGesture] Gesto '{gesture.gestureName}' NO puede iniciar con pose '{currentPose}'");
+                    Debug.Log($"[DynamicGesture] Gesture '{gesture.gestureName}' NO puede iniciar con pose '{currentPose}'");
                 }
             }
 
-            // Si encontramos gestos candidatos, entrar en estado de confirmación pendiente
+            // If we found candidate gestures, enter pending confirmation state
             if (pendingGestures.Count > 0)
             {
                 if (debugMode)
@@ -499,13 +499,13 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // Múltiples gestos posibles, entrar en estado pendiente para desambiguar
+                    // Multiple possible gestures, enter pending state to disambiguate
                     EnterPendingConfirmation();
                 }
             }
             else if (debugMode && Time.frameCount % 120 == 0)
             {
-                Debug.Log($"[DynamicGesture] Ningún gesto dinámico puede iniciar con pose '{currentPose}'");
+                Debug.Log($"[DynamicGesture] Ningun dynamic gesture puede iniciar con pose '{currentPose}'");
             }
         }
 
@@ -523,13 +523,13 @@ namespace ASL.DynamicGestures
             movementTracker.Reset();
             initialDirectionValidated = false;
 
-            // Notificar que salimos de pending si estábamos en ese estado
+            // Notify that we left pending state if we were in it
             if (wasPending)
             {
                 OnPendingConfirmationChanged?.Invoke(false);
             }
 
-            // Emitir evento de pose inicial detectada (Fase 1 del feedback)
+            // Emitir evento de initial pose detectada (Fase 1 del feedback)
             OnInitialPoseDetected?.Invoke(gesture.gestureName);
 
             OnGestureStarted?.Invoke(gesture.gestureName);
@@ -541,7 +541,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Entra en estado de confirmación pendiente cuando hay múltiples gestos candidatos
+        /// Enters pending confirmation state when there are multiple gesture candidates
         /// </summary>
         private void EnterPendingConfirmation()
         {
@@ -558,7 +558,7 @@ namespace ASL.DynamicGestures
 
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] Loop de PENDING detectado ({MAX_CONSECUTIVE_PENDING}+ re-entradas en {PENDING_REENTRY_WINDOW}s), bloqueando por 2s");
+                        Debug.LogWarning($"[DynamicGesture] Loop de PENDING detected ({MAX_CONSECUTIVE_PENDING}+ re-entradas en {PENDING_REENTRY_WINDOW}s), bloqueando por 2s");
                     }
                     return;
                 }
@@ -585,13 +585,13 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Actualiza el estado de confirmación pendiente, esperando movimiento para desambiguar
+        /// Updates the pending confirmation state, waiting for movement to disambiguate
         /// </summary>
         private void UpdatePendingConfirmation()
         {
             float elapsed = Time.time - pendingStartTime;
 
-            // Usar timeout más largo en Scene 4 para dar tiempo a desambiguar
+            // Use longer timeout in Scene 4 to allow disambiguation time
             var gm = ASL_LearnVR.Core.GameManager.Instance;
             bool isScene4 = (gm == null || gm.CurrentSign == null);
             float timeout = isScene4 ? PENDING_CONFIRMATION_TIMEOUT_SCENE4 : PENDING_CONFIRMATION_TIMEOUT;
@@ -599,11 +599,11 @@ namespace ASL.DynamicGestures
             // Timeout: si no se pudo desambiguar a tiempo
             if (elapsed >= timeout)
             {
-                // Verificar si algún candidato tiene End poses (gesto compuesto).
-                // Para gestos compuestos (Bye:5→S, White:5→White, Sleep:5→White, Thursday:T→H),
-                // la desambiguación por movimiento no funciona porque comparten el mismo perfil.
-                // En este caso, iniciar el primer candidato y guardar los demás como alternativas.
-                // La End pose determinará cuál es el gesto correcto.
+                // Check if any candidate has End poses (compound gesture).
+                // Para compound gestures (Bye:5→S, White:5→White, Sleep:5→White, Thursday:T→H),
+                // la disambiguation por movimiento no funciona porque comparten el mismo perfil.
+                // In this case, start the first candidate and save the rest as alternatives.
+                // The End pose will determine which is the correct gesture.
                 bool hasCompoundCandidate = false;
                 DynamicGestureDefinition compoundCandidate = null;
                 foreach (var gesture in pendingGestures)
@@ -623,7 +623,7 @@ namespace ASL.DynamicGestures
 
                 if (hasCompoundCandidate && compoundCandidate != null)
                 {
-                    // Guardar alternativas (los demás candidatos con End poses)
+                    // Save alternatives (the other candidates with End poses)
                     alternativeGestures.Clear();
                     foreach (var gesture in pendingGestures)
                     {
@@ -633,36 +633,36 @@ namespace ASL.DynamicGestures
 
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Iniciando gesto compuesto '{compoundCandidate.gestureName}' con {alternativeGestures.Count} alternativas. " +
-                                  $"La End pose determinará el gesto correcto.");
+                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Starting gesto compuesto '{compoundCandidate.gestureName}' con {alternativeGestures.Count} alternativas. " +
+                                  $"La End pose determinara el gesto correct.");
                     }
                     StartGesture(compoundCandidate);
                 }
                 else
                 {
-                    // No hay gestos compuestos, asumir gesto estático
+                    // No hay compound gestures, asumir gesto static
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detectado, asumiendo gesto estático");
+                        Debug.Log($"[DynamicGesture] PENDING TIMEOUT: Sin movimiento detected, asumiendo gesto static");
                     }
                     ResetState();
                 }
                 return;
             }
 
-            // Verificar si la pose inicial se perdió
+            // Check if the initial pose was lost
             if (poseAdapter != null)
             {
                 string currentPose = poseAdapter.GetCurrentPoseName();
 
-                // Validar que la pose sigue siendo válida
+                // Validar que la pose sigue siendo valid
                 var gameManager = ASL_LearnVR.Core.GameManager.Instance;
                 bool isScene4Mode = (gameManager == null || gameManager.CurrentSign == null);
 
                 // Si perdimos completamente la pose por nombre
                 if (string.IsNullOrEmpty(currentPose))
                 {
-                    // En Scene 4: antes de resetear, verificar si la pose sigue válida vía poseData
+                    // In Scene 4: before resetting, check if pose is still valid via poseData
                     if (isScene4Mode && hasValidJointsEventArgs)
                     {
                         bool anyPoseDataValid = false;
@@ -677,11 +677,11 @@ namespace ASL.DynamicGestures
                         if (!anyPoseDataValid)
                         {
                             if (debugMode)
-                                Debug.Log($"[DynamicGesture] PENDING: Pose perdida (poseData también inválido), reseteando");
+                                Debug.Log($"[DynamicGesture] PENDING: Pose perdida (poseData also invalid), reseteando");
                             ResetState();
                             return;
                         }
-                        // Pose sigue válida vía poseData, continuar
+                        // Pose still valid via poseData, continue
                     }
                     else
                     {
@@ -703,7 +703,7 @@ namespace ASL.DynamicGestures
                         break;
                     }
 
-                    // En Scene 4: también verificar directamente con HandShape
+                    // En Scene 4: also verificar directamente con HandShape
                     if (isScene4Mode && CanStartWithPoseData(gesture))
                     {
                         poseStillValid = true;
@@ -723,27 +723,27 @@ namespace ASL.DynamicGestures
             }
 
             // Analizar si hay movimiento significativo
-            // Umbrales intermedios: filtran jitter (~1-2cm) pero detectan movimiento intencional
+            // Thresholdes intermedios: filtran jitter (~1-2cm) pero detectan movimiento intencional
             bool hasSignificantMovement = movementTracker.TotalDistance > 0.025f || // 2.5cm (filtra jitter, detecta movimiento real)
                                           movementTracker.CurrentSpeed > 0.08f;      // 0.08 m/s
 
             if (hasSignificantMovement)
             {
-                // Se detectó movimiento, ahora intentamos desambiguar qué gesto es
+                // Movement detected, now trying to disambiguate which gesture it is
                 DynamicGestureDefinition bestMatch = DisambiguateGesture();
 
                 if (bestMatch != null)
                 {
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] PENDING RESOLVED: '{bestMatch.gestureName}' seleccionado por movimiento");
+                        Debug.Log($"[DynamicGesture] PENDING RESOLVED: '{bestMatch.gestureName}' selected por movimiento");
                     }
                     StartGesture(bestMatch);
                 }
                 else
                 {
                     // No se pudo desambiguar por movimiento.
-                    // Para gestos compuestos con mismo Start pose (Bye/White/Sleep todos empiezan con "5"),
+                    // Para compound gestures con same Start pose (Bye/White/Sleep todos empiezan con "5"),
                     // no esperar al timeout: iniciar inmediatamente y dejar que la End pose determine el gesto.
                     bool hasCompound = false;
                     DynamicGestureDefinition firstCompound = null;
@@ -766,21 +766,21 @@ namespace ASL.DynamicGestures
                         }
                         if (debugMode)
                         {
-                            Debug.Log($"[DynamicGesture] PENDING: Desambiguación imposible, iniciando gesto compuesto '{firstCompound.gestureName}' " +
-                                      $"con {alternativeGestures.Count} alternativas. End pose determinará el gesto.");
+                            Debug.Log($"[DynamicGesture] PENDING: Desambiguacion imposible, iniciando gesto compuesto '{firstCompound.gestureName}' " +
+                                      $"con {alternativeGestures.Count} alternativas. End pose determinara el gesto.");
                         }
                         StartGesture(firstCompound);
                     }
                     else if (debugMode && Time.frameCount % 30 == 0)
                     {
-                        Debug.Log($"[DynamicGesture] PENDING: Esperando más datos de movimiento...");
+                        Debug.Log($"[DynamicGesture] PENDING: Esperando mas datos de movimiento...");
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Intenta desambiguar entre múltiples gestos candidatos basándose en el movimiento detectado
+        /// Intenta desambiguar entre multiples gestos candidatos basandose en el movimiento detected
         /// </summary>
         private DynamicGestureDefinition DisambiguateGesture()
         {
@@ -802,35 +802,35 @@ namespace ASL.DynamicGestures
                     {
                         if (debugMode)
                         {
-                            Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por circularidad (score: {circularityScore:F2})");
+                            Debug.Log($"[DynamicGesture] Desambiguacion: '{gesture.gestureName}' selected por circularidad (score: {circularityScore:F2})");
                         }
                         return gesture;
                     }
                 }
             }
 
-            // PRIORIDAD 2: Detectar ROTACIÓN clara (Blue wrist twist, Purple shake, etc.)
-            // Umbral de 20° para evitar falsos positivos por movimiento natural de la mano
+            // PRIORIDAD 2: Detectar ROTACION clara (Blue wrist twist, Purple shake, etc.)
+            // Threshold de 20° para evitar falsos positivos por movimiento natural de la mano
             foreach (var gesture in pendingGestures)
             {
                 if (gesture.requiresRotation && movementTracker.TotalRotation > 20f)
                 {
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por rotación ({movementTracker.TotalRotation:F1}°)");
+                        Debug.Log($"[DynamicGesture] Desambiguacion: '{gesture.gestureName}' selected por rotacion ({movementTracker.TotalRotation:F1}°)");
                     }
                     return gesture;
                 }
             }
 
-            // PRIORIDAD 3: Detectar CAMBIOS DE DIRECCIÓN con dirección específica
+            // PRIORIDAD 3: Detectar CAMBIOS DE DIRECCION con direccion especifica
             foreach (var gesture in pendingGestures)
             {
                 if (gesture.requiresDirectionChange && movementTracker.DirectionChanges > 0)
                 {
                     Vector3 currentDirection = movementTracker.AverageDirection;
 
-                    // Si el gesto tiene dirección específica, verificar que coincida
+                    // Si el gesto tiene direccion especifica, verificar que coincida
                     if (currentDirection.sqrMagnitude > 0.01f && gesture.primaryDirection.sqrMagnitude > 0.01f)
                     {
                         float angleDiff = Vector3.Angle(currentDirection, gesture.primaryDirection);
@@ -838,38 +838,38 @@ namespace ASL.DynamicGestures
                         {
                             if (debugMode)
                             {
-                                Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por cambios de dirección ({movementTracker.DirectionChanges}) + dirección ({angleDiff:F1}°)");
+                                Debug.Log($"[DynamicGesture] Desambiguacion: '{gesture.gestureName}' selected por cambios de direccion ({movementTracker.DirectionChanges}) + direccion ({angleDiff:F1}°)");
                             }
                             return gesture;
                         }
                     }
-                    // Si el gesto NO tiene dirección específica (wrist twist puro),
-                    // seleccionar si hay dirección changes + rotación (ej: Blue, Purple)
+                    // Si el gesto NO tiene direccion especifica (wrist twist puro),
+                    // seleccionar si hay direccion changes + rotacion (ej: Blue, Purple)
                     else if (gesture.primaryDirection.sqrMagnitude < 0.01f && gesture.requiresRotation &&
                              movementTracker.TotalRotation > 12f)
                     {
                         if (debugMode)
                         {
-                            Debug.Log($"[DynamicGesture] Desambiguación: '{gesture.gestureName}' seleccionado por cambios de dirección + rotación (twist)");
+                            Debug.Log($"[DynamicGesture] Desambiguacion: '{gesture.gestureName}' selected por cambios de direccion + rotacion (twist)");
                         }
                         return gesture;
                     }
                 }
             }
 
-            // PRIORIDAD 4: Analizar por dirección principal (Brown down, ThankYou forward, etc.)
+            // PRIORIDAD 4: Analizar por direccion principal (Brown down, ThankYou forward, etc.)
             Vector3 currentDir = movementTracker.AverageDirection;
 
             if (currentDir.sqrMagnitude < 0.01f)
-                return null; // Sin dirección clara aún
+                return null; // Sin direccion clara aun
 
-            // Buscar el gesto con mejor match de dirección
+            // Buscar el gesto con mejor match de direccion
             DynamicGestureDefinition bestMatch = null;
             float bestAngleDifference = float.MaxValue;
 
             foreach (var gesture in pendingGestures)
             {
-                // Si el gesto no requiere movimiento direccional específico, saltarlo
+                // Si el gesto no requiere movimiento direccional especifico, saltarlo
                 if (gesture.primaryDirection.sqrMagnitude < 0.01f)
                     continue;
 
@@ -884,14 +884,14 @@ namespace ASL.DynamicGestures
 
             if (bestMatch != null && debugMode)
             {
-                Debug.Log($"[DynamicGesture] Desambiguación: '{bestMatch.gestureName}' seleccionado por dirección (ángulo: {bestAngleDifference:F1}°)");
+                Debug.Log($"[DynamicGesture] Desambiguacion: '{bestMatch.gestureName}' selected por direccion (angulo: {bestAngleDifference:F1}°)");
             }
 
             return bestMatch;
         }
 
         /// <summary>
-        /// Valida requisitos y actualiza progreso del gesto activo
+        /// Valida requisitos y actualiza progreso del gesto active
         /// </summary>
         private void UpdateGestureProgress()
         {
@@ -926,25 +926,25 @@ namespace ASL.DynamicGestures
             // Validar requisitos de movimiento
             if (activeGesture.requiresMovement)
             {
-                // IMPORTANTE: Si el gesto requiere cambios de dirección (zigzag), NO validar dirección estrictamente
-                // Pero si solo requiere rotación (curva), SÍ validar dirección principal
+                // IMPORTANTE: Si el gesto requiere cambios de direccion (zigzag), NO validar direccion estrictamente
+                // Pero si solo requiere rotacion (curva), SI validar direccion principal
                 bool shouldValidateDirection = !activeGesture.requiresDirectionChange;
 
                 if (shouldValidateDirection)
                 {
-                    // Dar margen inicial antes de validar dirección
+                    // Dar margen inicial antes de validar direccion
                     if (elapsed >= initialDirectionGracePeriod * activeGesture.minDuration)
                     {
                         if (!ValidateMovementDirection())
                         {
                             if (debugMode)
                             {
-                                Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Dirección incorrecta. Esperada: {activeGesture.primaryDirection}, Actual: {movementTracker.AverageDirection}");
+                                Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Wrong direction. Esperada: {activeGesture.primaryDirection}, Current: {movementTracker.AverageDirection}");
                             }
-                            // No fallar inmediatamente, dar más margen
+                            // No fallar inmediatamente, dar mas margen
                             if (elapsed > activeGesture.minDuration * 0.9f)
                             {
-                                FailGesture("Dirección de movimiento incorrecta");
+                                FailGesture("Incorrect movement direction");
                                 return;
                             }
                         }
@@ -956,12 +956,12 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // Si no validamos dirección, marcarla como validada automáticamente
+                    // Si no validamos direccion, marcarla como validada automaticamente
                     initialDirectionValidated = true;
 
                     if (debugMode && elapsed < 0.1f)
                     {
-                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validación de dirección DESACTIVADA (gesto con rotación/cambios)");
+                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validacion de direccion DESACTIVADA (gesto con rotacion/cambios)");
                     }
                 }
 
@@ -970,42 +970,42 @@ namespace ASL.DynamicGestures
                 {
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Velocidad baja. Actual: {movementTracker.CurrentSpeed:F3} m/s, " +
-                                         $"Mínima: {activeGesture.minSpeed * 0.5f:F3} m/s");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Speed baja. Current: {movementTracker.CurrentSpeed:F3} m/s, " +
+                                         $"Minimum: {activeGesture.minSpeed * 0.5f:F3} m/s");
                     }
                 }
             }
 
-            // Validar cambios de dirección
+            // Validar cambios de direccion
             if (activeGesture.requiresDirectionChange)
             {
                 if (!ValidateDirectionChanges())
                 {
                     // No fallar inmediatamente - dar tiempo suficiente para que el usuario
                     // complete el movimiento de ida y vuelta (ej: Drink va hacia la boca y vuelve).
-                    // Usar el mayor entre minDuration*2 y 1.0s como umbral mínimo.
+                    // Usar el mayor entre minDuration*2 y 1.0s como umbral minimo.
                     float dirChangeDeadline = Mathf.Max(activeGesture.minDuration * 2f, 1.0f);
                     // No exceder el 80% de maxDuration
                     dirChangeDeadline = Mathf.Min(dirChangeDeadline, activeGesture.maxDuration * 0.8f);
 
                     if (elapsed > dirChangeDeadline)
                     {
-                        FailGesture($"Cambios de dirección insuficientes ({movementTracker.DirectionChanges}/{activeGesture.requiredDirectionChanges})");
+                        FailGesture($"Insufficient direction changes ({movementTracker.DirectionChanges}/{activeGesture.requiredDirectionChanges})");
                         return;
                     }
                 }
             }
 
-            // Validar rotación
+            // Validar rotacion
             if (activeGesture.requiresRotation)
             {
                 if (!ValidateRotation())
                 {
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Rotación insuficiente. " +
-                                         $"Actual: {movementTracker.TotalRotation:F1}°, " +
-                                         $"Mínima: {activeGesture.minRotationAngle:F1}°");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Rotation insuficiente. " +
+                                         $"Current: {movementTracker.TotalRotation:F1}°, " +
+                                         $"Minimum: {activeGesture.minRotationAngle:F1}°");
                     }
                 }
             }
@@ -1025,7 +1025,7 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            // Validar zona espacial (según timing)
+            // Validar zona espacial (segun timing)
             if (activeGesture.requiresSpatialZone)
             {
                 bool shouldValidateZone = activeGesture.zoneValidationTiming == PoseTimingRequirement.During ||
@@ -1043,53 +1043,53 @@ namespace ASL.DynamicGestures
             float progress = Mathf.Clamp01(elapsed / activeGesture.minDuration);
             OnGestureProgress?.Invoke(activeGesture.gestureName, progress);
 
-            // Emitir progreso con métricas para feedback detallado
+            // Emitir progreso con metricas para feedback detallado
             DynamicMetrics currentMetrics = GetCurrentMetrics();
             OnGestureProgressWithMetrics?.Invoke(activeGesture.gestureName, progress, currentMetrics, activeGesture);
 
-            // Emitir evento de "casi completado" cuando supera el 80%
+            // Emitir evento de "casi completed" cuando supera el 80%
             if (progress >= 0.8f && progress < 1.0f)
             {
                 OnGestureNearCompletion?.Invoke(activeGesture.gestureName, progress);
             }
 
-            // Verificar completado
+            // Verificar completed
             if (elapsed >= activeGesture.minDuration)
             {
                 // Validaciones finales
                 bool finalValidation = true;
                 bool endPosePending = false;
 
-                // Distancia mínima
+                // Distance minima
                 if (activeGesture.requiresMovement && movementTracker.TotalDistance < activeGesture.minDistance)
                 {
                     finalValidation = false;
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Distancia insuficiente al completar. " +
-                                         $"Actual: {movementTracker.TotalDistance:F3}m, Mínima: {activeGesture.minDistance:F3}m");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Distance insuficiente al completar. " +
+                                         $"Current: {movementTracker.TotalDistance:F3}m, Minimum: {activeGesture.minDistance:F3}m");
                     }
                 }
 
-                // Cambios de dirección requeridos
+                // Direction changes requeridos
                 if (activeGesture.requiresDirectionChange && !ValidateDirectionChanges())
                 {
                     finalValidation = false;
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Cambios de dirección insuficientes al completar. " +
-                                         $"Actual: {movementTracker.DirectionChanges}, Requeridos: {activeGesture.requiredDirectionChanges}");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Insufficient direction changes al completar. " +
+                                         $"Current: {movementTracker.DirectionChanges}, Requeridos: {activeGesture.requiredDirectionChanges}");
                     }
                 }
 
-                // Rotación requerida
+                // Rotation requerida
                 if (activeGesture.requiresRotation && !ValidateRotation())
                 {
                     finalValidation = false;
                     if (debugMode)
                     {
-                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Rotación insuficiente al completar. " +
-                                         $"Actual: {movementTracker.TotalRotation:F1}°, Mínima: {activeGesture.minRotationAngle:F1}°");
+                        Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Rotation insuficiente al completar. " +
+                                         $"Current: {movementTracker.TotalRotation:F1}°, Minimum: {activeGesture.minRotationAngle:F1}°");
                     }
                 }
 
@@ -1100,17 +1100,17 @@ namespace ASL.DynamicGestures
                     if (debugMode)
                     {
                         Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Circularidad insuficiente al completar. " +
-                                         $"Score: {movementTracker.GetCircularityScore():F2}, Mínimo: {activeGesture.minCircularityScore:F2}");
+                                         $"Score: {movementTracker.GetCircularityScore():F2}, Minimum: {activeGesture.minCircularityScore:F2}");
                     }
                 }
 
-                // Poses finales: verificar End pose del gesto activo Y de alternativas
+                // Poses finales: verificar End pose del gesto active Y de alternativas
                 bool endPoseMatched = ValidatePoses(PoseTimingRequirement.End);
 
                 if (!endPoseMatched && alternativeGestures.Count > 0)
                 {
-                    // El End pose no coincide con el gesto activo.
-                    // Verificar si coincide con algún gesto alternativo (misma Start pose, diferente End pose).
+                    // El End pose no coincide con el gesto active.
+                    // Verificar si coincide con algun gesto alternativo (misma Start pose, diferente End pose).
                     // Ej: Activo=Bye(5→S), pero el usuario hizo White(5→White).
                     foreach (var alt in alternativeGestures)
                     {
@@ -1136,7 +1136,7 @@ namespace ASL.DynamicGestures
                         {
                             if (debugMode)
                             {
-                                Debug.Log($"[DynamicGesture] End pose coincide con alternativa '{alt.gestureName}' en lugar de '{activeGesture.gestureName}'. Cambiando gesto activo.");
+                                Debug.Log($"[DynamicGesture] End pose coincide con alternativa '{alt.gestureName}' instead of '{activeGesture.gestureName}'. Cambiando gesto active.");
                             }
                             activeGesture = alt;
                             endPoseMatched = true;
@@ -1148,7 +1148,7 @@ namespace ASL.DynamicGestures
                 if (!endPoseMatched)
                 {
                     finalValidation = false;
-                    // Verificar si el gesto tiene End poses requeridas (gestos compuestos)
+                    // Verificar si el gesto tiene End poses requeridas (compound gestures)
                     var endPoses = activeGesture.GetPosesForTiming(PoseTimingRequirement.End);
                     bool hasRequiredEndPoses = false;
                     foreach (var ep in endPoses)
@@ -1167,16 +1167,16 @@ namespace ASL.DynamicGestures
                 }
                 else
                 {
-                    // Requisitos NO cumplidos aún: NO fallar inmediatamente.
-                    // Seguir esperando - el siguiente frame volverá a evaluar.
+                    // Requisitos NO cumplidos aun: NO fallar inmediatamente.
+                    // Seguir esperando - el siguiente frame volvera a evaluar.
                     // Los fallos se manejan por:
-                    //   - maxDuration timeout (línea ~913)
-                    //   - Direction change deadline (línea ~963)
-                    //   - Circularity deadline (línea ~995)
+                    //   - maxDuration timeout (linea ~913)
+                    //   - Direction change deadline (linea ~963)
+                    //   - Circularity deadline (linea ~995)
                     // Esto permite que:
-                    //   - Gestos compuestos (Bye, White) esperen la End pose
-                    //   - Gestos con directionChange (Drink, Red) esperen el cambio de dirección
-                    //   - Gestos con rotación (Blue, Purple) esperen la rotación
+                    //   - Gestures compuestos (Bye, White) esperen la End pose
+                    //   - Gestures con directionChange (Drink, Red) esperen el cambio de direccion
+                    //   - Gestures con rotacion (Blue, Purple) esperen la rotacion
                     if (debugMode && Time.frameCount % 30 == 0)
                     {
                         Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Esperando requisitos... " +
@@ -1187,7 +1187,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Valida poses estáticas según timing
+        /// Valida poses estaticas segun timing
         /// </summary>
         private bool ValidatePoses(PoseTimingRequirement timing)
         {
@@ -1208,8 +1208,8 @@ namespace ASL.DynamicGestures
 
                 bool matches = false;
 
-                // SOLUCIÓN PARA GESTOS COMPUESTOS:
-                // Para poses End, si hay un poseData asignado, validar directamente con HandShape
+                // SOLUCION PARA GESTOS COMPUESTOS:
+                // Para poses End, si hay un poseData assigned, validar directamente con HandShape
                 // Esto permite detectar transiciones como 5→S (White), O→S (Orange), T→H (Thursday)
                 if (timing == PoseTimingRequirement.End && poseReq.poseData != null)
                 {
@@ -1217,13 +1217,13 @@ namespace ASL.DynamicGestures
 
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validación DIRECTA de End pose '{poseReq.poseName}' = {matches}");
+                        Debug.Log($"[DynamicGesture] {activeGesture.gestureName}: Validacion DIRECTA de End pose '{poseReq.poseName}' = {matches}");
                     }
                 }
                 else
                 {
                     // Fallback: si no hay poseData pero el CurrentSign coincide por nombre,
-                    // validar directamente usando ese SignData para evitar ambigüedades (ej: Gray).
+                    // validar directamente usando ese SignData para evitar ambiguedades (ej: Gray).
                     SignData fallbackSignData = null;
                     var gm = ASL_LearnVR.Core.GameManager.Instance;
                     if (gm != null && gm.CurrentSign != null &&
@@ -1238,7 +1238,7 @@ namespace ASL.DynamicGestures
                     }
                     else
                     {
-                        // Validación tradicional usando poseAdapter, aceptando familias de pose
+                        // Validacion tradicional usando poseAdapter, aceptando familias de pose
                         matches = !string.IsNullOrEmpty(currentPose) && poseReq.IsValidPose(currentPose);
                     }
                 }
@@ -1248,7 +1248,7 @@ namespace ASL.DynamicGestures
                     if (debugMode)
                     {
                         Debug.LogWarning($"[DynamicGesture] {activeGesture.gestureName}: Pose requerida '{poseReq.poseName}' no detectada. " +
-                                         $"Actual: '{currentPose}', PoseData: {(poseReq.poseData != null ? poseReq.poseData.signName : "null")}");
+                                         $"Current: '{currentPose}', PoseData: {(poseReq.poseData != null ? poseReq.poseData.signName : "null")}");
                     }
                     return false;
                 }
@@ -1258,8 +1258,8 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Verifica si un gesto puede iniciar usando validación directa de poseData.
-        /// Usado para gestos compuestos donde el Start pose es diferente del TargetSign.
+        /// Verifica si un gesto puede iniciar usando validacion directa de poseData.
+        /// Usado for gestures compuestos donde el Start pose es diferente del TargetSign.
         /// </summary>
         private bool CanStartWithPoseData(DynamicGestureDefinition gesture)
         {
@@ -1281,7 +1281,7 @@ namespace ASL.DynamicGestures
                     bool matches = ValidatePoseDirectly(poseReq.poseData);
                     if (debugMode)
                     {
-                        Debug.Log($"[DynamicGesture] CanStartWithPoseData: '{gesture.gestureName}' Start pose '{poseReq.poseName}' validación directa = {matches}");
+                        Debug.Log($"[DynamicGesture] CanStartWithPoseData: '{gesture.gestureName}' Start pose '{poseReq.poseName}' validacion directa = {matches}");
                     }
 
                     if (matches)
@@ -1302,7 +1302,7 @@ namespace ASL.DynamicGestures
                         return true;
                 }
 
-                // PRIORIDAD 3 (Scene 4): Buscar el SignData por nombre en la categoría actual
+                // PRIORIDAD 3 (Scene 4): Buscar el SignData por nombre en la category actual
                 if (gm != null && gm.CurrentCategory != null && gm.CurrentSign == null)
                 {
                     // 3a: Buscar por poseName del gesture definition
@@ -1312,7 +1312,7 @@ namespace ASL.DynamicGestures
                         bool matches = ValidatePoseDirectly(signByName);
                         if (debugMode)
                         {
-                            Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback categoría '{poseReq.poseName}' = {matches}");
+                            Debug.Log($"[DynamicGesture] CanStartWithPoseData: fallback category '{poseReq.poseName}' = {matches}");
                         }
 
                         if (matches)
@@ -1344,7 +1344,7 @@ namespace ASL.DynamicGestures
 
         /// <summary>
         /// Valida una pose directamente usando el HandShape del SignData contra XRHandSubsystem.
-        /// Esto permite detectar poses End en gestos compuestos sin depender del poseAdapter.
+        /// Esto permite detectar poses End en compound gestures sin depender del poseAdapter.
         /// </summary>
         private bool ValidatePoseDirectly(SignData signData)
         {
@@ -1390,7 +1390,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Valida dirección de movimiento
+        /// Valida direccion de movimiento
         /// </summary>
         private bool ValidateMovementDirection()
         {
@@ -1401,7 +1401,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Valida velocidad mínima (con margen del 50%)
+        /// Valida velocidad minima (con margen del 50%)
         /// </summary>
         private bool ValidateSpeed()
         {
@@ -1412,7 +1412,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Valida cambios de dirección
+        /// Valida cambios de direccion
         /// </summary>
         private bool ValidateDirectionChanges()
         {
@@ -1423,7 +1423,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Valida rotación total
+        /// Valida rotacion total
         /// </summary>
         private bool ValidateRotation()
         {
@@ -1445,7 +1445,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Verifica si la mano está dentro de la zona espacial requerida
+        /// Verifica si la mano esta dentro de la zona espacial requerida
         /// </summary>
         private bool IsInSpatialZone(Vector3 handPosition)
         {
@@ -1465,20 +1465,20 @@ namespace ASL.DynamicGestures
         {
             string gestureName = activeGesture.gestureName;
 
-            // Recopilar métricas estructuradas
+            // Recopilar metricas estructuradas
             DynamicMetrics metrics = GetCurrentMetrics();
 
             if (debugMode)
             {
                 Debug.Log($"[DynamicGesture] COMPLETADO: {gestureName} - " +
-                          $"Distancia: {movementTracker.TotalDistance:F3}m, " +
-                          $"Duración: {movementTracker.GetDuration():F2}s, " +
-                          $"Cambios dirección: {movementTracker.DirectionChanges}");
+                          $"Distance: {movementTracker.TotalDistance:F3}m, " +
+                          $"Duration: {movementTracker.GetDuration():F2}s, " +
+                          $"Direction changes: {movementTracker.DirectionChanges}");
             }
 
-            // IMPORTANTE: Activar cooldown de 2 segundos para que el usuario vea el mensaje
+            // IMPORTANTE: Enable cooldown de 2 segundos para que el usuario vea el mensaje
             successCooldownEndTime = Time.time + SUCCESS_COOLDOWN_DURATION;
-            Debug.Log($"[DynamicGesture] ¡MOVIMIENTO RECONOCIDO! Cooldown de {SUCCESS_COOLDOWN_DURATION}s activado");
+            Debug.Log($"[DynamicGesture] MOVEMENT RECOGNIZED! Cooldown of {SUCCESS_COOLDOWN_DURATION}s activated");
 
             // Emitir evento original (compatibilidad)
             OnGestureCompleted?.Invoke(gestureName);
@@ -1491,22 +1491,22 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Falla el gesto con una razón
+        /// Falla el gesto con una razon
         /// </summary>
         private void FailGesture(string reason)
         {
             string gestureName = activeGesture != null ? activeGesture.gestureName : "Unknown";
 
-            // Recopilar métricas estructuradas
+            // Recopilar metricas estructuradas
             DynamicMetrics metrics = GetCurrentMetrics();
 
-            // Determinar razón y fase de fallo
+            // Determinar razon y fase de fallo
             FailureReason failureReason = ParseFailureReason(reason);
             GesturePhase failedPhase = DetermineFailedPhase(reason);
 
             if (debugMode)
             {
-                Debug.LogWarning($"[DynamicGesture] FALLADO: {gestureName} - Razón: {reason} (enum: {failureReason}, fase: {failedPhase})");
+                Debug.LogWarning($"[DynamicGesture] FALLADO: {gestureName} - Razon: {reason} (enum: {failureReason}, fase: {failedPhase})");
             }
 
             // Emitir evento original (compatibilidad)
@@ -1521,14 +1521,14 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene las métricas actuales del MovementTracker.
+        /// Obtiene las metricas actuales del MovementTracker.
         /// </summary>
         public DynamicMetrics GetCurrentMetrics()
         {
             return new DynamicMetrics
             {
                 averageSpeed = movementTracker.CurrentSpeed,
-                maxSpeed = movementTracker.CurrentSpeed, // Aproximación, idealmente trackear máximo
+                maxSpeed = movementTracker.CurrentSpeed, // Aproximacion, idealmente trackear maximo
                 totalDistance = movementTracker.TotalDistance,
                 duration = movementTracker.GetDuration(),
                 directionChanges = movementTracker.DirectionChanges,
@@ -1538,21 +1538,21 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Parsea el string de razón a enum FailureReason.
+        /// Parsea el string de razon a enum FailureReason.
         /// </summary>
         private FailureReason ParseFailureReason(string reason)
         {
             if (string.IsNullOrEmpty(reason))
                 return FailureReason.Unknown;
 
-            // Normalizar: minúsculas y quitar tildes para matching robusto
+            // Normalizar: minusculas y quitar tildes para matching robusto
             string lowerReason = RemoveAccents(reason.ToLower());
 
             // Pose perdida (intermedia o inicial)
             if (lowerReason.Contains("pose") && (lowerReason.Contains("perdida") || lowerReason.Contains("lost")))
                 return FailureReason.PoseLost;
 
-            // Velocidad
+            // Speed
             if (lowerReason.Contains("velocidad") || lowerReason.Contains("speed"))
             {
                 if (lowerReason.Contains("baja") || lowerReason.Contains("low") || lowerReason.Contains("lento"))
@@ -1561,11 +1561,11 @@ namespace ASL.DynamicGestures
                     return FailureReason.SpeedTooHigh;
             }
 
-            // Distancia
+            // Distance
             if (lowerReason.Contains("distancia") || lowerReason.Contains("distance") || lowerReason.Contains("corto"))
                 return FailureReason.DistanceTooShort;
 
-            // Dirección (ahora sin tilde por RemoveAccents)
+            // Direccion (ahora sin tilde por RemoveAccents)
             if (lowerReason.Contains("direccion") || lowerReason.Contains("direction"))
             {
                 if (lowerReason.Contains("cambios") || lowerReason.Contains("changes") || lowerReason.Contains("insuficientes"))
@@ -1573,7 +1573,7 @@ namespace ASL.DynamicGestures
                 return FailureReason.DirectionWrong;
             }
 
-            // Rotación (ahora sin tilde por RemoveAccents)
+            // Rotation (ahora sin tilde por RemoveAccents)
             if (lowerReason.Contains("rotacion") || lowerReason.Contains("rotation") || lowerReason.Contains("giro"))
                 return FailureReason.RotationInsufficient;
 
@@ -1601,7 +1601,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Elimina tildes y diacríticos para matching robusto de strings.
+        /// Elimina tildes y diacriticos para matching robusto de strings.
         /// </summary>
         private string RemoveAccents(string text)
         {
@@ -1619,7 +1619,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Determina la fase donde ocurrió el fallo.
+        /// Determina la fase donde ocurrio el fallo.
         /// </summary>
         private GesturePhase DetermineFailedPhase(string reason)
         {
@@ -1638,7 +1638,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Maneja pérdida de tracking
+        /// Maneja perdida de tracking
         /// </summary>
         private void HandleTrackingLost()
         {
@@ -1664,17 +1664,17 @@ namespace ASL.DynamicGestures
             pendingGestures.Clear();
             alternativeGestures.Clear();
 
-            // Notificar que salimos de pending si estábamos en ese estado
+            // Notify that we left pending state if we were in it
             if (wasPending)
             {
                 OnPendingConfirmationChanged?.Invoke(false);
-                lastPendingExitTime = Time.time; // Rastrear cuándo salimos de PENDING
+                lastPendingExitTime = Time.time; // Rastrear cuando salimos de PENDING
                 pendingTimeoutCooldownEnd = Time.time + PENDING_TIMEOUT_COOLDOWN;
             }
         }
 
         /// <summary>
-        /// Obtiene la posición actual del palm joint de la mano
+        /// Obtiene la posicion actual del palm joint de la mano
         /// </summary>
         private Vector3 GetHandPosition()
         {
@@ -1710,7 +1710,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene la rotación actual del palm joint de la mano
+        /// Obtiene la rotacion actual del palm joint de la mano
         /// </summary>
         private Quaternion GetHandRotation()
         {
@@ -1744,18 +1744,18 @@ namespace ASL.DynamicGestures
             if (activeGesture == null)
                 return;
 
-            // Dirección esperada (verde)
+            // Direccion esperada (verde)
             Gizmos.color = Color.green;
             Gizmos.DrawRay(smoothedHandPosition, activeGesture.primaryDirection * 0.1f);
 
-            // Dirección actual (amarillo)
+            // Current direction (amarillo)
             if (movementTracker.AverageDirection.sqrMagnitude > 0.01f)
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawRay(smoothedHandPosition, movementTracker.AverageDirection * 0.1f);
             }
 
-            // Línea desde inicio (cyan)
+            // Linea desde inicio (cyan)
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(movementTracker.StartPosition, smoothedHandPosition);
 
@@ -1769,7 +1769,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Añade una definición de gesto dinámicamente
+        /// Anade una definicion de gesto dinamicamente
         /// </summary>
         public void AddGestureDefinition(DynamicGestureDefinition gesture)
         {
@@ -1780,7 +1780,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Remueve una definición de gesto
+        /// Remueve una definicion de gesto
         /// </summary>
         public void RemoveGestureDefinition(DynamicGestureDefinition gesture)
         {
@@ -1805,7 +1805,7 @@ namespace ASL.DynamicGestures
 
         /// <summary>
         /// Filtra las definiciones de gestos activas para que solo se reconozcan
-        /// los que pertenecen a una categoría dada (por nombre de signo).
+        /// los que pertenecen a una category dada (por nombre de signo).
         /// Guarda internamente la lista completa original para poder restaurarla.
         /// </summary>
         public void FilterGesturesByNames(HashSet<string> allowedNames)
@@ -1841,7 +1841,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Activa o desactiva el reconocimiento de gestos dinámicos
+        /// Activa o desactiva el reconocimiento de dynamic gestures
         /// </summary>
         public void SetEnabled(bool enabled)
         {
@@ -1856,11 +1856,11 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            Debug.Log($"[DynamicGestureRecognizer] Reconocimiento dinámico: {(enabled ? "ACTIVADO" : "DESACTIVADO")}");
+            Debug.Log($"[DynamicGestureRecognizer] Recognition dynamic: {(enabled ? "ACTIVADO" : "DESACTIVADO")}");
         }
 
         /// <summary>
-        /// Verifica si está en estado de confirmación pendiente (esperando desambiguación)
+        /// Verifica si esta en estado de confirmacion pendiente (esperando disambiguation)
         /// </summary>
         public bool IsInPendingState()
         {

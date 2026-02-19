@@ -6,29 +6,29 @@ using ASL_LearnVR.Data;
 namespace ASL_LearnVR.SelfAssessment
 {
     /// <summary>
-    /// Controla una casilla individual en el grid de autoevaluación.
+    /// Controla una casilla individual en el grid de autoevaluacion.
     /// Muestra el nombre del signo y cambia de color cuando se completa.
     /// </summary>
     public class SignTileController : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Imagen de fondo de la casilla")]
+        [Tooltip("Image de fondo de la casilla")]
         [SerializeField] private Image backgroundImage;
 
-        [Tooltip("Texto que muestra el nombre del signo")]
+        [Tooltip("Text que muestra el nombre del signo")]
         [SerializeField] private TextMeshProUGUI signNameText;
 
-        [Tooltip("Icono del signo (opcional)")]
+        [Tooltip("Icon del signo (opcional)")]
         [SerializeField] private Image signIcon;
 
         [Header("Visual Settings")]
         [Tooltip("Color por defecto de la casilla")]
         [SerializeField] private Color defaultColor = new Color(0.2f, 0.2f, 0.2f, 1f);
 
-        [Tooltip("Color cuando el signo está completado")]
+        [Tooltip("Color when sign is completed")]
         [SerializeField] private Color completedColor = new Color(0f, 0.627451f, 1f, 1f);
 
-        [Tooltip("Color cuando el signo está siendo reconocido (feedback temporal)")]
+        [Tooltip("Color when sign is being recognized (temporary feedback)")]
         [SerializeField] private Color recognizedColor = new Color(1f, 0.843f, 0f, 1f); // Dorado
 
         private SignData sign;
@@ -41,7 +41,7 @@ namespace ASL_LearnVR.SelfAssessment
         public SignData Sign => sign;
 
         /// <summary>
-        /// True si el signo ha sido completado.
+        /// True si el signo ha sido completed.
         /// </summary>
         public bool IsCompleted => isCompleted;
 
@@ -52,13 +52,13 @@ namespace ASL_LearnVR.SelfAssessment
         {
             sign = signData;
 
-            // BUSCA el backgroundImage si no está asignado
+            // BUSCA el backgroundImage si no esta assigned
             if (backgroundImage == null)
             {
                 backgroundImage = GetComponent<Image>();
                 if (backgroundImage == null)
                 {
-                    Debug.LogError($"SignTileController: NO se encontró Image component en '{gameObject.name}'");
+                    Debug.LogError($"SignTileController: NO found Image component en '{gameObject.name}'");
                 }
             }
 
@@ -66,7 +66,7 @@ namespace ASL_LearnVR.SelfAssessment
             if (signNameText != null)
                 signNameText.text = sign.signName;
 
-            // Actualiza el icono si está disponible
+            // Actualiza el icono si esta available
             if (signIcon != null && sign.icon != null)
             {
                 signIcon.sprite = sign.icon;
@@ -81,12 +81,12 @@ namespace ASL_LearnVR.SelfAssessment
             if (backgroundImage != null)
             {
                 backgroundImage.color = defaultColor;
-                Debug.Log($"[INIT] Tile '{sign.signName}' inicializado con color: {backgroundImage.color}");
+                Debug.Log($"[INIT] Tile '{sign.signName}' initialized con color: {backgroundImage.color}");
             }
         }
 
         /// <summary>
-        /// Marca la casilla como completada o no completada.
+        /// Marca la casilla como completed o no completed.
         /// </summary>
         public void SetCompleted(bool completed)
         {
@@ -94,20 +94,20 @@ namespace ASL_LearnVR.SelfAssessment
 
             if (backgroundImage != null)
             {
-                // Cambio directo de color sin animación
+                // Cambio directo de color sin animacion
                 backgroundImage.color = completed ? completedColor : defaultColor;
             }
         }
 
         /// <summary>
-        /// Muestra feedback visual cuando el signo es reconocido (sin marcarlo como completado).
-        /// Feedback puramente cromático, sin animaciones de escala ni pulso.
+        /// Muestra feedback visual cuando el signo es reconocido (sin marcarlo como completed).
+        /// Feedback puramente cromatico, sin animaciones de escala ni pulso.
         /// </summary>
         public void ShowRecognitionFeedback()
         {
             Debug.Log($">>> ShowRecognitionFeedback() para '{sign?.signName}' | isCompleted={isCompleted} | backgroundImage={backgroundImage != null}");
 
-            // No mostrar feedback si ya está completado
+            // No mostrar feedback si ya esta completed
             if (isCompleted)
             {
                 Debug.Log($"    -> Tile '{sign?.signName}' YA COMPLETADO, no cambia color");
@@ -116,7 +116,7 @@ namespace ASL_LearnVR.SelfAssessment
 
             isCurrentlyRecognized = true;
 
-            // Cambio directo de color sin animación
+            // Cambio directo de color sin animacion
             if (backgroundImage != null)
             {
                 backgroundImage.color = recognizedColor;
@@ -135,7 +135,7 @@ namespace ASL_LearnVR.SelfAssessment
         {
             Debug.Log($"<<< HideRecognitionFeedback() para '{sign?.signName}' | isCompleted={isCompleted}");
 
-            // No hacer nada si ya está completado
+            // No hacer nada si ya esta completed
             if (isCompleted)
             {
                 Debug.Log($"    -> Tile '{sign?.signName}' YA COMPLETADO, no cambia color");
@@ -144,7 +144,7 @@ namespace ASL_LearnVR.SelfAssessment
 
             isCurrentlyRecognized = false;
 
-            // Cambio directo de color sin animación
+            // Cambio directo de color sin animacion
             if (backgroundImage != null)
             {
                 backgroundImage.color = defaultColor;

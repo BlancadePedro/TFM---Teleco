@@ -23,7 +23,7 @@ namespace ASL_LearnVR.LearningModule
         [SerializeField] private Image[] tileIcons = new Image[3];
 
         [Header("Status")]
-        [Tooltip("Texto que muestra 'Ahora toca: X' o '¡Completado!'")]
+        [Tooltip("Text showing 'Now sign: X' or 'Completed!'")]
         [SerializeField] private TextMeshProUGUI statusText;
 
         [Header("Colors")]
@@ -51,7 +51,7 @@ namespace ASL_LearnVR.LearningModule
         {
             if (monthData == null || monthData.letters == null || monthData.letters.Length < 3)
             {
-                Debug.LogError($"[MonthTilesUI] MonthSequenceData inválido o sin letras");
+                Debug.LogError($"[MonthTilesUI] MonthSequenceData invalid o sin letras");
                 return;
             }
 
@@ -63,11 +63,11 @@ namespace ASL_LearnVR.LearningModule
 
             Debug.Log($"[MonthTilesUI] === MOSTRANDO TILES para {monthData.signName}: {letters[0]} → {letters[1]} → {letters[2]} ===");
 
-            // Activar este GameObject
+            // Enable este GameObject
             gameObject.SetActive(true);
             isActive = true;
 
-            // Configurar tiles
+            // Configure tiles
             for (int i = 0; i < 3; i++)
             {
                 if (tileLetters[i] != null)
@@ -133,7 +133,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Marca un paso como completado (verde).
+        /// Marca un paso como completed (verde).
         /// </summary>
         public void MarkComplete(int step)
         {
@@ -148,7 +148,7 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Muestra estado de secuencia completada.
+        /// Muestra estado de secuencia completed.
         /// </summary>
         public void ShowAllComplete()
         {
@@ -161,7 +161,7 @@ namespace ASL_LearnVR.LearningModule
             }
 
             if (statusText != null)
-                statusText.text = "¡MES COMPLETADO!";
+                statusText.text = "MONTH COMPLETED!";
 
             if (successSound != null)
                 successSound.Play();

@@ -4,86 +4,86 @@ using UnityEngine;
 namespace ASL.DynamicGestures
 {
     /// <summary>
-    /// Define de forma declarativa un gesto dinámico completo con sus requisitos de pose y movimiento.
-    /// Optimizado para Meta Quest 3 con parámetros conservadores para compensar limitaciones de tracking.
+    /// Define de forma declarativa un dynamic gesture completo con sus requisitos de pose y movimiento.
+    /// Optimizado para Meta Quest 3 con parametros conservadores para compensar limitaciones de tracking.
     /// </summary>
     [CreateAssetMenu(fileName = "NewGesture", menuName = "ASL/Dynamic Gesture Definition", order = 1)]
     public class DynamicGestureDefinition : ScriptableObject
     {
-        [Header("Identificación")]
-        [Tooltip("Nombre único del gesto (ej: 'Hola', 'Adiós', 'J')")]
+        [Header("Identificacion")]
+        [Tooltip("Name unico del gesto (ej: 'Hola', 'Adios', 'J')")]
         public string gestureName;
 
-        [Tooltip("Descripción técnica del gesto para debugging")]
+        [Tooltip("Technical gesture description for debugging")]
         public string gestureDescription;
 
         [Header("Secuencia de Poses")]
-        [Tooltip("Lista ordenada de poses estáticas requeridas durante el gesto")]
+        [Tooltip("List ordenada de poses estaticas requeridas durante el gesto")]
         public List<StaticPoseRequirement> poseSequence = new List<StaticPoseRequirement>();
 
         [Header("Requisitos de Movimiento")]
-        [Tooltip("Si es false, el gesto es puramente estático (raro)")]
+        [Tooltip("Si es false, el gesto es puramente static (raro)")]
         public bool requiresMovement = true;
 
-        [Tooltip("Dirección principal esperada del movimiento en espacio local (normalizado)")]
+        [Tooltip("Direccion principal esperada del movimiento en espacio local (normalizado)")]
         public Vector3 primaryDirection = Vector3.forward;
 
-        [Tooltip("Tolerancia angular en grados. MÍNIMO 40° para Quest 3. Rango: 30-90")]
+        [Tooltip("Tolerancia angular en degrees. MINIMO 40° para Quest 3. Rango: 30-90")]
         [Range(0f, 90f)]
         public float directionTolerance = 45f;
 
-        [Tooltip("Velocidad mínima en m/s. NO menor a 0.12 para usuarios lentos")]
+        [Tooltip("Speed minima en m/s. NO menor a 0.12 para usuarios lentos")]
         [Range(0.05f, 1f)]
         public float minSpeed = 0.12f;
 
-        [Tooltip("Distancia total mínima en metros. Rango recomendado: 0.06-0.15")]
+        [Tooltip("Distance total minima en metros. Rango recomendado: 0.06-0.15")]
         [Range(0.01f, 0.5f)]
         public float minDistance = 0.08f;
 
         [Header("Requisitos Temporales")]
-        [Tooltip("Duración mínima del gesto en segundos. Dar tiempo suficiente: 0.4-0.5s")]
+        [Tooltip("Duration minima del gesto en segundos. Dar tiempo suficiente: 0.4-0.5s")]
         [Range(0.1f, 2f)]
         public float minDuration = 0.4f;
 
-        [Tooltip("Duración máxima antes de timeout en segundos")]
+        [Tooltip("Duration maxima antes de timeout en segundos")]
         [Range(0.5f, 5f)]
         public float maxDuration = 3f;
 
-        [Header("Requisitos Opcionales - Cambios de Dirección")]
-        [Tooltip("Activar para gestos tipo zigzag, sacudir, ondular")]
+        [Header("Requisitos Optionales - Cambios de Direccion")]
+        [Tooltip("Enable for gestures tipo zigzag, sacudir, ondular")]
         public bool requiresDirectionChange = false;
 
-        [Tooltip("Número mínimo de cambios de dirección detectados (ángulo > 45°)")]
+        [Tooltip("Minimum number of direction changes detecteds (angulo > 45°)")]
         [Range(0, 5)]
         public int requiredDirectionChanges = 0;
 
-        [Header("Requisitos Opcionales - Rotación")]
-        [Tooltip("USAR CON PRECAUCIÓN: Quest 3 tiene jitter en rotaciones. Preferir cambios de dirección")]
+        [Header("Requisitos Optionales - Rotation")]
+        [Tooltip("USAR CON PRECAUCION: Quest 3 tiene jitter en rotaciones. Preferir cambios de direccion")]
         public bool requiresRotation = false;
 
-        [Tooltip("Eje de rotación esperado en espacio local")]
+        [Tooltip("Eje de rotacion esperado en espacio local")]
         public Vector3 rotationAxis = Vector3.up;
 
-        [Tooltip("Ángulo mínimo de rotación en grados. MÁXIMO 45° recomendado")]
+        [Tooltip("Angle minimo de rotacion en degrees. MAXIMO 45° recomendado")]
         [Range(0f, 180f)]
         public float minRotationAngle = 30f;
 
-        [Header("Requisitos Opcionales - Movimiento Circular")]
-        [Tooltip("Activar para gestos que requieran trayectoria circular (ej: 'Por favor')")]
+        [Header("Requisitos Optionales - Movimiento Circular")]
+        [Tooltip("Enable for gestures que requieran trayectoria circular (ej: 'Por favor')")]
         public bool requiresCircularMotion = false;
 
-        [Tooltip("Score mínimo de circularidad: 0=línea recta, 1=círculo perfecto")]
+        [Tooltip("Score minimo de circularidad: 0=linea recta, 1=circulo perfecto")]
         [Range(0f, 1f)]
         public float minCircularityScore = 0.6f;
 
-        [Header("Requisitos Opcionales - Zona Espacial")]
-        [Tooltip("Activar si el gesto debe ejecutarse en una región específica del espacio")]
+        [Header("Requisitos Optionales - Zona Espacial")]
+        [Tooltip("Enable if the gesture must be performed in a specific spatial region")]
         public bool requiresSpatialZone = false;
 
-        [Tooltip("Centro de la zona en coordenadas relativas a XR Origin (ej: pecho = (0, -0.2, 0.3))")]
+        [Tooltip("Center de la zona en coordenadas relativas a XR Origin (ej: pecho = (0, -0.2, 0.3))")]
         public Vector3 zoneCenter = Vector3.zero;
 
-        [Tooltip("Radio aceptable de la zona en metros")]
+        [Tooltip("Radius aceptable de la zona en metros")]
         [Range(0.05f, 0.5f)]
         public float zoneRadius = 0.15f;
 
@@ -91,23 +91,23 @@ namespace ASL.DynamicGestures
         public PoseTimingRequirement zoneValidationTiming = PoseTimingRequirement.End;
 
         /// <summary>
-        /// Valida que la configuración sea coherente
+        /// Valida que la configuracion sea coherente
         /// </summary>
         private void OnValidate()
         {
-            // Normalizar dirección principal
+            // Normalizar direccion principal
             if (primaryDirection.sqrMagnitude > 0.01f)
             {
                 primaryDirection = primaryDirection.normalized;
             }
 
-            // Normalizar eje de rotación
+            // Normalizar eje de rotacion
             if (rotationAxis.sqrMagnitude > 0.01f)
             {
                 rotationAxis = rotationAxis.normalized;
             }
 
-            // Validar duración
+            // Validar duracion
             if (minDuration >= maxDuration)
             {
                 maxDuration = minDuration + 0.5f;
@@ -125,10 +125,10 @@ namespace ASL.DynamicGestures
                 }
             }
 
-            // Advertencias para configuraciones problemáticas
+            // Warnings para configuraciones problematicas
             if (requiresRotation && minRotationAngle > 45f)
             {
-                Debug.LogWarning($"[{gestureName}] minRotationAngle > 45° puede ser difícil de detectar en Quest 3 debido a jitter", this);
+                Debug.LogWarning($"[{gestureName}] minRotationAngle > 45° puede ser dificil de detectar en Quest 3 due to jitter", this);
             }
 
             if (directionTolerance < 40f && requiresMovement)
@@ -143,7 +143,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene poses requeridas en un momento específico del gesto
+        /// Obtiene poses requeridas en un momento especifico del gesto
         /// </summary>
         public List<StaticPoseRequirement> GetPosesForTiming(PoseTimingRequirement timing)
         {
@@ -191,7 +191,7 @@ namespace ASL.DynamicGestures
 
             foreach (var pose in startPoses)
             {
-                // Usar comparaciÃ³n flexible (familias de pose) para tolerar variaciones
+                // Use flexible comparison (pose families) to tolerate variations
                 if (pose.IsValidPose(poseName))
                 {
                     return true;

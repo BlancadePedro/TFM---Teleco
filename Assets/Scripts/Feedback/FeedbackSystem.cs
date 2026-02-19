@@ -153,14 +153,14 @@ namespace ASL_LearnVR.Feedback
             if (!isActive)
                 return;
 
-            // === LÓGICA DE MESSAGE LATCH ===
-            // Verificar si el latch expiró y hay que resetear a Idle
+            // === MESSAGE LATCH LOGIC ===
+            // Check if the latch expired and needs to reset to Idle
             if (pendingResetToIdle && Time.time >= messageLatchUntil)
             {
                 HandleLatchExpired();
             }
 
-            // Si estamos mostrando éxito, esperar antes de volver a analizar
+            // If showing success, wait before re-analyzing
             if (currentState == FeedbackState.Success && Time.time < successEndTime)
                 return;
 
@@ -168,7 +168,7 @@ namespace ASL_LearnVR.Feedback
             if (Time.time - lastAnalysisTime < analysisInterval)
                 return;
 
-            // Ejecutar análisis para gestos estáticos
+            // Run analysis for static gestures
             if (currentSign != null && !currentSign.requiresMovement)
             {
                 AnalyzeCurrentPose();
@@ -185,49 +185,49 @@ namespace ASL_LearnVR.Feedback
         {
             pendingResetToIdle = false;
 
-            // Si el último mensaje fue de ÉXITO => volver a Idle
+            // If last message was SUCCESS => return to Idle
             if (!lastDynamicMessageWasError)
             {
                 ForceDynamicIdle();
                 return;
             }
 
-            // Si el último mensaje fue de ERROR => verificar si la pose inicial sigue válida
+            // If last message was ERROR => check if initial pose is still valid
             bool startPoseStillValid = CheckStartPoseStillValid();
 
             if (!startPoseStillValid)
             {
-                // Pose inicial se perdió => volver a Idle para re-colocar
+                // Initial pose lost => return to Idle to reposition
                 ForceDynamicIdle();
             }
-            // Si la pose sigue válida, continuamos en InProgress (no reseteamos)
+            // If pose is still valid, stay in InProgress (no reset)
         }
 
         /// <summary>
-        /// Verifica si la pose inicial del gesto dinámico sigue siendo válida.
+        /// Verifica si la initial pose del dynamic gesture sigue siendo valid.
         /// </summary>
         private bool CheckStartPoseStillValid()
         {
             if (dynamicGestureRecognizer == null)
                 return false;
 
-            // El DynamicGestureRecognizer tiene un método para verificar la pose inicial
-            // Si no existe, asumimos que sigue válida si el gesto está en progreso
+            // DynamicGestureRecognizer has a method to verify the initial pose
+            // If it doesn't exist, assume still valid if gesture is in progress
             return dynamicGestureRecognizer.IsStartPoseValid;
         }
 
         /// <summary>
-        /// Fuerza la vuelta a Idle para gestos dinámicos.
+        /// Strength la vuelta a Idle para dynamic gestures.
         /// Activa el overlay y resetea el analizador.
         /// </summary>
         private void ForceDynamicIdle()
         {
             isDynamicGestureActive = false;
 
-            // Activar overlay (feedback estático visual)
+            // Enable overlay (feedback static visual)
             SetOverlayVisible(true);
 
-            // Resetear analizador de feedback dinámico
+            // Resetear analizador de feedback dynamic
             dynamicFeedbackAnalyzer?.Reset();
 
             // Notificar Idle
@@ -244,7 +244,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa o desactiva el overlay visual según la fase.
+        /// Activates or deactivates the visual overlay based on the current phase.
         /// </summary>
         private void SetOverlayVisible(bool visible)
         {
@@ -253,24 +253,24 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Valida que todos los componentes necesarios estén asignados.
+        /// Validates that all required components are assigned.
         /// </summary>
         private void ValidateComponents()
         {
             if (handPoseAnalyzer == null)
-                Debug.LogWarning("[FeedbackSystem] HandPoseAnalyzer no asignado - el análisis de errores por dedo no funcionará");
+                Debug.LogWarning("[FeedbackSystem] HandPoseAnalyzer not assigned - per-finger error analysis will not work");
 
             if (feedbackUI == null)
-                Debug.LogWarning("[FeedbackSystem] FeedbackUI no asignado - no se mostrará feedback textual");
+                Debug.LogWarning("[FeedbackSystem] FeedbackUI not assigned - textual feedback will not be shown");
 
             if (feedbackAudio == null)
-                Debug.LogWarning("[FeedbackSystem] FeedbackAudio no asignado - no habrá audio de feedback");
+                Debug.LogWarning("[FeedbackSystem] FeedbackAudio not assigned - there will be no feedback audio");
 
             if (fingerIndicatorVisualizer == null)
-                Debug.LogWarning("[FeedbackSystem] FingerIndicatorVisualizer no asignado - no habrá indicadores visuales por dedo (bolas)");
+                Debug.LogWarning("[FeedbackSystem] FingerIndicatorVisualizer not assigned - no habra indicadores visuales por dedo (bolas)");
 
             if (fingerOverlayRenderer == null)
-                Debug.LogWarning("[FeedbackSystem] XRFingerOverlayRenderer no asignado - no habrá overlays de color en los dedos (cápsulas)");
+                Debug.LogWarning("[FeedbackSystem] XRFingerOverlayRenderer not assigned - there will be no color overlays on the fingers (capsulas)");
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         private void SubscribeToEvents()
         {
-            // Gestos estáticos
+            // Gestures statics
             if (rightHandRecognizer != null)
             {
                 rightHandRecognizer.onGestureDetected.AddListener(OnStaticGestureDetected);
@@ -291,7 +291,7 @@ namespace ASL_LearnVR.Feedback
                 leftHandRecognizer.onGestureEnded.AddListener(OnStaticGestureEnded);
             }
 
-            // Gestos dinámicos
+            // Gestures dynamics
             if (dynamicGestureRecognizer != null)
             {
                 dynamicGestureRecognizer.OnGestureStarted += OnDynamicGestureStarted;
@@ -306,7 +306,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Desuscribirse de eventos.
+        /// Unsubscribe from events.
         /// </summary>
         private void UnsubscribeFromEvents()
         {
@@ -374,16 +374,16 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece el signo actual a practicar.
-        /// IMPORTANTE: Asegúrate de que el GestureRecognizer también tenga el mismo signo configurado.
+        /// Establece el current sign a practicar.
+        /// IMPORTANT: Make sure the GestureRecognizer also has the same sign configured.
         /// </summary>
         public void SetCurrentSign(SignData sign)
         {
             currentSign = sign;
             ClearMessageWindows();
 
-            // Sincronizar con los recognizers si están asignados
-            // (Esto es una verificación de seguridad - el LearningController ya debería haberlo hecho)
+            // Sync with the recognizers if they are assigned
+            // (This is a safety check - LearningController should have already done it)
             if (sign != null && !sign.requiresMovement)
             {
                 if (rightHandRecognizer != null && rightHandRecognizer.TargetSign?.signName != sign.signName)
@@ -400,17 +400,17 @@ namespace ASL_LearnVR.Feedback
 
             EnsureDirectTextMode();
 
-            // Para gestos dinámicos, mostrar mensaje de Fase 0 (Idle)
+            // Para dynamic gestures, mostrar mensaje de Fase 0 (Idle)
             string initialMessage;
             if (sign != null && sign.requiresMovement)
             {
-                // Fase 0: Esperando pose inicial para gesto dinámico
+                // Fase 0: Esperando initial pose for dynamic gesture
                 dynamicFeedbackAnalyzer?.NotifyIdle(sign.signName);
                 initialMessage = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Coloca la mano para '{sign.signName}'";
             }
             else
             {
-                // Gesto estático: mensaje normal
+                // Static gesture: mensaje normal
                 initialMessage = $"Haz el signo '{sign?.signName ?? "signo"}'...";
             }
 
@@ -431,13 +431,13 @@ namespace ASL_LearnVR.Feedback
                 fingerOverlayRenderer.ClearAllStatuses();
             }
 
-            Debug.Log($"[FeedbackSystem] Signo configurado: {sign?.signName ?? "ninguno"}" +
-                     (sign?.requiresMovement == true ? " (dinámico - Fase 0: Idle)" : " (estático)"));
+            Debug.Log($"[FeedbackSystem] Sign configured: {sign?.signName ?? "ninguno"}" +
+                     (sign?.requiresMovement == true ? " (dynamic - Phase 0: Idle)" : " (static)"));
         }
 
         /// <summary>
-        /// Asigna el TextMeshProUGUI donde se mostrará el feedback directamente.
-        /// Útil para usar el feedbackText existente de LearningController.
+        /// Assigns the TextMeshProUGUI where feedback will be shown directly.
+        /// Useful for reusing the existing feedbackText from LearningController.
         /// </summary>
         public void SetDirectFeedbackText(TextMeshProUGUI text)
         {
@@ -457,22 +457,22 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// True si el sistema está activo.
+        /// True if the system is active.
         /// </summary>
         public bool IsActive => isActive;
 
         /// <summary>
-        /// Estado actual del feedback.
+        /// State actual del feedback.
         /// </summary>
         public FeedbackState CurrentState => currentState;
 
         /// <summary>
-        /// Último resultado del análisis estático.
+        /// Last static analysis result.
         /// </summary>
         public StaticGestureResult LastStaticResult => lastResult;
 
         /// <summary>
-        /// Último resultado del análisis dinámico.
+        /// Last dynamic analysis result.
         /// </summary>
         public DynamicGestureResult LastDynamicResult => lastDynamicResult;
 
@@ -481,8 +481,8 @@ namespace ASL_LearnVR.Feedback
         #region Analysis
 
         /// <summary>
-        /// Verifica si el GestureRecognizer está detectando activamente el signo actual.
-        /// IMPORTANTE: Solo retorna true si el recognizer está configurado con el MISMO signo que currentSign.
+        /// Verifies whether the GestureRecognizer is actively detecting the current sign.
+        /// IMPORTANT: Only returns true if the recognizer is configured with the SAME sign as currentSign.
         /// </summary>
         private bool IsGestureCurrentlyDetected()
         {
@@ -496,7 +496,7 @@ namespace ASL_LearnVR.Feedback
                 if (rightHandRecognizer.TargetSign == null ||
                     rightHandRecognizer.TargetSign.signName != currentSign.signName)
                 {
-                    Debug.LogWarning($"[FeedbackSystem] Recognizer tiene '{rightHandRecognizer.TargetSign?.signName}' pero debería tener '{currentSign.signName}'");
+                    Debug.LogWarning($"[FeedbackSystem] Recognizer tiene '{rightHandRecognizer.TargetSign?.signName}' pero deberia tener '{currentSign.signName}'");
                     return false;
                 }
 
@@ -532,11 +532,11 @@ namespace ASL_LearnVR.Feedback
         {
             if (currentSign == null)
             {
-                UpdateFeedbackMessage("Ningún signo seleccionado...");
+                UpdateFeedbackMessage("No sign selected...");
                 return;
             }
 
-            // Obtener el estado de detección del GestureRecognizer
+            // Get detection state from GestureRecognizer
             bool isDetectedByRecognizer = IsGestureCurrentlyDetected();
 
             // Si no hay analyzer, mostrar mensaje basado en el recognizer
@@ -545,10 +545,10 @@ namespace ASL_LearnVR.Feedback
                 if (isDetectedByRecognizer)
                 {
                     SetState(FeedbackState.Success);
-                    UpdateFeedbackMessage($"¡Correcto! '{currentSign.signName}' detectado");
+                    UpdateFeedbackMessage($"Correct! '{currentSign.signName}' detected");
                     if (fingerIndicatorVisualizer != null)
                         fingerIndicatorVisualizer.ShowHandCorrect(true);
-                    // Mostrar todos los dedos en verde (correcto)
+                    // Mostrar todos los dedos en verde (correct)
                     fingerOverlayRenderer?.SetAllStatuses(
                         FingerOverlayStatus.Correct,
                         FingerOverlayStatus.Correct,
@@ -571,7 +571,7 @@ namespace ASL_LearnVR.Feedback
             // Analizar pose con errores detallados por dedo, pasando el estado del recognizer
             lastResult = handPoseAnalyzer.Analyze(currentSign, isDetectedByRecognizer, useGlobalMatch: true);
 
-            // Generar y mostrar mensaje específico
+            // Generate and show specific message
             string message = GenerateDetailedFeedbackMessage(lastResult);
             lastResult.summaryMessage = message;
 
@@ -579,7 +579,7 @@ namespace ASL_LearnVR.Feedback
             fingerIndicatorVisualizer?.UpdateFromResult(lastResult);
             fingerOverlayRenderer?.UpdateFromResult(lastResult);
 
-            // Actualizar UI con FeedbackUI si está disponible
+            // Update UI with FeedbackUI if available
             bool shouldUseUI = feedbackUI != null && (!useDirectText || directFeedbackText == null);
             if (shouldUseUI)
                 feedbackUI.UpdateFromStaticResult(lastResult);
@@ -607,18 +607,18 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Genera un mensaje de feedback detallado basado en el resultado del análisis.
+        /// Generates a detailed feedback message based on the analysis result.
         /// </summary>
         private string GenerateDetailedFeedbackMessage(StaticGestureResult result)
         {
             if (result == null)
                 return $"Haz el signo '{currentSign?.signName ?? "signo"}'...";
 
-            // Éxito confirmado: limpiar ventanas de mensajes y reforzar positivo
+            // Confirmed success: clear message windows and reinforce positive
             if (result.isMatchGlobal)
             {
                 ClearMessageWindows();
-                return $"¡Correcto! '{currentSign?.signName}' detectado";
+                return $"Correct! '{currentSign?.signName}' detected";
             }
 
             var fingerStates = BuildFingerStates(result);
@@ -636,7 +636,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Construye los estados por dedo (Correcto/Casi/Incorrecto) a partir del resultado.
+        /// Construye los estados por dedo (Correct/Casi/Incorrect) a partir del resultado.
         /// </summary>
         private FingerStateSnapshot[] BuildFingerStates(StaticGestureResult result)
         {
@@ -679,21 +679,21 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Genera candidatos de mensajes agrupados por acción y priorizados.
-        /// Usa la filosofía de TRES ESTADOS: Extendido, Curvado, Cerrado.
+        /// Generates message candidates grouped by action and prioritized.
+        /// Uses the THREE-STATE philosophy: Extended, Curled, Closed.
         /// </summary>
         private List<string> BuildCandidateMessages(StaticGestureResult result, FingerStateSnapshot[] states)
         {
             var candidates = new List<MessageCandidate>();
 
-            // === Listas de acciones semánticas (tres estados) ===
-            var needCurve = new List<Finger>();      // De extendido a curvado (sin cerrar puño)
-            var needFist = new List<Finger>();       // De curvado/extendido a puño cerrado
-            var needRelease = new List<Finger>();    // De puño a curvado (cerró demasiado)
+            // === Semantic action lists (three states) ===
+            var needCurve = new List<Finger>();      // From extended to curled (without closing fist)
+            var needFist = new List<Finger>();       // From curled/extended to closed fist
+            var needRelease = new List<Finger>();    // From fist to curled (closed too much)
             var needExtend = new List<Finger>();     // De curvado/cerrado a extendido
 
-            // === Listas legacy (compatibilidad) ===
-            var needCurl = new List<Finger>();       // Genérico: cerrar (legacy)
+            // === Lists legacy (compatibilidad) ===
+            var needCurl = new List<Finger>();       // Generic: close (legacy)
             var needSpreadNarrow = new List<Finger>();
             var needSpreadWide = new List<Finger>();
 
@@ -704,7 +704,7 @@ namespace ASL_LearnVR.Feedback
 
                 switch (state.errorType)
                 {
-                    // === Errores semánticos de tres estados (PRIORIDAD) ===
+                    // === Three-state semantic errors (PRIORITY) ===
                     case FingerErrorType.NeedsCurve:
                         needCurve.Add(state.finger);
                         break;
@@ -723,7 +723,7 @@ namespace ASL_LearnVR.Feedback
 
                     // === Errores legacy ===
                     case FingerErrorType.TooExtended:
-                        // Determinar si debe curvar o cerrar basándose en expectedValue
+                        // Determinar si debe curvar o cerrar basandose en expectedValue
                         if (state.expectedValue >= 0.25f && state.expectedValue <= 0.75f)
                             needCurve.Add(state.finger); // Objetivo es curvado
                         else if (state.expectedValue > 0.75f)
@@ -759,20 +759,20 @@ namespace ASL_LearnVR.Feedback
                 }
             }
 
-            // === Añadir candidatos en orden de prioridad semántica ===
+            // === Anadir candidatos en orden de prioridad semantica ===
             // CURVA: Prioridad alta - forma controlada sin cerrar
             AddActionCandidate(candidates, needCurve, "Curva", -2, states);
 
-            // SUELTA: Prioridad alta - cerró demasiado, debe relajar
+            // SUELTA: Prioridad alta - cerro demasiado, debe relajar
             AddActionCandidate(candidates, needRelease, "Suelta", -1, states);
 
-            // CIERRA: Para formar puño completo
+            // CIERRA: Para formar puno completo
             AddActionCandidate(candidates, needFist, "Cierra", 0, states);
 
             // EXTIENDE: Abrir dedo
             AddActionCandidate(candidates, needExtend, "Extiende", 1, states);
 
-            // Legacy: cerrar genérico
+            // Legacy: cerrar generico
             AddActionCandidate(candidates, needCurl, "Flexiona", 2, states);
 
             // Spread
@@ -783,7 +783,7 @@ namespace ASL_LearnVR.Feedback
             int almostCount = CountSeverity(states, Severity.Minor);
             int totalIssues = incorrectCount + almostCount;
 
-            // Mensaje de estabilidad cuando solo faltan pequeños ajustes
+            // Mensaje de estabilidad cuando solo faltan pequenos ajustes
             if (incorrectCount == 0 && totalIssues > 0)
             {
                 candidates.Add(new MessageCandidate
@@ -795,7 +795,7 @@ namespace ASL_LearnVR.Feedback
                 });
             }
 
-            // Progreso global: cuántos dedos faltan
+            // Progress global: cuantos dedos faltan
             if (totalIssues > 0)
             {
                 string progress = totalIssues == 1
@@ -847,14 +847,14 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Aplica histéresis a los mensajes para evitar parpadeos.
+        /// Aplica histeresis a los mensajes para evitar parpadeos.
         /// </summary>
         private List<string> ApplyMessageHysteresis(List<string> candidates)
         {
             float now = Time.time;
             var stable = new List<string>();
 
-            // Asegurar que también procesamos mensajes que estaban activos en el frame anterior
+            // Asegurar que also procesamos mensajes que estaban actives en el frame anterior
             var orderedMessages = new List<string>(candidates);
             foreach (var previous in messageWindows.Keys)
             {
@@ -913,7 +913,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Limpia el estado de histéresis (útil al cambiar de signo o tras éxito).
+        /// Limpia el estado de histeresis (util al cambiar de signo o tras exito).
         /// </summary>
         private void ClearMessageWindows()
         {
@@ -1030,7 +1030,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Obtiene un hint predefinido para gestos dinámicos (J, Z, etc.).
+        /// Obtiene un hint predefinido para dynamic gestures (J, Z, etc.).
         /// </summary>
         private string GetDynamicHint(string gestureName)
         {
@@ -1093,14 +1093,14 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         private void UpdateFeedbackMessage(string message)
         {
-            // Prioridad 1: Texto directo (ej: feedbackText de LearningController)
+            // Prioridad 1: Text directo (ej: feedbackText de LearningController)
             if (useDirectText && directFeedbackText != null)
             {
                 directFeedbackText.text = message;
-                Debug.Log($"[FeedbackSystem] Mensaje actualizado (directo): '{message}'");
+                Debug.Log($"[FeedbackSystem] Mensaje updated (directo): '{message}'");
             }
 
-            // Siempre sincronizar el panel de UI si existe, para que también muestre el feedback (estático o dinámico)
+            // Siempre sincronizar el panel de UI si existe, para que also muestre el feedback (static o dynamic)
             if (feedbackUI != null)
             {
                 switch (currentState)
@@ -1124,7 +1124,7 @@ namespace ASL_LearnVR.Feedback
                         feedbackUI.SetWaitingState(message);
                         break;
                 }
-                Debug.Log($"[FeedbackSystem] Mensaje actualizado (UI): '{message}' [Estado: {currentState}]");
+                Debug.Log($"[FeedbackSystem] Mensaje updated (UI): '{message}' [State: {currentState}]");
             }
             else if (!(useDirectText && directFeedbackText != null))
             {
@@ -1132,7 +1132,7 @@ namespace ASL_LearnVR.Feedback
                 Debug.LogWarning($"[FeedbackSystem] No hay destino para el mensaje: '{message}'");
             }
 
-            // Siempre emitir evento para integración externa
+            // Siempre emitir evento para integracion externa
             onFeedbackMessageChanged?.Invoke(message);
         }
 
@@ -1141,37 +1141,37 @@ namespace ASL_LearnVR.Feedback
         #region Static Gesture Callbacks
 
         /// <summary>
-        /// Callback cuando un gesto estático es detectado por el GestureRecognizer.
+        /// Callback cuando un gesto static es detected por el GestureRecognizer.
         /// Este callback solo maneja el audio y el evento externo.
-        /// La actualización visual se hace en AnalyzeCurrentPose() que ya verifica IsGestureCurrentlyDetected().
+        /// La actualizacion visual se hace en AnalyzeCurrentPose() que ya verifica IsGestureCurrentlyDetected().
         /// </summary>
         private void OnStaticGestureDetected(SignData sign)
         {
             if (!isActive || currentSign == null)
                 return;
 
-            // IMPORTANTE: Ignorar si estamos en cooldown de éxito
+            // IMPORTANTE: Ignorar si estamos en cooldown de exito
             if (currentState == FeedbackState.Success && Time.time < successEndTime)
             {
-                return; // Silenciosamente ignorar - el usuario está viendo el mensaje de éxito
+                return; // Silenciosamente ignorar - el usuario esta viendo el mensaje de exito
             }
 
             // IMPORTANTE: Solo procesar si es EXACTAMENTE el signo que estamos practicando
             if (sign == null || sign.signName != currentSign.signName)
             {
-                Debug.Log($"[FeedbackSystem] Ignorando detección de '{sign?.signName}' - practicando '{currentSign.signName}'");
+                Debug.Log($"[FeedbackSystem] Ignorando deteccion de '{sign?.signName}' - practicando '{currentSign.signName}'");
                 return;
             }
 
-            // Reproducir audio de éxito (solo una vez cuando se confirma)
+            // Reproducir audio de exito (solo una vez cuando se confirma)
             feedbackAudio?.PlaySuccess();
 
             // Emitir evento para que otros sistemas puedan reaccionar (usar currentSign, no sign)
             onGestureSuccess?.Invoke(currentSign);
 
-            // Forzar feedback visual inmediato en éxito para evitar parpadeos rojo/verde
+            // Forzar feedback visual inmediato en exito para evitar parpadeos rojo/verde
             var successResult = StaticGestureResult.CreateSuccess();
-            successResult.summaryMessage = $"¡Correcto! '{currentSign.signName}' detectado";
+            successResult.summaryMessage = $"Correct! '{currentSign.signName}' detected";
             lastResult = successResult;
 
             fingerIndicatorVisualizer?.UpdateFromResult(successResult);
@@ -1180,22 +1180,22 @@ namespace ASL_LearnVR.Feedback
             successEndTime = Time.time + successDisplayDuration;
             UpdateFeedbackMessage(successResult.summaryMessage);
 
-            // Forzar un análisis inmediato para actualizar el feedback visual
+            // Forzar un analisis inmediato para actualizar el feedback visual
             // Esto evita el delay del analysisInterval
-            lastAnalysisTime = 0f; // Reset para permitir análisis inmediato
+            lastAnalysisTime = 0f; // Reset para permitir analisis inmediato
 
-            Debug.Log($"[FeedbackSystem] Gesto CORRECTO detectado: '{currentSign.signName}'");
+            Debug.Log($"[FeedbackSystem] Gesture CORRECTO detected: '{currentSign.signName}'");
         }
 
         /// <summary>
-        /// Callback cuando un gesto estático termina.
+        /// Callback cuando un gesto static termina.
         /// </summary>
         private void OnStaticGestureEnded(SignData sign)
         {
             if (!isActive)
                 return;
 
-            // Volver a estado waiting después del éxito
+            // Back a estado waiting despues del exito
             if (currentState == FeedbackState.Success && Time.time > successEndTime)
             {
                 SetState(FeedbackState.Waiting);
@@ -1211,19 +1211,19 @@ namespace ASL_LearnVR.Feedback
         #region Dynamic Gesture Callbacks
 
         /// <summary>
-        /// Callback cuando un gesto dinámico inicia.
-        /// Fase 1: StartDetected - La pose inicial fue detectada.
-        /// REGLA: Al entrar en dinámico => overlay OFF
+        /// Callback cuando un dynamic gesture inicia.
+        /// Fase 1: StartDetected - La initial pose fue detectada.
+        /// REGLA: Al entrar en dynamic => overlay OFF
         /// </summary>
         private void OnDynamicGestureStarted(string gestureName)
         {
             if (!isActive)
                 return;
 
-            // IMPORTANTE: Ignorar si estamos en cooldown de éxito o en message latch
+            // IMPORTANTE: Ignorar si estamos en cooldown de exito o en message latch
             if (currentState == FeedbackState.Success && Time.time < successEndTime)
             {
-                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en cooldown de éxito");
+                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en cooldown de exito");
                 return;
             }
 
@@ -1233,17 +1233,17 @@ namespace ASL_LearnVR.Feedback
                 return;
             }
 
-            // === OVERLAY OFF al entrar en gesto dinámico ===
+            // === OVERLAY OFF al entrar en dynamic gesture ===
             isDynamicGestureActive = true;
             SetOverlayVisible(false);
 
-            // Fase 1: Notificar al analizador que la pose inicial fue detectada
+            // Fase 1: Notificar al analizador que la initial pose fue detectada
             dynamicFeedbackAnalyzer?.NotifyStartDetected(gestureName);
 
             SetState(FeedbackState.InProgress);
 
             // El mensaje viene del analizador
-            string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"¡Bien! Ahora empieza el movimiento";
+            string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Good! Now start the movement";
             string hint = GetDynamicHint(gestureName);
             if (!string.IsNullOrEmpty(hint))
             {
@@ -1258,13 +1258,13 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback de progreso de gesto dinámico (evento básico).
-        /// NOTA: Este es un FALLBACK. La lógica principal está en OnDynamicGestureProgressWithMetrics
-        /// que recibe la definición del gesto directamente.
+        /// Callback de progreso de dynamic gesture (evento basico).
+        /// NOTA: Este es un FALLBACK. La logica principal esta en OnDynamicGestureProgressWithMetrics
+        /// que recibe la definicion del gesto directamente.
         /// </summary>
         private void OnDynamicGestureProgress(string gestureName, float progress)
         {
-            // Este callback es un fallback mínimo. La lógica principal está en OnDynamicGestureProgressWithMetrics.
+            // Este callback es un fallback minimo. La logica principal esta en OnDynamicGestureProgressWithMetrics.
             // Solo actualizamos el mensaje con el hint si no estamos en latch y no hay otro mensaje en curso.
             if (!isActive)
                 return;
@@ -1273,7 +1273,7 @@ namespace ASL_LearnVR.Feedback
 
             if (canEmitMessage)
             {
-                // Mostrar hint con porcentaje como mensaje de progreso básico
+                // Mostrar hint con porcentaje como mensaje de progreso basico
                 string hint = GetDynamicHint(gestureName);
                 if (!string.IsNullOrEmpty(hint))
                 {
@@ -1284,8 +1284,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback cuando un gesto dinámico se completa exitosamente (evento estructurado).
-        /// Fase 4: Completed - Gesto correcto.
+        /// Callback cuando un dynamic gesture se completa exitosamente (evento estructurado).
+        /// Fase 4: Completed - Gesture correct.
         /// REGLA: Mensaje fijo 3s => luego volver a Idle.
         /// </summary>
         private void OnDynamicGestureCompletedStructured(DynamicGestureResult result)
@@ -1295,35 +1295,35 @@ namespace ASL_LearnVR.Feedback
 
             lastDynamicResult = result;
 
-            // Fase 4: Notificar éxito al analizador
+            // Fase 4: Notificar exito al analizador
             dynamicFeedbackAnalyzer?.NotifyCompleted(result.gestureName, result.metrics);
 
             SetState(FeedbackState.Success);
             successEndTime = Time.time + dynamicSuccessHoldDuration;
 
-            // === MESSAGE LATCH de 3s para éxito ===
+            // === MESSAGE LATCH de 3s para exito ===
             messageLatchUntil = Time.time + dynamicSuccessHoldDuration;
             lastDynamicMessageWasError = false;
             pendingResetToIdle = true; // Al expirar => volver a Idle
 
-            // Reproducir audio de éxito
+            // Reproducir audio de exito
             feedbackAudio?.PlaySuccess();
 
-            // Mensaje de éxito claro y rotundo: "¡Movimiento reconocido!"
-            string message = "¡Movimiento reconocido!";
+            // Clear and definitive success message: "Movement recognized!"
+            string message = "Movement recognized!";
             UpdateFeedbackMessage(message);
 
             if (feedbackUI != null)
                 feedbackUI.UpdateFromDynamicResult(result);
 
-            // El overlay sigue OFF durante el hold de éxito (no mostramos dedos, solo éxito global)
+            // El overlay sigue OFF durante el hold de exito (no mostramos dedos, solo exito global)
 
             Debug.Log($"[FeedbackSystem] Fase 4 - Completed: {result.gestureName} (hold 3s, luego Idle)");
         }
 
         /// <summary>
-        /// Callback cuando un gesto dinámico falla (evento estructurado).
-        /// Fase 5: Failed - Explicación del fallo.
+        /// Callback cuando un dynamic gesture falla (evento estructurado).
+        /// Fase 5: Failed - Explicacion del fallo.
         /// REGLA: Mensaje fijo 1-1.3s => luego volver a Idle (overlay ON).
         /// </summary>
         private void OnDynamicGestureFailedStructured(DynamicGestureResult result)
@@ -1349,10 +1349,10 @@ namespace ASL_LearnVR.Feedback
             lastDynamicMessageWasError = true;
             pendingResetToIdle = true; // Al expirar => volver a Idle
 
-            // Reproducir audio de error (si está habilitado)
+            // Reproducir audio de error (si esta habilitado)
             feedbackAudio?.PlayError();
 
-            // Mensaje de fallo que explica el por qué e invita a reintentar
+            // Mensaje de fallo que explica el por que e invita a reintentar
             // Try to get expected direction from gesture definition for specific feedback
             Vector3 expectedDir = Vector3.zero;
             var gestureDef = GetActiveGestureDefinition(result.gestureName);
@@ -1371,25 +1371,25 @@ namespace ASL_LearnVR.Feedback
 
             Debug.Log($"[FeedbackSystem] Fase 5 - Failed: {result.gestureName} - {result.failureReason} (hold {holdDuration:F2}s, luego Idle)");
 
-            // NO reseteamos el analizador aquí - lo hacemos cuando expira el latch en HandleLatchExpired
+            // NO reseteamos el analizador aqui - lo hacemos cuando expira el latch en HandleLatchExpired
         }
 
         /// <summary>
-        /// Callback cuando cambia la fase del feedback dinámico.
+        /// Callback cuando cambia la fase del feedback dynamic.
         /// REGLA: Idle => overlay ON, cualquier otra fase => overlay OFF
         /// </summary>
         private void OnDynamicPhaseChanged(DynamicFeedbackPhase phase, string message)
         {
-            Debug.Log($"[FeedbackSystem] Cambio de fase dinámica: {phase} - {message}");
+            Debug.Log($"[FeedbackSystem] Cambio de fase dinamica: {phase} - {message}");
 
-            // === LÓGICA DE OVERLAY según fase ===
+            // === LOGICA DE OVERLAY segun fase ===
             bool shouldShowOverlay = (phase == DynamicFeedbackPhase.Idle);
             isDynamicGestureActive = !shouldShowOverlay;
             SetOverlayVisible(shouldShowOverlay);
         }
 
         /// <summary>
-        /// Callback cuando hay un nuevo mensaje de feedback dinámico.
+        /// Callback cuando hay un nuevo mensaje de feedback dynamic.
         /// </summary>
         private void OnDynamicFeedbackMessage(string message)
         {
@@ -1398,7 +1398,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Intenta obtener la definición del gesto activo por nombre.
+        /// Intenta obtener la definicion del gesto active por nombre.
         /// </summary>
         private ASL.DynamicGestures.DynamicGestureDefinition GetActiveGestureDefinition(string gestureName)
         {
@@ -1453,7 +1453,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback cuando la pose inicial del gesto dinámico es detectada.
+        /// Callback cuando la initial pose del dynamic gesture es detectada.
         /// Fase 1: El usuario ha colocado la mano correctamente, puede empezar a moverse.
         /// </summary>
         private void OnInitialPoseDetected(string gestureName)
@@ -1467,9 +1467,9 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback de progreso con métricas detalladas.
+        /// Callback de progreso con metricas detalladas.
         /// Este es el callback PRINCIPAL para feedback durante el movimiento.
-        /// Recibe la definición del gesto directamente del recognizer.
+        /// Recibe la definicion del gesto directamente del recognizer.
         /// </summary>
         private void OnDynamicGestureProgressWithMetrics(
             string gestureName,
@@ -1480,18 +1480,18 @@ namespace ASL_LearnVR.Feedback
             if (!isActive)
                 return;
 
-            // === LOG de métricas para depuración (cada 0.5s para no saturar) ===
+            // === LOG de metricas para depuracion (cada 0.5s para no saturar) ===
             if (Time.frameCount % 30 == 0)
             {
-                Debug.Log($"[FeedbackSystem] Métricas: vel={metrics.averageSpeed:F3}m/s, dist={metrics.totalDistance:F3}m, " +
+                Debug.Log($"[FeedbackSystem] Metricas: vel={metrics.averageSpeed:F3}m/s, dist={metrics.totalDistance:F3}m, " +
                           $"rot={metrics.totalRotation:F1}°, dirChanges={metrics.directionChanges}, " +
-                          $"progress={Mathf.RoundToInt(progress * 100)}%, defGesto={(gestureDefinition != null ? gestureDefinition.gestureName : "NULL")}");
+                          $"progress={Mathf.RoundToInt(progress * 100)}%, defGesture={(gestureDefinition != null ? gestureDefinition.gestureName : "NULL")}");
             }
 
             // === MESSAGE LATCH: si estamos en hold, seguir analizando pero no emitir mensajes ===
             bool canEmitMessage = Time.time >= messageLatchUntil;
 
-            // Analizar progreso con métricas completas y definición del gesto
+            // Analizar progreso con metricas completas y definicion del gesto
             dynamicFeedbackAnalyzer?.AnalyzeProgress(gestureName, progress, metrics, gestureDefinition);
 
             // Obtener el resultado del analizador
@@ -1512,7 +1512,7 @@ namespace ASL_LearnVR.Feedback
             // === EMITIR MENSAJE solo si no estamos en latch ===
             if (canEmitMessage)
             {
-                // Si hay un problema detectado => activar latch de 1s
+                // Si hay un problema detected => activar latch de 1s
                 if (issue != DynamicMovementIssue.None)
                 {
                     float holdDuration = UnityEngine.Random.Range(errorMessageHoldMin, errorMessageHoldMax);
@@ -1521,7 +1521,7 @@ namespace ASL_LearnVR.Feedback
                     pendingResetToIdle = false; // NO volver a Idle, seguir evaluando
 
                     UpdateFeedbackMessage(message);
-                    Debug.Log($"[FeedbackSystem] Issue detectado: {issue} - '{message}' (hold {holdDuration:F1}s, progreso continúa)");
+                    Debug.Log($"[FeedbackSystem] Issue detected: {issue} - '{message}' (hold {holdDuration:F1}s, progreso continua)");
                 }
                 else
                 {
@@ -1531,8 +1531,8 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Callback cuando el gesto está cerca de completarse.
-        /// Fase 3: Mensaje de ánimo para que el usuario termine el movimiento.
+        /// Callback cuando el gesto esta cerca de completarse.
+        /// Fase 3: Mensaje de animo para que el usuario termine el movimiento.
         /// </summary>
         private void OnDynamicGestureNearCompletion(string gestureName, float progress)
         {
@@ -1540,10 +1540,10 @@ namespace ASL_LearnVR.Feedback
                 return;
 
             // El analizador ya maneja esto en AnalyzeProgress,
-            // pero podemos añadir feedback visual adicional aquí
+            // pero podemos anadir feedback visual adicional aqui
             Debug.Log($"[FeedbackSystem] Fase 3 - NearCompletion: {gestureName} ({Mathf.RoundToInt(progress * 100)}%)");
 
-            // Opcional: feedback visual de "casi completado"
+            // Optional: feedback visual de "casi completed"
             if (feedbackUI != null)
             {
                 feedbackUI.ShowDynamicProgress(gestureName, progress);
@@ -1551,7 +1551,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Parsea el string de razón a enum FailureReason.
+        /// Parsea el string de razon a enum FailureReason.
         /// Normaliza tildes para matching robusto.
         /// </summary>
         private FailureReason ParseFailureReason(string reason)
@@ -1559,7 +1559,7 @@ namespace ASL_LearnVR.Feedback
             if (string.IsNullOrEmpty(reason))
                 return FailureReason.Unknown;
 
-            // Normalizar: minúsculas y quitar tildes
+            // Normalizar: minusculas y quitar tildes
             string lowerReason = RemoveAccents(reason.ToLower());
 
             if (lowerReason.Contains("pose") && (lowerReason.Contains("perdida") || lowerReason.Contains("lost")))
@@ -1605,7 +1605,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Elimina tildes y diacríticos para matching robusto.
+        /// Elimina tildes y diacriticos para matching robusto.
         /// </summary>
         private string RemoveAccents(string text)
         {
@@ -1622,7 +1622,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Determina la fase donde ocurrió el fallo.
+        /// Determina la fase donde ocurrio el fallo.
         /// </summary>
         private GesturePhase DetermineFailedPhase(string reason)
         {
@@ -1643,7 +1643,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Garantiza que useDirectText solo esté activo cuando haya un Text asignado; si no, cae al FeedbackPanel de escena.
+        /// Garantiza que useDirectText solo este active cuando haya un Text assigned; si no, cae al FeedbackPanel de escena.
         /// </summary>
         private void EnsureDirectTextMode()
         {
@@ -1654,7 +1654,7 @@ namespace ASL_LearnVR.Feedback
             {
                 if (feedbackUI != null)
                 {
-                    Debug.LogWarning("[FeedbackSystem] useDirectText está activo pero no hay Text asignado. Se usará el FeedbackPanel configurado en escena.");
+                    Debug.LogWarning("[FeedbackSystem] useDirectText esta active pero no hay Text assigned. Se usara el FeedbackPanel configured en escena.");
                     useDirectText = false;
                 }
             }

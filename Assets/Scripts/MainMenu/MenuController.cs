@@ -6,34 +6,34 @@ using ASL_LearnVR.Core;
 namespace ASL_LearnVR.MainMenu
 {
     /// <summary>
-    /// Controla el menú principal (escena LearningAppVR).
-    /// Gestiona los botones y el estado del tracking de manos.
+    /// Controls the main menu (LearningAppVR scene).
+    /// Manages buttons and hand tracking state.
     /// </summary>
     public class MenuController : MonoBehaviour
     {
-        [Header("UI References - Panel Left")]
-        [Tooltip("Texto que muestra el estado del tracking de manos")]
+        [Header("UI References - Left Panel")]
+        [Tooltip("Text showing hand tracking status")]
         [SerializeField] private TextMeshProUGUI handStatusText;
 
-        [Tooltip("Botón para salir de la aplicación")]
+        [Tooltip("Button to exit the application")]
         [SerializeField] private Button exitButton;
 
-        [Header("UI References - Panel Front")]
-        [Tooltip("Botón para acceder al módulo de aprendizaje")]
+        [Header("UI References - Front Panel")]
+        [Tooltip("Button to access the learning module")]
         [SerializeField] private Button learningModuleButton;
 
-        [Tooltip("Botón para acceder al módulo de traducción")]
+        [Tooltip("Button to access the translation module")]
         [SerializeField] private Button translationModuleButton;
 
         [Header("Components")]
-        [Tooltip("Referencia al HandTrackingStatus")]
+        [Tooltip("Reference to HandTrackingStatus")]
         [SerializeField] private HandTrackingStatus handTrackingStatus;
 
         [Header("Popup")]
-        [Tooltip("Panel popup que muestra 'Módulo en desarrollo'")]
+        [Tooltip("Popup panel showing 'Module in development'")]
         [SerializeField] private GameObject translationPopup;
 
-        [Tooltip("Botón para cerrar el popup")]
+        [Tooltip("Button to close the popup")]
         [SerializeField] private Button closePopupButton;
 
         void Start()
@@ -55,14 +55,14 @@ namespace ASL_LearnVR.MainMenu
             if (translationPopup != null)
                 translationPopup.SetActive(false);
 
-            // Limpia la sesión al volver al menú principal
+            // Clears the session when returning to the main menu
             if (GameManager.Instance != null)
                 GameManager.Instance.ClearSession();
         }
 
         void Update()
         {
-            // Actualiza el texto del estado de tracking
+            // Updates the tracking status text
             UpdateHandStatusText();
         }
 
@@ -78,7 +78,7 @@ namespace ASL_LearnVR.MainMenu
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón del módulo de aprendizaje.
+        /// Callback when button is clicked del modulo de aprendizaje.
         /// </summary>
         private void OnLearningModuleButtonClicked()
         {
@@ -88,12 +88,12 @@ namespace ASL_LearnVR.MainMenu
             }
             else
             {
-                Debug.LogError("MenuController: SceneLoader.Instance es null.");
+                Debug.LogError("MenuController: SceneLoader.Instance is null.");
             }
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón del módulo de traducción.
+        /// Callback when button is clicked del modulo de traduccion.
         /// </summary>
         private void OnTranslationModuleButtonClicked()
         {
@@ -101,7 +101,7 @@ namespace ASL_LearnVR.MainMenu
         }
 
         /// <summary>
-        /// Muestra el popup indicando que el módulo de traducción está en desarrollo.
+        /// Shows the popup indicating the translation module is in development.
         /// </summary>
         private void ShowTranslationPopup()
         {
@@ -110,7 +110,7 @@ namespace ASL_LearnVR.MainMenu
         }
 
         /// <summary>
-        /// Cierra el popup del módulo de traducción.
+        /// Closes the translation module popup.
         /// </summary>
         private void CloseTranslationPopup()
         {
@@ -119,7 +119,7 @@ namespace ASL_LearnVR.MainMenu
         }
 
         /// <summary>
-        /// Callback cuando se hace clic en el botón de salir.
+        /// Callback when button is clicked de salir.
         /// </summary>
         private void OnExitButtonClicked()
         {
@@ -129,7 +129,7 @@ namespace ASL_LearnVR.MainMenu
             }
             else
             {
-                // Fallback si no hay SceneLoader
+                // Fallback if SceneLoader is not available
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -140,7 +140,7 @@ namespace ASL_LearnVR.MainMenu
 
         void OnDestroy()
         {
-            // Limpia los listeners
+            // Clears the listeners
             if (learningModuleButton != null)
                 learningModuleButton.onClick.RemoveListener(OnLearningModuleButtonClicked);
 

@@ -14,11 +14,11 @@ namespace ASL_LearnVR.Editor
 
             if (levelBasic == null)
             {
-                Debug.LogError("No se encontró Level_Basic.asset");
+                Debug.LogError("No found Level_Basic.asset");
                 return;
             }
 
-            Debug.Log($"=== DIAGNÓSTICO DE {levelBasic.name} ===");
+            Debug.Log($"=== DIAGNOSIS OF {levelBasic.name} ===");
             Debug.Log($"Level Name: '{levelBasic.levelName}'");
             Debug.Log($"Categories Count: {levelBasic.categories.Count}");
 
@@ -27,7 +27,7 @@ namespace ASL_LearnVR.Editor
             bool isValid = levelBasic.IsValid();
             Debug.Log($"IsValid() retorna: {isValid}");
 
-            // Verificar cada categoría
+            // Verificar cada category
             for (int i = 0; i < levelBasic.categories.Count; i++)
             {
                 CategoryData category = levelBasic.categories[i];
@@ -59,7 +59,7 @@ namespace ASL_LearnVR.Editor
                 }
             }
 
-            Debug.Log($"\n=== FIN DIAGNÓSTICO ===");
+            Debug.Log($"\n=== END DIAGNOSIS ===");
         }
     }
 }

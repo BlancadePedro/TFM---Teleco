@@ -6,12 +6,12 @@ namespace ASL.DynamicGestures
 {
     /// <summary>
     /// Adaptador que convierte MultiGestureRecognizer en una interfaz simple para DynamicGestureRecognizer.
-    /// Proporciona el método GetCurrentPoseName() que retorna el nombre del signo actualmente detectado.
+    /// Proporciona el metodo GetCurrentPoseName() que retorna el nombre del current signmente detected.
     /// </summary>
     public class StaticPoseAdapter : MonoBehaviour, IPoseAdapter
     {
-        [Header("Referencias")]
-        [Tooltip("MultiGestureRecognizer que detecta poses estáticas")]
+        [Header("References")]
+        [Tooltip("MultiGestureRecognizer que detecta poses estaticas")]
         [SerializeField] private MultiGestureRecognizer multiGestureRecognizer;
 
         private string currentPoseName = null;
@@ -20,7 +20,7 @@ namespace ASL.DynamicGestures
         {
             if (multiGestureRecognizer != null)
             {
-                // Suscribirse a eventos de reconocimiento instantáneo (sin hold time)
+                // Suscribirse a eventos de reconocimiento instantaneo (sin hold time)
                 multiGestureRecognizer.onGestureRecognized.AddListener(OnPoseRecognized);
                 multiGestureRecognizer.onGestureLost.AddListener(OnPoseLost);
             }
@@ -53,7 +53,7 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Callback cuando se reconoce instantáneamente una pose
+        /// Callback cuando se reconoce instantaneamente una pose
         /// </summary>
         private void OnPoseRecognized(SignData sign)
         {
@@ -68,7 +68,7 @@ namespace ASL.DynamicGestures
         /// </summary>
         private void OnPoseLost(SignData sign)
         {
-            // Solo limpiar si era el signo activo
+            // Solo limpiar si era el signo active
             if (sign != null && currentPoseName == sign.signName)
             {
                 currentPoseName = null;
@@ -79,14 +79,14 @@ namespace ASL.DynamicGestures
         /// Obtiene el nombre de la pose actualmente detectada.
         /// Compatible con la interfaz esperada por DynamicGestureRecognizer.
         /// </summary>
-        /// <returns>Nombre del signo (ej: "A", "J", "5", "OK") o null si no hay pose detectada</returns>
+        /// <returns>Name del signo (ej: "A", "J", "5", "OK") o null si no hay pose detectada</returns>
         public string GetCurrentPoseName()
         {
             return currentPoseName;
         }
 
         /// <summary>
-        /// Verifica si hay tracking activo de la mano
+        /// Verifica si hay tracking active de la mano
         /// </summary>
         public bool IsHandTracked()
         {
@@ -95,8 +95,8 @@ namespace ASL.DynamicGestures
         }
 
         /// <summary>
-        /// Obtiene el SignData actualmente detectado por el MultiGestureRecognizer.
-        /// Útil para validación directa de HandShape sin depender del nombre.
+        /// Obtiene el SignData actualmente detected por el MultiGestureRecognizer.
+        /// Util para validacion directa de HandShape sin depender del nombre.
         /// </summary>
         public SignData GetCurrentSignData()
         {
