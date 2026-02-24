@@ -22,6 +22,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Unity_Hand_Medium
   m_Shader: {fileID: -6465566751694194690, guid: 89a6790c28795dd4987bb267c3d05338, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _BUILTIN_SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
@@ -34,6 +36,7 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - DepthOnly
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -156,7 +159,7 @@ Material:
     - _FingerColor_3: {r: 1, g: 1, b: 1, a: 0}
     - _FingerColor_4: {r: 1, g: 1, b: 1, a: 0}
     - _FingerGlowColor: {r: 1, g: 1, b: 1, a: 1}
-    - _MainColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.65882355}
+    - _MainColor: {r: 1, g: 0.83345014, b: 0.68490565, a: 0}
     - _OutlineColor: {r: 0.53773576, g: 0.53773576, b: 0.53773576, a: 1}
     - _OutlineGlowColor: {r: 1, g: 1, b: 1, a: 1}
     - _PinchColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
@@ -166,6 +169,7 @@ Material:
     - _Vector2: {r: 0.2, g: 0.88, b: 0, a: 0}
     - _WristLocalOffset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &9183041752085862926
 MonoBehaviour:
   m_ObjectHideFlags: 11
