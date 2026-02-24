@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_V
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: V
-  description: "Index and middle fingers extended apart to form a \u201CV\u201D"
+  description: "Extend the index and middle fingers apart in a \u201CV\u201D shape."
   handShapeOrPose: {fileID: 11400000, guid: 89f9f1765ce8d8a4881544e1561bc013, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: ed51d500d83052640aaf1f04746c7e88, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

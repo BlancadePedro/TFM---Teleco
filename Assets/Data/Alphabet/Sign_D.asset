@@ -13,11 +13,9 @@ MonoBehaviour:
   m_Name: Sign_D
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: D
-  description: Index finger pointing up, other fingers touching the thumb to form
-    a circle
+  description: Raise the index finger straight up while the other fingers touch the
+    thumb.
   handShapeOrPose: {fileID: 11400000, guid: 9e9a28cfc2e7c9d4dacd271c44c6c307, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 922c22dffb5edaa4a80fa20f4a973dbc, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

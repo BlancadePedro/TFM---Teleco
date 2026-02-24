@@ -419,6 +419,18 @@ namespace ASL_LearnVR.LevelSelection
                     textComponents[1].text = $"{signCount} signos";
                 }
 
+                // Icono desde CategoryData
+                Transform iconTransform = buttonObj.transform.Find("Icon");
+                Image iconImage = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+                if (iconImage != null)
+                {
+                    iconImage.sprite = category.icon;
+                    iconImage.enabled = category.icon != null;
+                    iconImage.preserveAspect = true;
+                    iconImage.type = Image.Type.Simple;
+                    iconImage.color = category.icon != null ? Color.white : Color.clear;
+                }
+
                 if (button != null)
                 {
                     CategoryData categoryCopy = category;

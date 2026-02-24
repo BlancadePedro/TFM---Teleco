@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: Sign_7
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 7
-  description: Thumb, index, and middle fingers extended; ring and little fingers
-    curled.
+  description: Touch the tip of the thumb to the ring finger; extend the others upward.
   handShapeOrPose: {fileID: 11400000, guid: c4291fd7b7150254aaed08dad49a27de, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 7ace3784431675144b80cdcbff5d54fa, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

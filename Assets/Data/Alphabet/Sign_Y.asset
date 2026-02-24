@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Y
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Y
-  description: Thumb and pinky extended, other fingers closed
+  description: Extend the thumb and pinky outward; fold the remaining fingers down.
   handShapeOrPose: {fileID: 11400000, guid: 957a8bd6307f3ac4f946f4f4a987fda4, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 0560099f085fede4886375233ffec5ff, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

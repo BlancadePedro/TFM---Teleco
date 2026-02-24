@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_P
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: P
-  description: Same handshape as K but oriented downward
+  description: "Form a \u201CK\u201D shape and angle it downward."
   handShapeOrPose: {fileID: 11400000, guid: 2cf6160022008df4397d055687bbe397, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 94da20c5c63a5e3438efb5aa5f580871, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_U
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: U
-  description: Index and middle fingers together and extended, other fingers folded
+  description: Extend the index and middle fingers straight up together.
   handShapeOrPose: {fileID: 11400000, guid: c1ca76715d303b04b8909fbc1f2c6f88, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 0b88b7245e66e1041aea2a7394390503, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

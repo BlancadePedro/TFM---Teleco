@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sign_Z
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Z
-  description: "Index finger extended and drawing a \u201CZ\u201D shape in the air"
+  description: "Draw a \u201CZ\u201D shape in the air with the index finger."
   handShapeOrPose: {fileID: 11400000, guid: 6ba97fa5031ccc345b082bd9801d223b, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3

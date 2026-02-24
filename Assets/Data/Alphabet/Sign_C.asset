@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: Sign_C
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: C
-  description: "Hand curved into a \u201CC\u201D shape with fingers and thumb forming
-    the outline"
+  description: "Curve your fingers and thumb to form a clear \u201CC\u201D shape."
   handShapeOrPose: {fileID: 11400000, guid: 952052b573ed9c6488b09d0172caa0aa, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: c6a7921d4aaa4e440977bca9d2df895f, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

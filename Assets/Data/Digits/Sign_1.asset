@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_1
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 1
-  description: Index finger extended upward, all other fingers curled.
+  description: Raise the index finger straight up while keeping the others closed.
   handShapeOrPose: {fileID: 11400000, guid: e255dc5f8ad725c45b883c8ffc5ebf8f, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: ae3f04d622365384c9ddb6b12f7d206c, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

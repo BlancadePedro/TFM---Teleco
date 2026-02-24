@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_O
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: O
-  description: "Fingers and thumb curved inward to form an \u201CO\u201D shape"
+  description: "Touch all fingertips together to form a rounded \u201CO\u201D shape."
   handShapeOrPose: {fileID: 11400000, guid: 9873890bcedda4646a0c27977f314c69, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 4337efec38f40d9468df2d0b75886fcb, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

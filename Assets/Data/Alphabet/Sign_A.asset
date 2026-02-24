@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: Sign_A
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: A
-  description: Closed fist with thumb on the side
+  description: Close your fist with the thumb resting along the side of the index
+    finger.
   handShapeOrPose: {fileID: 11400000, guid: 78d1c2002d3175f4986d635c133f4fdf, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: fa292e11bd3a5454387339173cd8709d, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

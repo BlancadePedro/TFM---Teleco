@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_2
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 2
-  description: Index and middle fingers extended, remaining fingers curled.
+  description: Extend the index and middle fingers upward together.
   handShapeOrPose: {fileID: 11400000, guid: a0a7871606ef5e244ad42d6e8ef3a5db, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 98466e03ecd1ecf44805cdd3dfbead60, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

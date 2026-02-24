@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: Sign_3
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 3
-  description: Index, middle, and ring fingers extended; thumb and little finger
-    curled.
+  description: Extend the thumb, index, and middle fingers; fold the ring and pinky.
   handShapeOrPose: {fileID: 11400000, guid: 1841afafc49b23f448f916e8e9780195, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 2aaca095ebfd168408b89c7bae564c5d, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

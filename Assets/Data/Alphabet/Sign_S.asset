@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_S
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: S
-  description: Fist closed with thumb resting over the fingers
+  description: Make a fist with the thumb crossing in front of the fingers.
   handShapeOrPose: {fileID: 11400000, guid: 4b05a6f3eb95c434ea9432e27b5d4fe4, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 060b60abe08a5e84cb8f80a636be5b34, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

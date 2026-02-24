@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_I
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: I
-  description: Pinky extended, other fingers closed into a fist
+  description: Extend the pinky finger upward while keeping the other fingers closed.
   handShapeOrPose: {fileID: 11400000, guid: e9c721d6193059b4fb824c036fd566d4, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 6efff69e020ef654886a1c05807409f2, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

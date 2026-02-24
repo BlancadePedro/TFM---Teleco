@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Sign_J
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: J
-  description: "Start with the I handshape and trace a \u201CJ\u201D shape in the
-    air with the pinky"
+  description: "Extend the pinky and trace a small \u201CJ\u201D in the air."
   handShapeOrPose: {fileID: 11400000, guid: 78639307489d74f458c34dc3fee3e170, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3

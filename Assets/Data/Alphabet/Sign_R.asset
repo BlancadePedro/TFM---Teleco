@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sign_R
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: R
-  description: Index and middle fingers crossed, remaining fingers closed
+  description: Cross the index and middle fingers while keeping the others folded.
   handShapeOrPose: {fileID: 11400000, guid: 247e21fe92310834f815d5c21475d6ef, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3

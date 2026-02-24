@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Sign_N
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: N
-  description: Thumb tucked under two fingers (index and middle), other fingers folded
+  description: Place the thumb under the index and middle fingers.
   handShapeOrPose: {fileID: 11400000, guid: 78c5e48d5173ae141a1fadb544a14cda, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3

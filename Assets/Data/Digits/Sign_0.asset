@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: Sign_0
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 0
-  description: Hand closed, all fingers curled into a fist.
+  description: "Touch all fingertips to the thumb to form a rounded \u201C0\u201D
+    shape."
   handShapeOrPose: {fileID: 11400000, guid: d4bffc38bc7e2ef47a8b014ae1c9acc8, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: c47d5336ecf686e41be237ca8eef4015, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

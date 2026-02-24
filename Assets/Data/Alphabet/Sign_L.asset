@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_L
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: L
-  description: "Index finger up and thumb extended to the side forming an \u201CL\u201D"
+  description: "Extend the thumb and index finger to form a clear \u201CL\u201D shape."
   handShapeOrPose: {fileID: 11400000, guid: 179ed98e28c672c4ea108d01183a26e5, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: b692ce58850febd4ba4505213779acc3, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

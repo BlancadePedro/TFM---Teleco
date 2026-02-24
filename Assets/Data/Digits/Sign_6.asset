@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_6
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 6
-  description: Thumb and little finger extended, remaining fingers curled.
+  description: Touch the tip of the thumb to the pinky; keep the other fingers extended.
   handShapeOrPose: {fileID: 11400000, guid: 4dab9762b40a42a4883d0184d097da79, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: ce2dcb6f4ac5ec349b4a540f5a9cb1aa, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

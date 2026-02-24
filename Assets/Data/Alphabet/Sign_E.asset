@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: Sign_E
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: E
-  description: Fingers curled toward the palm, thumb resting against the fingertips
+  description: Curl all fingers tightly down to meet the thumb.
   handShapeOrPose: {fileID: 11400000, guid: 20269bf98448d184c93e1205c472f524, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: 12b2433f6c647094b91ed408731b0a44, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}

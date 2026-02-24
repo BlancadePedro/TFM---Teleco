@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: Sign_4
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: 4
-  description: Four fingers extended, thumb curled.
+  description: Extend all four fingers upward while keeping the thumb folded across
+    the palm.
   handShapeOrPose: {fileID: 11400000, guid: f72a1fe9960f41c479ce6b172cf79002, type: 2}
   requiresMovement: 0
   minimumHoldTime: 0.3
   icon: {fileID: 21300000, guid: c4a5af2a115d3fe4baedcae161eb5bc5, type: 3}
-  ghostHandsPrefab: {fileID: 0}
-  handRecordingData: {fileID: 0}
