@@ -25,5 +25,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f4b7a808c86d31746846ee30e4cb68bc, type: 2}
   - {fileID: 11400000, guid: a439cd883d1650e43839a978e4156101, type: 2}
   - {fileID: 11400000, guid: 953b8c6281078c04cbb0a85cc013348d, type: 2}
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5019d454a08cdfc4db326160defc58de, type: 3}
   themeColor: {r: 1, g: 1, b: 1, a: 1}

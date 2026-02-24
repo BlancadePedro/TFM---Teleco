@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using ASL_LearnVR.Core;
 using ASL_LearnVR.Data;
+using ASL_LearnVR.UI;
 
 namespace ASL_LearnVR.LevelSelection
 {
@@ -424,6 +425,11 @@ namespace ASL_LearnVR.LevelSelection
                     button.onClick.AddListener(() => OnCategoryButtonClicked(categoryCopy));
                 }
             }
+
+            // Re-apply curve to include newly created buttons
+            var curvedPanel = container.GetComponentInParent<CurvedUIPanel>();
+            if (curvedPanel != null)
+                curvedPanel.ApplyCurve();
         }
 
         /// <summary>

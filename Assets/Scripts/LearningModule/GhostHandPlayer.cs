@@ -290,12 +290,24 @@ namespace ASL_LearnVR.LearningModule
 
         /// <summary>
         /// Aplica el material fantasma a las manos.
+        /// Fuerza modo OPACO para que las manos se vean solidas.
         /// </summary>
         private void ApplyGhostMaterial()
         {
             if (ghostHandMaterial == null) return;
 
-            ghostHandMaterial.color = ghostHandColor;
+            // Color solido (alpha 1)
+            ghostHandMaterial.color = new Color(ghostHandColor.r, ghostHandColor.g, ghostHandColor.b, 1f);
+
+            // Forzar Standard shader a modo Opaque
+            ghostHandMaterial.SetFloat("_Mode", 0f);
+            ghostHandMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+            ghostHandMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+            ghostHandMaterial.SetInt("_ZWrite", 1);
+            ghostHandMaterial.DisableKeyword("_ALPHATEST_ON");
+            ghostHandMaterial.DisableKeyword("_ALPHABLEND_ON");
+            ghostHandMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            ghostHandMaterial.renderQueue = -1;
 
             if (leftHandRenderers != null)
             {
@@ -756,46 +768,23 @@ namespace ASL_LearnVR.LearningModule
         }
 
         /// <summary>
-        /// Establece la visibilidad inmediata (alpha 0 o ghostHandColor.a) sin fade.
+        /// Establece la visibilidad inmediata sin fade.
         /// </summary>
         public void SetVisibilityImmediate(bool visible)
         {
-            if (ghostHandMaterial == null) return;
-
-            float targetAlpha = visible ? ghostHandColor.a : 0f;
-            Color c = ghostHandMaterial.color;
-            ghostHandMaterial.color = new Color(c.r, c.g, c.b, targetAlpha);
-
-            if (!visible)
-            {
-                SetGhostHandsVisible(false);
-            }
-            else
-            {
-                SetGhostHandsVisible(true);
-            }
+            SetGhostHandsVisible(visible);
         }
 
         private IEnumerator FadeCoroutine(bool fadeOut)
         {
             isFading = true;
 
-            float startAlpha = fadeOut ? ghostHandColor.a : 0f;
-            float endAlpha = fadeOut ? 0f : ghostHandColor.a;
-
-            // Si fade in, activar GameObjects primero y aplicar alpha 0
             if (!fadeOut)
             {
-                if (ghostHandMaterial != null)
-                {
-                    Color c = ghostHandMaterial.color;
-                    ghostHandMaterial.color = new Color(c.r, c.g, c.b, 0f);
-                }
+                // Fade in: activar, posicionar, aplicar pose
                 SetGhostHandsVisible(true);
                 PositionHands();
 
-                // Aplicar la pose del current sign (no neutro) para que las manos
-                // aparezcan mostrando el gesto correct
                 if (currentSign != null && rightPoseApplier != null)
                 {
                     var pose = ASLPoseLibrary.GetPoseBySignName(currentSign.signName);
@@ -810,38 +799,13 @@ namespace ASL_LearnVR.LearningModule
                 }
                 ApplyNeutralPose(leftPoseApplier);
             }
-
-            // Fade progresivo
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
+            else
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
-                // SmoothStep para un fade mas progresivo (ease-in-out)
-                float smoothT = t * t * (3f - 2f * t);
-                float alpha = Mathf.Lerp(startAlpha, endAlpha, smoothT);
-
-                if (ghostHandMaterial != null)
-                {
-                    Color c = ghostHandMaterial.color;
-                    ghostHandMaterial.color = new Color(c.r, c.g, c.b, alpha);
-                }
-
-                yield return null;
-            }
-
-            // Asegurar valor final exacto
-            if (ghostHandMaterial != null)
-            {
-                Color c = ghostHandMaterial.color;
-                ghostHandMaterial.color = new Color(c.r, c.g, c.b, endAlpha);
-            }
-
-            // Si fade out completed, desactivar GameObjects
-            if (fadeOut)
-            {
+                // Fade out: desactivar
                 SetGhostHandsVisible(false);
             }
+
+            yield return null;
 
             isFading = false;
             currentFade = null;
