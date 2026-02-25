@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Yes
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Yes
-  description: A fist moved slightly up and down to indicate agreement.
+  description: Close your fist and nod it up and down, like saying yes.
   handShapeOrPose: {fileID: 11400000, guid: d24476d9d1cf6184f94034f886366a52, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 46e109e399a243349a7dfc170035e27a, type: 3}

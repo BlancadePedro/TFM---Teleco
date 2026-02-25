@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Hello
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Hello
-  description: An open hand waved gently to greet someone.
+  description: Raise an open hand near your head and wave outward naturally.
   handShapeOrPose: {fileID: 11400000, guid: 90c02462108fb2c4b8fee378a2ed9657, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 776047683bbd4194cb92d4794629e9a4, type: 3}

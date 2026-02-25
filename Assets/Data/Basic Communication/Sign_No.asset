@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sign_No
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: No
-  description: Fingers extended and moved side to side to express negation.
+  description: Extend your index and middle fingers and tap them against your thumb
+    once.
   handShapeOrPose: {fileID: 11400000, guid: e1691a4874c1f2249914d7e8f1afb130, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c2cdec53f44b3b547b171acf91d32425, type: 3}

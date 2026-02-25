@@ -17,4 +17,4 @@ MonoBehaviour:
   handShapeOrPose: {fileID: 11400000, guid: 3282aff6d755bc24b8ea24e78fc3457a, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 2dbe0a988c094544daefe152bc059cb8, type: 3}

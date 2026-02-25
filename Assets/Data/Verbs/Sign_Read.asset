@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sign_Read
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Read
-  description: V handshape (index and middle extended) moving up and down like eyes scanning a page.
+  description: Hold one hand open like a book and move two fingers of the other hand
+    across it.
   handShapeOrPose: {fileID: 11400000, guid: 89f9f1765ce8d8a4881544e1561bc013, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e4c096fbd3171e44eb4e47f59156e94b, type: 3}

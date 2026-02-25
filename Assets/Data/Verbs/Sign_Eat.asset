@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Eat
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Eat
-  description: Bring your flattened O hand (White shape) to your mouth with a short movement.
+  description: Tap your fingertips to your mouth as if taking small bites.
   handShapeOrPose: {fileID: 11400000, guid: 628b54892277cd446b7f8fe70033784c, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 27ba9803cba68ae43ba72895e4ae3952, type: 3}

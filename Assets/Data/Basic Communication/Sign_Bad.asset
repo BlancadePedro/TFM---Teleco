@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Bad
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Bad
-  description: A thumbs-down gesture used to express something negative or unpleasant.
+  description: Show a thumbs-down and move your hand slightly downward.
   handShapeOrPose: {fileID: 11400000, guid: e16bd98c725088f40bd2feca59f25315, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 55fd347f97ab9a8438623d241e5f4b3e, type: 3}

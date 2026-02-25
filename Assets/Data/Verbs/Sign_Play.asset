@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Play
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Play
-  description: Y handshape (thumb and pinky extended) shaking with alternating wrist movement.
+  description: Extend the thumb and pinky on both hands and shake them slightly.
   handShapeOrPose: {fileID: 11400000, guid: 957a8bd6307f3ac4f946f4f4a987fda4, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b6877ad7a11749c4d912fc77b930ab03, type: 3}

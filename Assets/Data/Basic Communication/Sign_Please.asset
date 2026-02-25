@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Please
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Please
-  description: A flat hand moved in a small circular motion.
+  description: Place your open hand on your chest and move it in a circular motion.
   handShapeOrPose: {fileID: 11400000, guid: 90c02462108fb2c4b8fee378a2ed9657, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b64715005e1eed24d9ebcc1598a04c92, type: 3}

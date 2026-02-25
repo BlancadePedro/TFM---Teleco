@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Orange
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Orange
-  description: O handshape closes to fist (S) with twist motion
+  description: O handshape closes to fist with twist motion
   handShapeOrPose: {fileID: 11400000, guid: e0bcc1d1a46f9974ab7290aaafee3285, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0b6209a2fb2080f44b20bb63197a146c, type: 3}

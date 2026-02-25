@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Good
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Good
-  description: A thumbs-up gesture made with a closed fist to show something is good.
+  description: Show a thumbs-up and move your hand slightly upward.
   handShapeOrPose: {fileID: 11400000, guid: 359a2f1be73471f48b47a1df485290c4, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a5da0f27ac0a966428b9685796c3b023, type: 3}

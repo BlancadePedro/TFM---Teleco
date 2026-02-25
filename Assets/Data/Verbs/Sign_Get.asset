@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sign_Get
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Get
-  description: Hands closing from open to fist (S shape), pulling towards your body as if grabbing something.
+  description: Start with both hands open and pull them inward while closing into
+    fists.
   handShapeOrPose: {fileID: 11400000, guid: 4b05a6f3eb95c434ea9432e27b5d4fe4, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 223abefee4957c841bf4df1c336b61aa, type: 3}

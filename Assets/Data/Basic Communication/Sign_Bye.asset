@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Bye
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Bye
-  description: An open hand waved to say goodbye.
+  description: Open and close your hand repeatedly
   handShapeOrPose: {fileID: 11400000, guid: 90c02462108fb2c4b8fee378a2ed9657, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b073a2278f39d6f4ca08607cc9df8d1d, type: 3}

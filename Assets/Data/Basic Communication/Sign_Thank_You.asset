@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Thank_You
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Thank You
-  description: A flat hand moving forward to express thanks.
+  description: Touch your fingers to your chin and move your hand forward.
   handShapeOrPose: {fileID: 11400000, guid: 90c02462108fb2c4b8fee378a2ed9657, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 9716657e58ff91f46a0832e6feae4967, type: 3}

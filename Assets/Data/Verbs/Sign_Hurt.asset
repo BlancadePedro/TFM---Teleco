@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sign_Hurt
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Hurt
-  description: Index fingers (1 shape) pointing at each other with a small repeated twisting motion.
+  description: Extend both index fingers and bring them together with a twisting
+    motion.
   handShapeOrPose: {fileID: 11400000, guid: e255dc5f8ad725c45b883c8ffc5ebf8f, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7805669081c18b1449e9ab50c1564d69, type: 3}

@@ -287,6 +287,9 @@ GameObject:
   - component: {fileID: 200363635}
   - component: {fileID: 200363634}
   - component: {fileID: 200363647}
+  - component: {fileID: 200363648}
+  - component: {fileID: 200363649}
+  - component: {fileID: 200363650}
   m_Layer: 5
   m_Name: Panel Info
   m_TagString: Untagged
@@ -504,6 +507,42 @@ MonoBehaviour:
   m_Script: {fileID: 1681883320}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &200363648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200363632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &200363649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200363632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1954263066}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &200363650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 200363632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1449359801}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
 --- !u!1001 &240199245
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -632,6 +671,9 @@ GameObject:
   - component: {fileID: 283325899}
   - component: {fileID: 283325900}
   - component: {fileID: 283325901}
+  - component: {fileID: 283325902}
+  - component: {fileID: 283325903}
+  - component: {fileID: 283325904}
   m_Layer: 5
   m_Name: BackButton
   m_TagString: Untagged
@@ -656,8 +698,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -50, y: 100}
-  m_SizeDelta: {x: 150, y: 50}
+  m_AnchoredPosition: {x: -25, y: 100}
+  m_SizeDelta: {x: 200, y: 75}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &283325896
 MonoBehaviour:
@@ -775,6 +817,42 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1581559880}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &283325902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283325894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &283325903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283325894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1954263066}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &283325904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283325894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1449359801}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
 --- !u!115 &307604085
@@ -948,6 +1026,9 @@ GameObject:
   - component: {fileID: 513263633}
   - component: {fileID: 513263632}
   - component: {fileID: 513263634}
+  - component: {fileID: 513263635}
+  - component: {fileID: 513263636}
+  - component: {fileID: 513263637}
   m_Layer: 0
   m_Name: Text (Legacy)
   m_TagString: Untagged
@@ -1026,6 +1107,42 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1549764669}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &513263635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513263630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &513263636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513263630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1954263066}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &513263637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513263630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1449359801}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
 --- !u!1 &542799174
@@ -1141,6 +1258,9 @@ GameObject:
   - component: {fileID: 572733228}
   - component: {fileID: 572733227}
   - component: {fileID: 572733233}
+  - component: {fileID: 572733234}
+  - component: {fileID: 572733235}
+  - component: {fileID: 572733236}
   m_Layer: 5
   m_Name: Top
   m_TagString: Untagged
@@ -1263,6 +1383,42 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1681883320}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &572733234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 572733225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &572733235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 572733225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1954263066}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &572733236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 572733225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1449359801}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
 --- !u!1 &742465318
@@ -1461,6 +1617,21 @@ MonoBehaviour:
   m_TrackingChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!115 &850062926
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: CurvedUIVertexTMP
+  m_Namespace: ASL_LearnVR.UI
+  m_AssemblyName: Assembly-CSharp
 --- !u!115 &894673327
 MonoScript:
   m_ObjectHideFlags: 0
@@ -1536,6 +1707,7 @@ GameObject:
   - component: {fileID: 1022078789}
   - component: {fileID: 1022078791}
   - component: {fileID: 1022078790}
+  - component: {fileID: 1022078792}
   m_Layer: 0
   m_Name: Instructions Text
   m_TagString: Untagged
@@ -1582,9 +1754,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Complete each sign in the grid to mark it as finished. You can perform
-    them in any order. Status indicators:\n\u2022 Yellow \u2013 Recognized\n\u2022
-    Green \u2013 Completed"
+  m_text: Complete each sign in the grid to mark it as finished. You can perform
+    them in any order.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1663,6 +1834,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1022078788}
   m_CullTransparentMesh: 1
+--- !u!114 &1022078792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1022078788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 850062926}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertexTMP
 --- !u!1 &1033881555
 GameObject:
   m_ObjectHideFlags: 0
@@ -1760,6 +1943,9 @@ GameObject:
   - component: {fileID: 1120753373}
   - component: {fileID: 1120753372}
   - component: {fileID: 1120753380}
+  - component: {fileID: 1120753381}
+  - component: {fileID: 1120753382}
+  - component: {fileID: 1120753383}
   m_Layer: 5
   m_Name: Background Title
   m_TagString: Untagged
@@ -1914,6 +2100,42 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 1681883320}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &1120753381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120753370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &1120753382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120753370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1954263066}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &1120753383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120753370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1449359801}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
 --- !u!1 &1120855379
@@ -2077,7 +2299,7 @@ MonoBehaviour:
   backButton: {fileID: 283325896}
   multiGestureRecognizer: {fileID: 1120855380}
   dynamicGesturePracticeManager: {fileID: 77885576}
-  progressText: {fileID: 1936488298}
+  progressText: {fileID: 1185070929}
   progressBar: {fileID: 0}
   showDebugLogs: 1
 --- !u!1 &1185070927
@@ -2091,13 +2313,14 @@ GameObject:
   - component: {fileID: 1185070928}
   - component: {fileID: 1185070930}
   - component: {fileID: 1185070929}
+  - component: {fileID: 1185070931}
   m_Layer: 0
   m_Name: Progress Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1185070928
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2216,6 +2439,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1185070927}
   m_CullTransparentMesh: 1
+--- !u!114 &1185070931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185070927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 850062926}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertexTMP
 --- !u!1001 &1281871967
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2294,6 +2529,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5030734267259534325, guid: e2698219e3231e94c8765d49b9dd5cff, type: 3}
   m_PrefabInstance: {fileID: 1281871967}
   m_PrefabAsset: {fileID: 0}
+--- !u!115 &1316502036
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: CurvedUIVertex
+  m_Namespace: ASL_LearnVR.UI
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1380823672
 GameObject:
   m_ObjectHideFlags: 0
@@ -2394,6 +2644,7 @@ GameObject:
   - component: {fileID: 1429490331}
   - component: {fileID: 1429490330}
   - component: {fileID: 1429490333}
+  - component: {fileID: 1429490334}
   m_Layer: 0
   m_Name: GridContainer
   m_TagString: Untagged
@@ -2418,7 +2669,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: 1200, y: 500}
+  m_SizeDelta: {x: 1400, y: 480}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1429490330
 MonoBehaviour:
@@ -2494,6 +2745,33 @@ MonoBehaviour:
   m_Script: {fileID: 1549764669}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!114 &1429490334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1429490328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1316502036}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertex
+--- !u!115 &1449359801
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: CurvedUIVertex
+  m_Namespace: ASL_LearnVR.UI
+  m_AssemblyName: Assembly-CSharp
 --- !u!115 &1549764669
 MonoScript:
   m_ObjectHideFlags: 0
@@ -2535,6 +2813,7 @@ GameObject:
   - component: {fileID: 1589473898}
   - component: {fileID: 1589473900}
   - component: {fileID: 1589473899}
+  - component: {fileID: 1589473901}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2608,8 +2887,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2660,6 +2939,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589473897}
   m_CullTransparentMesh: 1
+--- !u!114 &1589473901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589473897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 850062926}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertexTMP
 --- !u!1 &1608912720
 GameObject:
   m_ObjectHideFlags: 0
@@ -2806,6 +3097,7 @@ GameObject:
   - component: {fileID: 1745650902}
   - component: {fileID: 1745650904}
   - component: {fileID: 1745650903}
+  - component: {fileID: 1745650905}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -2932,6 +3224,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1745650901}
   m_CullTransparentMesh: 1
+--- !u!114 &1745650905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1745650901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 850062926}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertexTMP
 --- !u!1001 &1805826572
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3203,7 +3507,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SIGNO
+  m_text: Self-Evaluation Mode
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3294,6 +3598,21 @@ MonoBehaviour:
   m_Script: {fileID: 894673327}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.UI.CurvedUIVertexTMP
+--- !u!115 &1954263066
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: CurvedUIVertex
+  m_Namespace: ASL_LearnVR.UI
+  m_AssemblyName: Assembly-CSharp
 --- !u!1 &1984100404
 GameObject:
   m_ObjectHideFlags: 0
@@ -3332,8 +3651,8 @@ RectTransform:
   - {fileID: 1936488297}
   - {fileID: 200363633}
   - {fileID: 1894112168}
-  - {fileID: 283325895}
   - {fileID: 1745650902}
+  - {fileID: 283325895}
   m_Father: {fileID: 163386463}
   m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

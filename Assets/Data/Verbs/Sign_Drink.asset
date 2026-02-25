@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Sign_Drink
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Drink
-  description: C handshape (like holding a cup) moving in and out toward the mouth
-    just like the Eat motion (no wrist tilt required).
+  description: Bring a curved hand to your mouth as if holding a cup.
   handShapeOrPose: {fileID: 11400000, guid: 952052b573ed9c6488b09d0172caa0aa, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7595ec377abf25f42938b46819eec047, type: 3}

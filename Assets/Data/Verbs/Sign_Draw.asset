@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sign_Draw
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Draw
-  description: I handshape (pinky extended) tracing a wavy line in the air, like drawing on a surface.
+  description: Hold one hand steady and move the other across it as if sketching
+    on a surface.
   handShapeOrPose: {fileID: 11400000, guid: e9c721d6193059b4fb824c036fd566d4, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7e8b5d0f0b9c8e54a981f9f80d0ffcde, type: 3}

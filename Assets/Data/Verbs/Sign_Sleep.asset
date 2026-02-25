@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Sign_Sleep
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.SignData
   signName: Sleep
-  description: Igual que WHITE literal: inicia con palma abierta (5) y cierra a White,
-    sin trayectoria obligatoria.
+  description: Open your hand near your face and close it gently while lowering it
+    toward your cheek.
   handShapeOrPose: {fileID: 11400000, guid: 9209272f549fc7d4089770feb91f7dbf, type: 2}
   requiresMovement: 1
   minimumHoldTime: 0.2
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 609df7d5b9f447444b7e2107ac600960, type: 3}
