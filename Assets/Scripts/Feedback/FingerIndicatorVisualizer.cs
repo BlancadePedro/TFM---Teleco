@@ -5,43 +5,43 @@ using UnityEngine.XR.Management;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Visualiza indicadores de feedback (anillos/halos) en los joints de los dedos.
-    /// No depende de modificar materiales del XR Hands visualizer.
-    /// Usa prefabs anclados a cada fingertip.
+    /// Displays feedback indicators (rings/halos) on finger joints.
+    /// Does not depend on modifying XR Hands visualizer materials.
+    /// Uses prefabs anchored to each fingertip.
     /// </summary>
     public class FingerIndicatorVisualizer : MonoBehaviour
     {
         [Header("Prefabs")]
-        [Tooltip("Prefab para indicador de error (rojo)")]
+        [Tooltip("Prefab for error indicator (red)")]
         [SerializeField] private GameObject errorIndicatorPrefab;
 
-        [Tooltip("Prefab para indicador de advertencia (naranja)")]
+        [Tooltip("Prefab for warning indicator (orange)")]
         [SerializeField] private GameObject warningIndicatorPrefab;
 
-        [Tooltip("Prefab para indicador de correct (verde)")]
+        [Tooltip("Prefab for correct indicator (green)")]
         [SerializeField] private GameObject correctIndicatorPrefab;
 
-        [Tooltip("Prefab para indicador global de mano correcta")]
+        [Tooltip("Prefab for hand-wide correct indicator")]
         [SerializeField] private GameObject handCorrectIndicatorPrefab;
 
         [Header("Settings")]
-        [Tooltip("Offset del indicador regardingl fingertip (en direccion forward)")]
+        [Tooltip("Indicator offset from fingertip (forward direction)")]
         [SerializeField] private float indicatorOffset = 0.015f;
 
-        [Tooltip("Scale de los indicadores")]
+        [Tooltip("Indicator scale")]
         [SerializeField] private float indicatorScale = 0.025f;
 
-        [Tooltip("Handedness de la mano a visualizar")]
+        [Tooltip("Handedness of the hand to visualize")]
         [SerializeField] private Handedness handedness = Handedness.Right;
 
-        [Tooltip("Component XRHandTrackingEvents (opcional, para fallback)")]
+        [Tooltip("XRHandTrackingEvents component (optional fallback)")]
         [SerializeField] private XRHandTrackingEvents handTrackingEvents;
 
         [Header("Visibility")]
-        [Tooltip("Show indicatores visuales")]
+        [Tooltip("Show visual indicators")]
         [SerializeField] private bool showIndicators = true;
 
-        [Tooltip("Show indicator global cuando todos los dedos estan corrects")]
+        [Tooltip("Show global indicator when all fingers are correct")]
         [SerializeField] private bool showHandCorrectIndicator = true;
 
         // Indicadores instanciados por dedo [5 dedos]

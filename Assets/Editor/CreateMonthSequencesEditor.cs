@@ -4,12 +4,12 @@ using System.IO;
 using ASL_LearnVR.Data;
 
 /// <summary>
-/// Editor utility para crear los MonthSequenceData (Meses) automáticamente.
-/// Crea 12 assets (ENERO..DICIEMBRE) con las letras tipo JAN,FEB,... y un CategoryData "Meses" que los contiene.
+/// Editor utility to create MonthSequenceData assets automatically.
+/// Creates 12 assets (JAN..DEC) and a CategoryData "Months" containing them.
 /// </summary>
 public static class CreateMonthSequencesEditor
 {
-    [MenuItem("Tools/ASL/Create Month Sequences (Meses)")]
+    [MenuItem("Tools/ASL/Create Month Sequences")]
     public static void CreateMonthSequences()
     {
         string basePath = "Assets/Data/Months";
@@ -25,15 +25,15 @@ public static class CreateMonthSequencesEditor
         string[] monthNames = new string[] { "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE" };
         string[] monthAbbr = new string[] { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-        // Buscar o crear CategoryData "Meses"
-        string categoryAssetPath = Path.Combine(categoriesPath, "Meses.asset");
-        CategoryData mesesCategory = AssetDatabase.LoadAssetAtPath<CategoryData>(categoryAssetPath);
-        if (mesesCategory == null)
+        // Find or create CategoryData "Months"
+        string categoryAssetPath = Path.Combine(categoriesPath, "Months.asset");
+        CategoryData monthsCategory = AssetDatabase.LoadAssetAtPath<CategoryData>(categoryAssetPath);
+        if (monthsCategory == null)
         {
-            mesesCategory = ScriptableObject.CreateInstance<CategoryData>();
-            mesesCategory.categoryName = "Meses";
-            AssetDatabase.CreateAsset(mesesCategory, categoryAssetPath);
-            Debug.Log("CreateMonthSequences: Created CategoryData 'Meses'.");
+            monthsCategory = ScriptableObject.CreateInstance<CategoryData>();
+            monthsCategory.categoryName = "Months";
+            AssetDatabase.CreateAsset(monthsCategory, categoryAssetPath);
+            Debug.Log("CreateMonthSequences: Created CategoryData 'Months'.");
         }
 
         for (int i = 0; i < monthNames.Length; i++)
@@ -52,7 +52,7 @@ public static class CreateMonthSequencesEditor
                 Debug.Log($"CreateMonthSequences: Created MonthSequenceData '{monthName}'.");
             }
 
-            // Asignar letras buscando SignData por nombre (ej: 'J','A','N')
+            // Assign letters by looking up SignData by name (e.g., 'J','A','N')
             for (int j = 0; j < 3; j++)
             {
                 string letter = abbr[j].ToString();
@@ -63,34 +63,34 @@ public static class CreateMonthSequencesEditor
                 }
                 else
                 {
-                    Debug.LogWarning($"CreateMonthSequences: No se encontró SignData para la letra '{letter}'. Deja vacío el campo. Crea un SignData con signName='{letter}'.");
+                    Debug.LogWarning($"CreateMonthSequences: Could not find SignData for letter '{letter}'. Leave the field empty or create a SignData with signName='{letter}'.");
                 }
             }
 
-            // Guardar cambios del asset
+            // Save asset changes
             EditorUtility.SetDirty(msd);
 
-            // Añadir a la categoría si no está ya
-            if (mesesCategory.signs == null)
-                mesesCategory.signs = new System.Collections.Generic.List<SignData>();
+            // Add to the category if not already present
+            if (monthsCategory.signs == null)
+                monthsCategory.signs = new System.Collections.Generic.List<SignData>();
 
-            if (!mesesCategory.signs.Contains(msd))
+            if (!monthsCategory.signs.Contains(msd))
             {
-                mesesCategory.signs.Add(msd);
-                EditorUtility.SetDirty(mesesCategory);
+                monthsCategory.signs.Add(msd);
+                EditorUtility.SetDirty(monthsCategory);
             }
         }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Selection.activeObject = mesesCategory;
-        Debug.Log("CreateMonthSequences: Proceso completado. Revisa 'Assets/Data/Months' y el CategoryData 'Meses'.");
+        Selection.activeObject = monthsCategory;
+        Debug.Log("CreateMonthSequences: Done. Check 'Assets/Data/Months' and the 'Months' CategoryData.");
     }
 
     private static SignData FindSignByName(string signName)
     {
-        // Buscar por assets SignData en el proyecto
+        // Look up SignData assets in the project
         string[] guids = AssetDatabase.FindAssets("t:SignData");
         foreach (var guid in guids)
         {

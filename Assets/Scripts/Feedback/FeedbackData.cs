@@ -699,9 +699,9 @@ namespace ASL_LearnVR.Feedback
         {
             string phaseStr = phase switch
             {
-                GesturePhase.Start => "al inicio",
-                GesturePhase.Move => "durante el movimiento",
-                GesturePhase.End => "al final",
+                GesturePhase.Start => "at the start",
+                GesturePhase.Move => "during the movement",
+                GesturePhase.End => "at the end",
                 _ => ""
             };
 
@@ -711,25 +711,25 @@ namespace ASL_LearnVR.Feedback
                 if (!string.IsNullOrEmpty(specific))
                     return specific;
                 if (expectedDirection.sqrMagnitude > 0.01f)
-                    return $"Mueve la mano {GetDirectionDescription(expectedDirection)}.";
-                return $"Ajusta la direccion del movimiento para '{gestureName}'.";
+                    return $"Move your hand {GetDirectionDescription(expectedDirection)}.";
+                return $"Adjust the movement direction for '{gestureName}'.";
             }
 
             return reason switch
             {
-                FailureReason.PoseLost => $"Manten la forma correcta de la mano {phaseStr}.",
-                FailureReason.SpeedTooLow => $"Mueve mas rapido (velocidad: {metrics.averageSpeed:F2} m/s).",
-                FailureReason.SpeedTooHigh => "Mueve mas lento y con control.",
-                FailureReason.DistanceTooShort => $"Haz un movimiento mas amplio (distancia: {metrics.totalDistance:F2} m).",
-                FailureReason.DirectionChangesInsufficient => $"Anade mas cambios de direccion ({metrics.directionChanges} detecteds).",
-                FailureReason.RotationInsufficient => $"Rota la muneca mas ({metrics.totalRotation:F0}° detecteds).",
-                FailureReason.NotCircular => "Haz el movimiento mas circular.",
-                FailureReason.Timeout => "Completa el gesto mas rapido.",
-                FailureReason.EndPoseMismatch => "Termina con la forma de mano correcta.",
-                FailureReason.TrackingLost => "Manten la mano visible para los sensores.",
-                FailureReason.OutOfZone => "Manten la mano en la zona correcta frente a ti.",
-                FailureReason.Unknown => $"Ajusta el movimiento para '{gestureName}'.",
-                _ => $"Intentalo de nuevo con '{gestureName}'."
+                FailureReason.PoseLost => $"Keep the correct hand shape {phaseStr}.",
+                FailureReason.SpeedTooLow => $"Move faster (speed: {metrics.averageSpeed:F2} m/s).",
+                FailureReason.SpeedTooHigh => "Move slower and with control.",
+                FailureReason.DistanceTooShort => $"Make a larger movement (distance: {metrics.totalDistance:F2} m).",
+                FailureReason.DirectionChangesInsufficient => $"Add more direction changes ({metrics.directionChanges} detected).",
+                FailureReason.RotationInsufficient => $"Rotate your wrist more ({metrics.totalRotation:F0} deg detected).",
+                FailureReason.NotCircular => "Make the movement more circular.",
+                FailureReason.Timeout => "Finish the gesture faster.",
+                FailureReason.EndPoseMismatch => "Finish with the correct hand shape.",
+                FailureReason.TrackingLost => "Keep your hand visible to the sensors.",
+                FailureReason.OutOfZone => "Keep your hand in the correct zone in front of you.",
+                FailureReason.Unknown => $"Adjust the movement for '{gestureName}'.",
+                _ => $"Try again with '{gestureName}'."
             };
         }
 
@@ -818,12 +818,12 @@ namespace ASL_LearnVR.Feedback
 
         public static string GetIdlePhaseMessage(string gestureName)
         {
-            return $"Coloca la mano para '{gestureName}'.";
+            return $"Place your hand for '{gestureName}'.";
         }
 
         public static string GetStartDetectedMessage(string gestureName)
         {
-            return "Bien! Ahora empieza el movimiento.";
+            return "Great! Now start the movement.";
         }
 
         public static string GetInProgressMessage(DynamicMovementIssue issue, DynamicMetrics metrics, string gestureName)
@@ -835,17 +835,17 @@ namespace ASL_LearnVR.Feedback
         {
             return issue switch
             {
-                DynamicMovementIssue.None => "Sigue asi.",
+                DynamicMovementIssue.None => "Keep going.",
                 DynamicMovementIssue.DirectionWrong => GetDirectionHint(gestureName, expectedDirection),
-                DynamicMovementIssue.TooFast => "Mas despacio.",
-                DynamicMovementIssue.TooSlow => "Mas rapido.",
-                DynamicMovementIssue.TooShort => "Haz el movimiento mas grande.",
-                DynamicMovementIssue.NotContinuous => "No pares, sigue moviendo.",
-                DynamicMovementIssue.NotCircular => "Haz el movimiento mas circular.",
-                DynamicMovementIssue.NeedMoreDirectionChanges => "Mueve de lado a lado mas veces.",
-                DynamicMovementIssue.RotationInsufficient => "Rota la muneca mas.",
-                DynamicMovementIssue.StartPoseDegrading => "Manten la forma de la mano.",
-                _ => "Sigue asi."
+                DynamicMovementIssue.TooFast => "Slow down.",
+                DynamicMovementIssue.TooSlow => "Move faster.",
+                DynamicMovementIssue.TooShort => "Make the movement bigger.",
+                DynamicMovementIssue.NotContinuous => "Don't stop—keep moving.",
+                DynamicMovementIssue.NotCircular => "Make the movement more circular.",
+                DynamicMovementIssue.NeedMoreDirectionChanges => "Move side to side more times.",
+                DynamicMovementIssue.RotationInsufficient => "Rotate your wrist more.",
+                DynamicMovementIssue.StartPoseDegrading => "Keep the hand shape.",
+                _ => "Keep going."
             };
         }
 
@@ -860,19 +860,19 @@ namespace ASL_LearnVR.Feedback
             if (expectedDirection.sqrMagnitude > 0.01f)
             {
                 string dirDesc = GetDirectionDescription(expectedDirection);
-                return $"Mueve la mano {dirDesc}.";
+                return $"Move your hand {dirDesc}.";
             }
 
-            return "Ajusta la direccion del movimiento.";
+            return "Adjust the movement direction.";
         }
 
         /// <summary>
-        /// Converts a direction vector to a human-readable Spanish description.
+        /// Converts a direction vector to a human-readable English description.
         /// </summary>
         public static string GetDirectionDescription(Vector3 direction)
         {
             if (direction.sqrMagnitude < 0.01f)
-                return "en la direccion correcta";
+                return "in the correct direction";
 
             Vector3 dir = direction.normalized;
 
@@ -881,14 +881,14 @@ namespace ASL_LearnVR.Feedback
             string horizontal = "";
             string depth = "";
 
-            if (dir.y > 0.4f) vertical = "hacia arriba";
-            else if (dir.y < -0.4f) vertical = "hacia abajo";
+            if (dir.y > 0.4f) vertical = "up";
+            else if (dir.y < -0.4f) vertical = "down";
 
-            if (dir.x > 0.4f) horizontal = "hacia la derecha";
-            else if (dir.x < -0.4f) horizontal = "hacia la izquierda";
+            if (dir.x > 0.4f) horizontal = "to the right";
+            else if (dir.x < -0.4f) horizontal = "to the left";
 
-            if (dir.z > 0.4f) depth = "hacia adelante";
-            else if (dir.z < -0.4f) depth = "hacia ti";
+            if (dir.z > 0.4f) depth = "forward";
+            else if (dir.z < -0.4f) depth = "toward you";
 
             // Combine components
             var parts = new System.Collections.Generic.List<string>();
@@ -897,9 +897,9 @@ namespace ASL_LearnVR.Feedback
             if (!string.IsNullOrEmpty(depth)) parts.Add(depth);
 
             if (parts.Count == 0)
-                return "en la direccion correcta";
+                return "in the correct direction";
 
-            return string.Join(" y ", parts);
+            return string.Join(" and ", parts);
         }
 
         /// <summary>
@@ -920,83 +920,83 @@ namespace ASL_LearnVR.Feedback
 
             // Basic communication
             if (upper.Contains("HELLO") || upper.Contains("HOLA"))
-                return "Agita la mano de lado a lado (como saludando).";
+                return "Wave your hand side to side (like saying hello).";
             if (upper.Contains("BYE") || upper.Contains("ADIOS"))
-                return "Agita la mano de lado a lado (despidiendote).";
+                return "Wave your hand side to side (saying goodbye).";
             if (upper.Contains("YES") || upper.Contains("SI"))
-                return "Mueve el puno hacia abajo y arriba (como asintiendo).";
+                return "Move your fist up and down (like nodding yes).";
             if (upper.Contains("NO"))
-                return "Mueve los dedos de lado a lado (como negando).";
+                return "Move your fingers side to side (like shaking no).";
             if (upper.Contains("THANK") || upper.Contains("GRACIA"))
-                return "Mueve la mano hacia adelante desde la barbilla.";
+                return "Move your hand forward from your chin.";
             if (upper.Contains("PLEASE") || upper.Contains("POR FAVOR"))
-                return "Haz un movimiento circular sobre el pecho.";
+                return "Make a circular motion on your chest.";
             if (upper.Contains("GOOD") || upper.Contains("BIEN") || upper.Contains("BUENO"))
-                return "Mueve la mano hacia adelante desde la barbilla.";
+                return "Move your hand forward from your chin.";
             if (upper.Contains("BAD") || upper.Contains("MAL"))
-                return "Mueve la mano hacia abajo desde la barbilla.";
+                return "Move your hand down from your chin.";
 
             // Colors with movement
             if (upper.Contains("BLUE") || upper.Contains("AZUL"))
-                return "Gira la mano con la B hacia la derecha.";
+                return "Turn the B-hand to the right.";
             if (upper.Contains("GREEN") || upper.Contains("VERDE"))
-                return "Mueve la G hacia adelante y atras.";
+                return "Move the G hand forward and back.";
             if (upper.Contains("YELLOW") || upper.Contains("AMARILLO"))
-                return "Gira la mano con la Y hacia fuera.";
+                return "Turn the Y-hand outward.";
             if (upper.Contains("PURPLE") || upper.Contains("MORADO"))
-                return "Agita la P de lado a lado.";
+                return "Shake the P-hand side to side.";
             if (upper.Contains("ORANGE") || upper.Contains("NARANJA"))
-                return "Aprieta la mano frente a la barbilla (como exprimiendo).";
+                return "Squeeze your hand in front of the chin (like squeezing).";
             if (upper.Contains("BROWN") || upper.Contains("MARRON"))
-                return "Desliza la B hacia abajo por la mejilla.";
+                return "Slide the B-hand down your cheek.";
             if (upper.Contains("PINK") || upper.Contains("ROSA"))
-                return "Desliza la P hacia abajo por los labios.";
+                return "Slide the P-hand down your lips.";
             if (upper.Contains("WHITE") || upper.Contains("BLANCO"))
-                return "Mueve la mano desde el pecho hacia fuera cerrando los dedos.";
+                return "Move your hand outward from the chest while closing the fingers.";
             if (upper.Contains("BLACK") || upper.Contains("NEGRO"))
-                return "Desliza el indice de lado a lado por la frente.";
+                return "Slide the index finger side to side across the forehead.";
             if (upper.Contains("RED") || upper.Contains("ROJO"))
-                return "Desliza el indice hacia abajo desde los labios.";
+                return "Slide the index finger down from the lips.";
             if (upper.Contains("GRAY") || upper.Contains("GRIS"))
-                return "Mueve ambas manos adelante y atras cruzandose.";
+                return "Move both hands forward and back, crossing each other.";
 
             // Days of the week
             if (upper.Contains("MONDAY") || upper.Contains("LUNES"))
-                return "Haz un pequeno circulo con la M.";
+                return "Make a small circle with the M handshape.";
             if (upper.Contains("TUESDAY") || upper.Contains("MARTES"))
-                return "Haz un pequeno circulo con la T.";
+                return "Make a small circle with the T handshape.";
             if (upper.Contains("WEDNESDAY") || upper.Contains("MIERCOLES"))
-                return "Haz un pequeno circulo con la W.";
+                return "Make a small circle with the W handshape.";
             if (upper.Contains("THURSDAY") || upper.Contains("JUEVES"))
-                return "Haz un pequeno circulo con la H (o T+H).";
+                return "Make a small circle with the H (or T+H) handshape.";
             if (upper.Contains("FRIDAY") || upper.Contains("VIERNES"))
-                return "Haz un pequeno circulo con la F.";
+                return "Make a small circle with the F handshape.";
             if (upper.Contains("SATURDAY") || upper.Contains("SABADO"))
-                return "Haz un pequeno circulo con la S.";
+                return "Make a small circle with the S handshape.";
             if (upper.Contains("SUNDAY") || upper.Contains("DOMINGO"))
-                return "Mueve ambas manos hacia abajo y hacia fuera (abriendo).";
+                return "Move both hands down and outward (opening).";
 
             // Verbs
             if (upper.Contains("EAT") || upper.Contains("COMER"))
-                return "Lleva la mano cerrada hacia la boca repetidamente.";
+                return "Bring your closed hand to your mouth repeatedly.";
             if (upper.Contains("DRINK") || upper.Contains("BEBER"))
-                return "Lleva la mano como un vaso hacia la boca.";
+                return "Bring your hand like a cup to your mouth.";
             if (upper.Contains("SLEEP") || upper.Contains("DORMIR"))
-                return "Lleva la mano abierta hacia la cara cerrando los dedos.";
+                return "Bring your open hand to your face while closing the fingers.";
             if (upper.Contains("READ") || upper.Contains("LEER"))
-                return "Mueve los dedos en V sobre la palma de lado a lado.";
+                return "Move the V fingers across the palm side to side.";
             if (upper.Contains("WRITE") || upper.Contains("ESCRIBIR"))
-                return "Haz como si escribieras sobre la palma abierta.";
+                return "Pretend to write on the open palm.";
             if (upper.Contains("DRAW") || upper.Contains("DIBUJAR"))
-                return "Mueve el menique en zigzag sobre la palma.";
+                return "Move the pinky in a zigzag over the palm.";
             if (upper.Contains("PLAY") || upper.Contains("JUGAR"))
-                return "Agita ambas manos con los pulgares y meniques extendidos.";
+                return "Shake both hands with thumbs and pinkies extended.";
             if (upper.Contains("HURT") || upper.Contains("DOLOR"))
-                return "Gira ambos indices uno hacia el otro repetidamente.";
+                return "Twist both index fingers toward each other repeatedly.";
             if (upper.Contains("GET") || upper.Contains("OBTENER"))
-                return "Mueve ambas manos hacia ti cerrando los dedos.";
+                return "Pull both hands toward you while closing the fingers.";
             if (upper.Contains("TAP") || upper.Contains("TOCAR"))
-                return "Toca con el indice hacia abajo repetidamente.";
+                return "Tap downward with the index finger repeatedly.";
 
             return null;
         }
@@ -1049,41 +1049,41 @@ namespace ASL_LearnVR.Feedback
                 string specific = GetGestureSpecificDirection(gestureName);
                 if (!string.IsNullOrEmpty(specific))
                 {
-                    explanation = $"La direccion no era correcta. {specific}";
+                    explanation = $"Direction was incorrect. {specific}";
                 }
                 else if (expectedDirection.sqrMagnitude > 0.01f)
                 {
                     string dirDesc = GetDirectionDescription(expectedDirection);
-                    explanation = $"La direccion no era correcta. Debes mover la mano {dirDesc}";
+                    explanation = $"Direction was incorrect. Move your hand {dirDesc}";
                 }
                 else
                 {
-                    explanation = "La direccion del movimiento no era correcta";
+                    explanation = "Movement direction was incorrect";
                 }
             }
             else
             {
                 explanation = reason switch
                 {
-                    FailureReason.SpeedTooLow => "El gesto fue demasiado lento",
-                    FailureReason.SpeedTooHigh => "El gesto fue demasiado rapido",
-                    FailureReason.DistanceTooShort => "El movimiento fue demasiado corto",
-                    FailureReason.DirectionChangesInsufficient => "No hubo suficientes cambios de direccion",
-                    FailureReason.RotationInsufficient => "No rotaste la muneca lo suficiente",
-                    FailureReason.NotCircular => "El movimiento no fue suficientemente circular",
-                    FailureReason.Timeout => "El gesto tardo demasiado",
+                    FailureReason.SpeedTooLow => "The gesture was too slow",
+                    FailureReason.SpeedTooHigh => "The gesture was too fast",
+                    FailureReason.DistanceTooShort => "The movement was too short",
+                    FailureReason.DirectionChangesInsufficient => "Not enough direction changes",
+                    FailureReason.RotationInsufficient => "You did not rotate your wrist enough",
+                    FailureReason.NotCircular => "The movement was not circular enough",
+                    FailureReason.Timeout => "The gesture took too long",
                     FailureReason.PoseLost => phase == GesturePhase.Start
-                        ? "Empezaste a mover la mano demasiado pronto"
-                        : "Perdiste la forma de la mano durante el movimiento",
-                    FailureReason.EndPoseMismatch => "La pose final no era correcta",
-                    FailureReason.TrackingLost => "Manten la mano visible para los sensores",
-                    FailureReason.OutOfZone => "Tu mano salio de la zona de tracking",
-                    FailureReason.Unknown => $"El gesto '{gestureName}' no se completo",
-                    _ => $"Vuelve a intentar el gesto '{gestureName}'"
+                        ? "You started moving your hand too soon"
+                        : "You lost the hand shape during the movement",
+                    FailureReason.EndPoseMismatch => "The final pose was incorrect",
+                    FailureReason.TrackingLost => "Keep your hand visible to the sensors",
+                    FailureReason.OutOfZone => "Your hand left the tracking zone",
+                    FailureReason.Unknown => $"The gesture '{gestureName}' was not completed",
+                    _ => $"Try the gesture '{gestureName}' again"
                 };
             }
 
-            return $"{explanation}. Intentalo de nuevo manteniendo la forma de la mano.";
+            return $"{explanation}. Try again while keeping the hand shape.";
         }
 
         public static DynamicMovementIssue DetectMovementIssue(

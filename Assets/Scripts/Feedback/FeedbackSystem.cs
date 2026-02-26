@@ -234,13 +234,13 @@ namespace ASL_LearnVR.Feedback
             if (currentSign != null)
             {
                 dynamicFeedbackAnalyzer?.NotifyIdle(currentSign.signName);
-                string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Coloca la mano para '{currentSign.signName}'";
+                string message = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Place your hand for '{currentSign.signName}'";
                 UpdateFeedbackMessage(message);
             }
 
             SetState(FeedbackState.Waiting);
 
-            Debug.Log("[FeedbackSystem] Forzado a Idle - overlay activado");
+            Debug.Log("[FeedbackSystem] Forced to Idle - overlay ON");
         }
 
         /// <summary>
@@ -358,10 +358,10 @@ namespace ASL_LearnVR.Feedback
             if (active)
             {
                 SetState(FeedbackState.Waiting);
-                UpdateFeedbackMessage($"Practica '{currentSign?.signName ?? "signo"}'...");
+                UpdateFeedbackMessage($"Practice '{currentSign?.signName ?? "sign"}'...");
                 if (feedbackUI != null)
                 {
-                    feedbackUI.SetWaitingState($"Practica '{currentSign?.signName ?? "signo"}'...");
+                    feedbackUI.SetWaitingState($"Practice '{currentSign?.signName ?? "sign"}'...");
                 }
                 feedbackAudio?.PlayStartPractice();
             }
@@ -370,7 +370,7 @@ namespace ASL_LearnVR.Feedback
                 SetState(FeedbackState.Inactive);
             }
 
-            Debug.Log($"[FeedbackSystem] Sistema de feedback: {(active ? "ACTIVADO" : "DESACTIVADO")}");
+            Debug.Log($"[FeedbackSystem] Feedback system: {(active ? "ENABLED" : "DISABLED")}");
         }
 
         /// <summary>
@@ -389,12 +389,12 @@ namespace ASL_LearnVR.Feedback
                 if (rightHandRecognizer != null && rightHandRecognizer.TargetSign?.signName != sign.signName)
                 {
                     rightHandRecognizer.TargetSign = sign;
-                    Debug.Log($"[FeedbackSystem] Sincronizado rightHandRecognizer con signo: {sign.signName}");
+                    Debug.Log($"[FeedbackSystem] Synchronized rightHandRecognizer with sign: {sign.signName}");
                 }
                 if (leftHandRecognizer != null && leftHandRecognizer.TargetSign?.signName != sign.signName)
                 {
                     leftHandRecognizer.TargetSign = sign;
-                    Debug.Log($"[FeedbackSystem] Sincronizado leftHandRecognizer con signo: {sign.signName}");
+                    Debug.Log($"[FeedbackSystem] Synchronized leftHandRecognizer with sign: {sign.signName}");
                 }
             }
 
@@ -406,12 +406,12 @@ namespace ASL_LearnVR.Feedback
             {
                 // Fase 0: Esperando initial pose for dynamic gesture
                 dynamicFeedbackAnalyzer?.NotifyIdle(sign.signName);
-                initialMessage = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Coloca la mano para '{sign.signName}'";
+                initialMessage = dynamicFeedbackAnalyzer?.CurrentMessage ?? $"Place your hand for '{sign.signName}'";
             }
             else
             {
                 // Static gesture: mensaje normal
-                initialMessage = $"Haz el signo '{sign?.signName ?? "signo"}'...";
+                initialMessage = $"Make the sign '{sign?.signName ?? "sign"}'...";
             }
 
             UpdateFeedbackMessage(initialMessage);
@@ -431,7 +431,7 @@ namespace ASL_LearnVR.Feedback
                 fingerOverlayRenderer.ClearAllStatuses();
             }
 
-            Debug.Log($"[FeedbackSystem] Sign configured: {sign?.signName ?? "ninguno"}" +
+            Debug.Log($"[FeedbackSystem] Sign configured: {sign?.signName ?? "none"}" +
                      (sign?.requiresMovement == true ? " (dynamic - Phase 0: Idle)" : " (static)"));
         }
 
@@ -560,7 +560,7 @@ namespace ASL_LearnVR.Feedback
                 else
                 {
                     SetState(FeedbackState.Waiting);
-                    UpdateFeedbackMessage($"Haz el signo '{currentSign.signName}'...");
+                    UpdateFeedbackMessage($"Make the sign '{currentSign.signName}'...");
                     if (fingerIndicatorVisualizer != null)
                         fingerIndicatorVisualizer.HideAll();
                     fingerOverlayRenderer?.ClearAllStatuses();
@@ -612,7 +612,7 @@ namespace ASL_LearnVR.Feedback
         private string GenerateDetailedFeedbackMessage(StaticGestureResult result)
         {
             if (result == null)
-                return $"Haz el signo '{currentSign?.signName ?? "signo"}'...";
+                return $"Make the sign '{currentSign?.signName ?? "sign"}'...";
 
             // Confirmed success: clear message windows and reinforce positive
             if (result.isMatchGlobal)
@@ -632,7 +632,7 @@ namespace ASL_LearnVR.Feedback
             if (!string.IsNullOrEmpty(result.summaryMessage))
                 return result.summaryMessage;
 
-            return $"Ajusta la mano para '{currentSign?.signName ?? "signo"}'...";
+            return $"Adjust your hand for '{currentSign?.signName ?? "sign"}'...";
         }
 
         /// <summary>
@@ -788,7 +788,7 @@ namespace ASL_LearnVR.Feedback
             {
                 candidates.Add(new MessageCandidate
                 {
-                    text = "Casi: aguanta el gesto firme 0.5 s",
+                    text = "Almost there: hold the gesture steady for 0.5 s",
                     severityWeight = 1,
                     affectedCount = totalIssues,
                     order = 40
@@ -799,8 +799,8 @@ namespace ASL_LearnVR.Feedback
             if (totalIssues > 0)
             {
                 string progress = totalIssues == 1
-                    ? "Solo falta 1 ajuste"
-                    : $"Te faltan {totalIssues} dedos";
+                    ? "Only 1 adjustment left"
+                    : $"You still need to adjust {totalIssues} fingers";
 
                 candidates.Add(new MessageCandidate
                 {
@@ -814,7 +814,7 @@ namespace ASL_LearnVR.Feedback
             {
                 candidates.Add(new MessageCandidate
                 {
-                    text = $"Repite el gesto '{currentSign?.signName ?? "signo"}' sin moverte un instante",
+                    text = $"Repeat the gesture '{currentSign?.signName ?? "sign"}' without moving for a moment",
                     severityWeight = 1,
                     affectedCount = 1,
                     order = 60
@@ -1124,12 +1124,12 @@ namespace ASL_LearnVR.Feedback
                         feedbackUI.SetWaitingState(message);
                         break;
                 }
-                Debug.Log($"[FeedbackSystem] Mensaje updated (UI): '{message}' [State: {currentState}]");
+                Debug.Log($"[FeedbackSystem] Message updated (UI): '{message}' [State: {currentState}]");
             }
             else if (!(useDirectText && directFeedbackText != null))
             {
                 // Solo avisar si no hay ni texto directo ni UI
-                Debug.LogWarning($"[FeedbackSystem] No hay destino para el mensaje: '{message}'");
+                Debug.LogWarning($"[FeedbackSystem] No destination for the message: '{message}'");
             }
 
             // Siempre emitir evento para integracion externa
@@ -1159,7 +1159,7 @@ namespace ASL_LearnVR.Feedback
             // IMPORTANTE: Solo procesar si es EXACTAMENTE el signo que estamos practicando
             if (sign == null || sign.signName != currentSign.signName)
             {
-                Debug.Log($"[FeedbackSystem] Ignorando deteccion de '{sign?.signName}' - practicando '{currentSign.signName}'");
+                Debug.Log($"[FeedbackSystem] Ignoring detection of '{sign?.signName}' - currently practicing '{currentSign.signName}'");
                 return;
             }
 
@@ -1184,7 +1184,7 @@ namespace ASL_LearnVR.Feedback
             // Esto evita el delay del analysisInterval
             lastAnalysisTime = 0f; // Reset para permitir analisis inmediato
 
-            Debug.Log($"[FeedbackSystem] Gesture CORRECTO detected: '{currentSign.signName}'");
+            Debug.Log($"[FeedbackSystem] Gesture CORRECT detected: '{currentSign.signName}'");
         }
 
         /// <summary>
@@ -1199,7 +1199,7 @@ namespace ASL_LearnVR.Feedback
             if (currentState == FeedbackState.Success && Time.time > successEndTime)
             {
                 SetState(FeedbackState.Waiting);
-                UpdateFeedbackMessage($"Haz el signo '{currentSign?.signName ?? "signo"}'...");
+                UpdateFeedbackMessage($"Make the sign '{currentSign?.signName ?? "sign"}'...");
 
                 if (feedbackUI != null)
                     feedbackUI.SetWaitingState();
@@ -1223,13 +1223,13 @@ namespace ASL_LearnVR.Feedback
             // IMPORTANTE: Ignorar si estamos en cooldown de exito o en message latch
             if (currentState == FeedbackState.Success && Time.time < successEndTime)
             {
-                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en cooldown de exito");
+                Debug.Log($"[FeedbackSystem] Ignoring start of '{gestureName}' - in success cooldown");
                 return;
             }
 
             if (Time.time < messageLatchUntil)
             {
-                Debug.Log($"[FeedbackSystem] Ignorando inicio de '{gestureName}' - en message latch");
+                Debug.Log($"[FeedbackSystem] Ignoring start of '{gestureName}' - message latch active");
                 return;
             }
 
@@ -1254,7 +1254,7 @@ namespace ASL_LearnVR.Feedback
             if (feedbackUI != null)
                 feedbackUI.SetProgressState(message);
 
-            Debug.Log($"[FeedbackSystem] Fase 1 - StartDetected: {gestureName} (overlay OFF)");
+            Debug.Log($"[FeedbackSystem] Phase 1 - StartDetected: {gestureName} (overlay OFF)");
         }
 
         /// <summary>
@@ -1318,7 +1318,7 @@ namespace ASL_LearnVR.Feedback
 
             // El overlay sigue OFF durante el hold de exito (no mostramos dedos, solo exito global)
 
-            Debug.Log($"[FeedbackSystem] Fase 4 - Completed: {result.gestureName} (hold 3s, luego Idle)");
+            Debug.Log($"[FeedbackSystem] Phase 4 - Completed: {result.gestureName} (hold 3s, then Idle)");
         }
 
         /// <summary>
@@ -1369,7 +1369,7 @@ namespace ASL_LearnVR.Feedback
 
             // El overlay sigue OFF durante el hold de fallo
 
-            Debug.Log($"[FeedbackSystem] Fase 5 - Failed: {result.gestureName} - {result.failureReason} (hold {holdDuration:F2}s, luego Idle)");
+            Debug.Log($"[FeedbackSystem] Phase 5 - Failed: {result.gestureName} - {result.failureReason} (hold {holdDuration:F2}s, then Idle)");
 
             // NO reseteamos el analizador aqui - lo hacemos cuando expira el latch en HandleLatchExpired
         }

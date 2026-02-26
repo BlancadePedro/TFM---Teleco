@@ -3,30 +3,30 @@ using UnityEngine;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Gestiona el audio de feedback para el sistema de aprendizaje.
-    /// Reproduce sonidos al exito/error con opcion de mute.
+    /// Manages feedback audio for the learning system.
+    /// Plays success/error sounds with optional mute.
     /// </summary>
     public class FeedbackAudio : MonoBehaviour
     {
         [Header("Audio Source")]
-        [Tooltip("AudioSource para reproducir los clips")]
+        [Tooltip("AudioSource used to play the clips")]
         [SerializeField] private AudioSource audioSource;
 
         [Header("Audio Clips")]
-        [Tooltip("Sonido al completar gesto correctamente")]
+        [Tooltip("Sound when a gesture completes correctly")]
         [SerializeField] private AudioClip successClip;
 
-        [Tooltip("Sonido al fallar gesto (opcional, puede estar muted)")]
+        [Tooltip("Sound when a gesture fails (optional, can be muted)")]
         [SerializeField] private AudioClip errorClip;
 
-        [Tooltip("Sonido al iniciar practica")]
+        [Tooltip("Sound when practice starts")]
         [SerializeField] private AudioClip startPracticeClip;
 
-        [Tooltip("Sonido de progreso parcial (opcional)")]
+        [Tooltip("Sound for partial success (optional)")]
         [SerializeField] private AudioClip partialSuccessClip;
 
         [Header("Settings")]
-        [Tooltip("Volumen de los sonidos de feedback")]
+        [Tooltip("Volume for feedback sounds")]
         [Range(0f, 1f)]
         [SerializeField] private float volume = 0.5f;
 
@@ -36,11 +36,11 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Play error sound")]
         [SerializeField] private bool playErrorSound = false;
 
-        [Tooltip("Mute global del audio de feedback")]
+        [Tooltip("Global mute for feedback audio")]
         [SerializeField] private bool isMuted = false;
 
         [Header("Cooldown")]
-        [Tooltip("Time minimo entre sonidos (evita spam)")]
+        [Tooltip("Minimum time between sounds (prevents spam)")]
         [SerializeField] private float soundCooldown = 0.5f;
 
         // State interno
@@ -58,7 +58,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de exito.
+        /// Plays the success sound.
         /// </summary>
         public void PlaySuccess()
         {
@@ -69,7 +69,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de error.
+        /// Plays the error sound.
         /// </summary>
         public void PlayError()
         {
@@ -80,7 +80,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de inicio de practica.
+        /// Plays the start-practice sound.
         /// </summary>
         public void PlayStartPractice()
         {
@@ -91,7 +91,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce el sonido de exito parcial.
+        /// Plays the partial-success sound.
         /// </summary>
         public void PlayPartialSuccess()
         {
@@ -102,7 +102,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Reproduce un clip respetando cooldown y mute.
+        /// Plays a clip respecting cooldown and mute.
         /// </summary>
         private void PlayClip(AudioClip clip)
         {
@@ -118,7 +118,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece el estado de mute.
+        /// Sets mute state.
         /// </summary>
         public void SetMuted(bool muted)
         {
@@ -126,7 +126,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa/desactiva los sonidos de exito.
+        /// Enables/disables success sounds.
         /// </summary>
         public void SetSuccessSoundEnabled(bool enabled)
         {
@@ -134,7 +134,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Activa/desactiva los sonidos de error.
+        /// Enables/disables error sounds.
         /// </summary>
         public void SetErrorSoundEnabled(bool enabled)
         {
@@ -142,7 +142,7 @@ namespace ASL_LearnVR.Feedback
         }
 
         /// <summary>
-        /// Establece el volumen (0-1).
+        /// Sets the volume (0-1).
         /// </summary>
         public void SetVolume(float newVolume)
         {

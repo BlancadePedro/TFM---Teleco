@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d01ae6ca00d6a84b962b8e4b6926bd7, type: 3}
   m_Name: Month_FEBRERO
   m_EditorClassIdentifier: Assembly-CSharp::ASL_LearnVR.Data.MonthSequenceData
-  signName: FEBRERO
+  signName: February
   description: "Fingerspelling for FEBRUARY: F \u2192 E \u2192 B"
   handShapeOrPose: {fileID: 0}
   requiresMovement: 0

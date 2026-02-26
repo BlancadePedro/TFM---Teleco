@@ -5,58 +5,58 @@ using UnityEngine.UI;
 namespace ASL_LearnVR.Feedback
 {
     /// <summary>
-    /// Panel UI en World Space para mostrar feedback textual al usuario.
-    /// Muestra 1-2 mensajes de correccion priorizados segun severidad.
+    /// World-space UI panel to show textual feedback to the user.
+    /// Shows one or two correction messages prioritized by severity.
     /// </summary>
     public class FeedbackUI : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Text principal del mensaje de feedback")]
+        [Tooltip("Main feedback message text")]
         [SerializeField] private TextMeshProUGUI feedbackText;
 
-        [Tooltip("Text secundario para mensaje adicional (opcional)")]
+        [Tooltip("Secondary text for optional extra message")]
         [SerializeField] private TextMeshProUGUI secondaryText;
 
-        [Tooltip("Icon de estado (check/warning/error)")]
+        [Tooltip("Status icon (check/warning/error)")]
         [SerializeField] private Image statusIcon;
 
-        [Tooltip("Panel contenedor del feedback")]
+        [Tooltip("Feedback container panel")]
         [SerializeField] private GameObject feedbackPanel;
 
-        [Tooltip("Panel de exito (se muestra brevemente al completar gesto)")]
+        [Tooltip("Success panel (briefly shown when the gesture completes)")]
         [SerializeField] private GameObject successPanel;
 
         [Header("Icons")]
-        [Tooltip("Icon para estado correct")]
+        [Tooltip("Icon for correct state")]
         [SerializeField] private Sprite iconSuccess;
 
-        [Tooltip("Icon para advertencia/ajuste menor")]
+        [Tooltip("Icon for warning/minor adjustment")]
         [SerializeField] private Sprite iconWarning;
 
-        [Tooltip("Icon para error mayor")]
+        [Tooltip("Icon for major error")]
         [SerializeField] private Sprite iconError;
 
-        [Tooltip("Icon para estado en progreso")]
+        [Tooltip("Icon for in-progress state")]
         [SerializeField] private Sprite iconProgress;
 
         [Header("Colors")]
-        [Tooltip("Color para estado correct")]
+        [Tooltip("Color for correct state")]
         [SerializeField] private Color colorSuccess = new Color(0.2f, 0.8f, 0.2f);
 
-        [Tooltip("Color para advertencia")]
+        [Tooltip("Warning color")]
         [SerializeField] private Color colorWarning = new Color(1f, 0.3f, 0.3f);
 
-        [Tooltip("Color para error")]
+        [Tooltip("Error color")]
         [SerializeField] private Color colorError = new Color(1f, 0.3f, 0.3f);
 
-        [Tooltip("Color para estado neutral/en progreso")]
+        [Tooltip("Color for neutral/in-progress state")]
         [SerializeField] private Color colorNeutral = Color.white;
 
         [Header("Animation")]
-        [Tooltip("Duration del fade in/out")]
+        [Tooltip("Fade in/out duration")]
         [SerializeField] private float fadeDuration = 0.2f;
 
-        [Tooltip("Duration que se muestra el panel de exito")]
+        [Tooltip("Duration the success panel is shown")]
         [SerializeField] private float successDisplayDuration = 2f;
 
         // State actual
@@ -138,7 +138,7 @@ namespace ASL_LearnVR.Feedback
             {
                 // Sin errores pero tampoco match global: usar mensaje generated (ej. "Hand not tracked")
                 SetWaitingState(string.IsNullOrEmpty(result.summaryMessage)
-                    ? "Haz el signo para practicar..."
+                    ? "Make the sign to practice..."
                     : result.summaryMessage);
             }
         }
@@ -166,13 +166,13 @@ namespace ASL_LearnVR.Feedback
         /// </summary>
         public void ShowDynamicProgress(string gestureName, float progress)
         {
-            SetProgressState($"'{gestureName}' en progreso... {Mathf.RoundToInt(progress * 100)}%");
+            SetProgressState($"'{gestureName}' in progress... {Mathf.RoundToInt(progress * 100)}%");
         }
 
         /// <summary>
         /// Establece estado de espera (neutral).
         /// </summary>
-        public void SetWaitingState(string message = "Haz el signo para practicar...")
+        public void SetWaitingState(string message = "Make the sign to practice...")
         {
             currentState = FeedbackState.Waiting;
             SetText(message);

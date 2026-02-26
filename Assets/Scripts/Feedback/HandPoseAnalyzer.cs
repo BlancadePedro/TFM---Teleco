@@ -19,10 +19,10 @@ namespace ASL_LearnVR.Feedback
         [Tooltip("Diccionario de perfiles de constraints por signo")]
         [SerializeField] private List<FingerConstraintProfile> constraintProfiles = new List<FingerConstraintProfile>();
 
-        [Tooltip("Component XRHandTrackingEvents de la mano a analizar")]
+        [Tooltip("XRHandTrackingEvents component for the hand to analyze")]
         [SerializeField] private XRHandTrackingEvents handTrackingEvents;
 
-        [Tooltip("Handedness de la mano a analizar")]
+        [Tooltip("Handedness of the hand to analyze")]
         [SerializeField] private Handedness handedness = Handedness.Right;
 
         [Header("Analysis Settings")]
@@ -238,9 +238,9 @@ namespace ASL_LearnVR.Feedback
             if (profile == null)
             {
                 if (showDebugLogs)
-                    Debug.Log($"[HandPoseAnalyzer] No hay perfil de constraints para '{signData.signName}'");
+                    Debug.Log($"[HandPoseAnalyzer] No constraint profile for '{signData.signName}'");
 
-                cachedResult.summaryMessage = $"Ajusta la mano para '{signData.signName}'...";
+                cachedResult.summaryMessage = $"Adjust your hand for '{signData.signName}'...";
                 return cachedResult;
             }
 
@@ -493,7 +493,7 @@ namespace ASL_LearnVR.Feedback
 
                 // Intentar usar mensaje personalizado del constraint
                 string customMsg = constraint.GetMessage(errorType);
-                if (!string.IsNullOrEmpty(customMsg) && !customMsg.StartsWith("Ajusta"))
+                if (!string.IsNullOrEmpty(customMsg) && !customMsg.StartsWith("Adjust"))
                 {
                     message = customMsg;
                 }
@@ -712,7 +712,7 @@ namespace ASL_LearnVR.Feedback
             {
                 string orientationMessage = !string.IsNullOrEmpty(profile.orientationHint)
                     ? profile.orientationHint
-                    : "Gira la muneca hacia el lado del gesto";
+                    : "Rotate your wrist toward the gesture side";
 
                 errorList.Add(FingerError.Create(
                     Finger.Thumb,
